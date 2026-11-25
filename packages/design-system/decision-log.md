@@ -1206,3 +1206,37 @@ It opens a feedback sheet in place, so a person stays on their page, with the we
 On the first paint and while Weave checks the session, the desktop header keeps the Account button's space. Once the check settles, the header offers the appropriate control. A phone keeps the account menu in You.
 
 Home keeps Start An Initiative as its primary action, with the second action in the same spot. The second action opens Your Initiatives by default. It can open the current draft or resume the last team workspace once Weave confirms the account still has access. The initiative's name and save status are shown on its own page.
+
+## DL-147: Your Initiatives lists this device, Certified projects and private saves, and deletion says only what it knows
+
+**Status:** from the QA notes of 25 November 2026 (items 1 and 2), with the user's brief for the public initiative update. Amends DL-134's two sections and DL-112's deletion copy.
+
+A deleted private save stayed in the list: its copy on this device had the same ID and name, and lost only its Saved privately tag. A card with the same name as an unrelated draft looked undeleted for the same reason. A save that was only shared for matching was refused with "linked to a Certified project", which it never was. The account list itself was right after every reload.
+
+- **Three sections.** On This Device holds the drafts in this browser, with a draft saved privately listed once there under its Saved privately tag. Certified Projects holds projects, team workspaces and drafts linked to one. Private Weave Saves, shown only to someone signed in, holds cards that are only in the account, with More Private Saves, Download Private Saves and Delete A Saved Card. DL-134 turned down a device section because an edited saved card belonged to two places; it now belongs to one, the device, and its tag says it is also saved.
+- **Deleting a card with a copy here asks about the copy first.** "Also remove its copy from this device" is ticked by default. The account deletes the card first; only then does the copy move to the device backups in Settings, where it can be restored. Unticked, the copy stays listed, marked Not saved yet. The message after says where the copy is.
+- **Same-name drafts are named before the press.** A card with no copy here says that a different draft with its name stays on this device, and was never this card.
+- **A refusal names only what Weave verified.** The server's one code (`initiative_referenced`) covers every reference. The app then checks: a Certified project counts only when the account's workspaces list the card as one; sharing for matching and saved partners come from the matching state. Anything unverified reads "Weave still uses this card for something else, such as matching, saved partners, a public listing or a project being set up".
+- **Any draft can leave the list.** Remove A Draft From This Device moves one draft, the tab's or another, to the device backups after a confirmation by name. A saved copy in the account is not changed.
+
+The server's deletion guard is unchanged.
+
+## DL-148: The intake finishes with a public review and one confirmation
+
+**Status:** from the QA notes of 25 November 2026 and the user's brief. Amends DL-113's Saving And Sharing rows for a live card.
+
+Review And Publish is the card page's primary action, above Save Privately, which is now secondary and says where it goes and who can read it before it saves (Save Privately In Weave?). Make It Public walks through:
+
+1. **Choose.** Where it goes, who can see it and what Certified keeps come first. Each kept need and offer is an opt-in checkbox; one with no kind of support says to add one.
+2. **Sign in, then choose a project.** The choice is kept in the tab's own storage under the draft's ID, so it survives Certified's screens and reopens the dialog on return. Certified's project permission returns to Your Initiatives, which offers Continue Publishing. A group project is sent to its team workspace.
+3. **Prepare.** The dialog says that Weave first saves the card privately as the project's workspace, so it can publish and withdraw, and that nothing is public yet.
+4. **Review.** The destination (project, repository, address), the project's own fields under From Certified, Not Changed By Weave, and each listing exactly as the server reviewed it under Published By Weave. A review that lapsed or a saved card that changed asks for a new preview.
+5. **One confirmation.** Each reviewed listing is sent once, in order, with the request ID kept since its review; each result is stored as it arrives. Each entry then says Public, read back from the repository; waiting for Certified's permission; sent and waiting; changed outside Weave; or not confirmed. Check Again repeats the same request or checks the server's status, so nothing is published twice.
+
+From Krug: say where things go before the press that sends them.
+
+## DL-149: A public initiative's page shows its own current needs and offers
+
+**Status:** from the user's brief, 25 November 2026. Extends DL-136's record pages.
+
+The page of a public initiative now asks `/api/public-initiative` for that exact project every time it opens, from a link or from the list. It shows every public passage of its description, its focus (kinds of work and of group) as tags, and its publisher's links with their own labels or their addresses. What They Need and What They Can Offer use the public Ask cards, with each listing's kinds, title, description and the day it was listed. Only listings Weave published and read back, still open and not expired, for exactly this project appear; nothing is cached, so a withdrawal is gone the next time the page opens. Banners and other pictures wait for D30. The public Ask heading is What They Can Offer, matching the owner's What You Can Offer.

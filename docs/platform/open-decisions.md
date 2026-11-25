@@ -311,6 +311,12 @@ draft. Certified failure keeps device work available and offers retry through
 Certified. Returning identity must preserve account UUID and saved rows. An
 unexpected identity conflict fails without merging accounts or moving data.
 
+On 25 November 2026 the QA notes moved private saving behind the two primary
+destinations, this device and a Certified project (DL-147). Existing private saves
+are kept as they are: nothing is migrated, linked or published. Signed in, a person
+can open them, download them all, or delete one; a card's copy on this device goes
+to the device backups only when they choose that before the deletion.
+
 The [first-build contract](05-technical-spec.md#51-first-build-certified-sign-in-and-private-saving)
 owns implementation order, acceptance tests and remaining hosting decisions.
 Hosted staging and a second auth review are release gates. This records the user's
@@ -407,6 +413,21 @@ withdrawal. A confirmed withdrawal initiated through another AT Protocol app
 changes the public listing state only. The team's Weave share stays active
 while eligible. Certified project-page display and partner indexing can follow
 independently.
+
+**Intake finish and public page, 25 November 2026.** After the QA notes of 25
+November, publishing is the primary finish to the intake (DL-148). One dialog
+takes the person from choosing needs and offers, through Certified sign-in and
+project selection, to a preview built from the server's own reviews, and one
+confirmation sends each reviewed publication once. The plan, with each listing's
+request ID, survives the sign-in and consent redirects in the tab's own storage,
+so a retry repeats the same request and never publishes an unreviewed revision.
+Publishing still needs the card saved as the project's workspace; the dialog says
+so before that save. Group projects publish from their team workspace, as before.
+A public initiative's page reads `GET /api/public-initiative`, which serves only
+confirmed, open, unexpired listings for the exact project AT URI and is never
+cached (DL-149). Banners and other images stay out until D30 is decided. Hosted
+Certified write consent, read-back and the `weave-public-support-listings.sql`
+candidate remain unapplied and unproven outside local fixtures.
 
 ### Shared entries and acting on matches
 

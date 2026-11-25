@@ -905,6 +905,35 @@ relies on READ COMMITTED, the default for PostgREST and the API's transactions.
 Under REPEATABLE READ, a review probe found that a stale create racing a deletion
 fails with a serialization error (40001) rather than `initiative_deleted`.
 
+### Local public initiative response
+
+`GET /api/public-initiative?uri=<project AT URI>` answers one public initiative for
+signed-out visitors (DL-149). The only accepted parameter is a `uri` in the public
+project shape (`did:plc`, `org.hypercerts.collection`, a timestamp record key). The
+project must be one the public list shows; otherwise the answer is 404 `not_found`.
+It returns the project's passages, kinds of work and of group, publisher, place and
+publisher links, plus `needs` and `offers`: only listings whose publication Weave
+confirmed by read-back, still open, not expired and naming exactly that project.
+Every listing is checked again in the handler. Every answer is `Cache-Control:
+no-store`. While the public list is off the answer is `{ "status": "off" }`.
+
+Publisher links are read live from the organization record through the Certified
+read boundary within 1.5 seconds, and need `WEAVE_CERTIFIED_GROUP_ORIGIN` and
+`WEAVE_CERTIFIED_GROUP_PDS_ORIGIN`; without them, or on any failure, the list is
+empty. No banner, avatar or other image is read (D30).
+
+Apply `supabase/candidates/weave-public-support-listings.sql` after the project
+index and support publication candidates, and after the website's
+organization-description migration. It adds one security-definer function,
+`private.weave_public_support_listings(text)`, executable only by
+`weave_index_job`, and changes no table, trigger or other function. No hosted
+migration is implied. The disposable `public-support-listings-postgres.test.ts`
+suite needs a loopback database named `weave_public_listings_test` in
+`WEAVE_PUBLIC_LISTINGS_TEST_DATABASE_URL` and the private-account baseline in
+`WEAVE_PUBLIC_LISTINGS_TEST_BASELINE`. It covers published, pending, withdrawing,
+withdrawn, conflicting, expired, wrong-project, unrelated-project, matching-only and
+private entries, the role grants, and the handler end to end as the index login.
+
 ### Production pilot preparation
 
 On 12 November the user chose open project access rather than supplying two

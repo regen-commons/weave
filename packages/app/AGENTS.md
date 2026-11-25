@@ -22,6 +22,10 @@ agreement (`cloud`), after it (`cloud-agreed`) and ending at the day's limit
 (`cloud-limit`) or offline (`cloud-offline`); `drafts=several` gives the
 example browser two more initiatives beside the one on screen; and
 `certified=fail` makes the example Certified refuse to create a project or publish.
+With `WEAVE_ACCOUNT_FIXTURE=1` the dev server also publishes support listings for the personal fixture
+projects in memory (`dev/matching-fixture.ts`; `/__fixture` with `action=publish-permission` holds them back
+for Certified's permission or gives it) and answers the public list and `/api/public-initiative` from
+them (`dev/public-fixture.ts`), so a signed-out browser can open Garden commons (fixture) from the list.
 `bun run --filter @weave/app prototype` builds the same app with its examples for the review page in
 `docs/platform/prototype/preview`; that build alone sets `__WEAVE_PROTOTYPE__`, keeps routes in
 the URL fragment and talks to the review page through `src/prototype.ts`. With a fixture the
@@ -41,7 +45,7 @@ production. Account saving uses the same-origin API and stays unavailable until 
 | `src/pages/` | Pages composed from `src/ui` |
 | `src/describe/` | Validated device drafts, the IndexedDB store of several drafts and its tab sync, the fill that puts words into the four fields, and local extraction adapters |
 | `src/intake/` | Need/offer contracts, review rules, local extraction and checked-card text |
-| `src/initiative/` | The card's status, one line for where it is kept and one row per action, where it opens, and a card started from a Certified project |
+| `src/initiative/` | The card's status, one line for where it is kept and one row per action, where it opens, a card started from a Certified project, and the public finish to the intake (`publish-plan.ts`, `publish-run.ts`, `PublishInitiative.tsx`, DL-148) |
 | `src/social/` | Shared initiative/project screens, the live account and project adapter, sharing/publication dialogs, and development-only example services. Reminders and account deletion remain examples. |
 | `src/partners/` | Partner suggestions: public evidence matched on the device, shown as direct fits and possible fits, with example teams in development; and the public Certified project list on Initiatives and Home, with the starter sources as its fallback |
 | `src/feedback/` | The Feedback tab and sheet on every page, and what it sends to `/api/feedback` (DL-145) |
