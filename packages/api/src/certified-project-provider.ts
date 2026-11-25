@@ -293,16 +293,33 @@ function locationReference(value: unknown, repo: string): { rkey: string; cid: s
   return /^[A-Za-z0-9._:~-]{1,512}$/u.test(rkey) && rkey !== "." && rkey !== ".." ? { rkey, cid: version } : null;
 }
 
-/** The organization's web addresses as a card keeps links: http or https, no credentials, at most six. */
-function organizationLinks(value: Record<string, unknown>): string[] {
+/** One web address on an organization record, and the label the record gives it when that fits one line. */
+export type OrganizationLink = { url: string; label?: string };
+/** An organization's own label for a link: trimmed, 1 to 80 characters, no control or line-breaking characters. */
+function linkLabel(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const label = value.trim();
+  const length = [...label].length;
+  return length >= 1 && length <= 80 && !/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Surrogate}]/u.test(label) ? label : undefined;
+}
+
+/**
+ * The organization's web addresses as a card keeps links: http or https, no credentials, at most six, each
+ * with its own valid label. An address given twice keeps its first entry.
+ */
+export function organizationLinks(value: Record<string, unknown>): OrganizationLink[] {
   if (!Array.isArray(value.urls)) return [];
-  const links: string[] = [];
+  const links: OrganizationLink[] = [];
   for (const item of value.urls.slice(0, 50)) {
-    const url = item && typeof item === "object" && !Array.isArray(item) ? (item as Record<string, unknown>).url : undefined;
-    if (typeof url !== "string" || url.length > 2048 || /[\s\p{Cc}]/u.test(url) || links.includes(url)) continue;
+    const entry = item && typeof item === "object" && !Array.isArray(item) ? item as Record<string, unknown> : undefined;
+    const url = entry?.url;
+    if (typeof url !== "string" || url.length > 2048 || /[\s\p{Cc}]/u.test(url) || links.some(link => link.url === url)) continue;
     try {
       const parsed = new URL(url);
-      if ((parsed.protocol === "https:" || parsed.protocol === "http:") && !parsed.username && !parsed.password) links.push(url);
+      if ((parsed.protocol === "https:" || parsed.protocol === "http:") && !parsed.username && !parsed.password) {
+        const label = linkLabel(entry?.label);
+        links.push(label === undefined ? { url } : { url, label });
+      }
     } catch { /* Not a web address, so it is left out. */ }
     if (links.length === 6) break;
   }
@@ -482,7 +499,7 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
     if (org.ok) {
       const publisher = decode(org, ({ value }) => {
         if (value.$type !== organization) throw Error("invalid_organization_record");
-        return { visibility: visibility(value.visibility), links: organizationLinks(value) };
+        return { visibility: visibility(value.visibility), links: organizationLinks(value).map(({ url }) => url) };
       });
       if (!publisher.ok) return publisher;
       if (publisher.value.visibility === "unlisted") project.value.visibility = "unlisted";
@@ -667,7 +684,7 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
       if (org.ok) {
         const publisher = decode(org, ({ value }) => {
           if (value.$type !== organization) throw Error("invalid_organization_record");
-          return { listed: visibility(value.visibility) === "public", links: organizationLinks(value) };
+          return { listed: visibility(value.visibility) === "public", links: organizationLinks(value).map(({ url }) => url) };
         });
         if (!publisher.ok) return publisher;
         if (!publisher.value.listed) return ok({ ...base, projects: [] as CertifiedProject[] });

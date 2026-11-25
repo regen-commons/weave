@@ -19,6 +19,10 @@ import { missingLine, projectAddress, projectFit, projectPassages, rememberedPro
 import { sharedByLine, type PublicProjectCard } from "./public-projects.ts";
 import { MatchingDate } from "./SharingReview.tsx";
 import { recordFirstView } from "../record-first-view.ts";
+import { PublicAsks } from "../ui/PublicAsks.tsx";
+import { Tag } from "../ui/Tag.tsx";
+import { keyLabel } from "./public-projects.ts";
+import { publicAsk, requestPublicInitiative, type InitiativeLookup } from "./public-initiative.ts";
 
 type Loaded =
   | { status: "loading" }
@@ -101,17 +105,81 @@ export function PublicProjectRecord({ uri, sheet, presentation }: { uri: string;
   );
 }
 
+type Detail = { status: "loading" } | InitiativeLookup | { status: "failed" };
+
+/**
+ * The initiative's own answer (`/api/public-initiative`), asked for on every opening, from a link or from the
+ * list, and never kept: only current, confirmed public needs and offers of exactly this project are shown, so
+ * one withdrawn or expired since is gone when the page opens again.
+ */
+function useInitiativeDetail(uri: string): [Detail, () => void] {
+  const [detail, setDetail] = useState<Detail>({ status: "loading" });
+  useEffect(() => {
+    if (detail.status !== "loading") return;
+    const controller = new AbortController();
+    requestPublicInitiative(uri, controller.signal).then(
+      (lookup) => { if (!controller.signal.aborted) setDetail(lookup); },
+      () => { if (!controller.signal.aborted) setDetail({ status: "failed" }); },
+    );
+    return () => controller.abort();
+  }, [uri, detail.status]);
+  return [detail, () => setDetail({ status: "loading" })];
+}
+
 function ProjectBody({ card, Section }: { card: PublicProjectCard; Section: SectionTag }) {
   const line = sharedByLine(card);
   const path = projectAddress(card.uri);
+  const [detail, retry] = useInitiativeDetail(card.uri);
+  const found = detail.status === "found" ? detail.initiative : null;
+  // The fuller description, once the initiative's own answer is here; the list's opening words until then.
+  const passages = found?.project.description.length ? found.project.description : projectPassages(card);
+  const focus = found ? [...found.project.focus, ...found.project.organizationTypes] : [];
   return (
     <>
       {line && <p className="rc-card-meta">{line}</p>}
-      {projectPassages(card).map((passage) => (
+      {passages.map((passage) => (
         <p className="rc-prose" key={passage}>
           {passage}
         </p>
       ))}
+      {focus.length > 0 && (
+        <div className="rc-stack">
+          <p className="rc-meta">Focus</p>
+          <ul className="rc-tag-list" aria-label="Focus">
+            {[...new Set(focus)].map((key) => <li key={key}><Tag>{keyLabel(key)}</Tag></li>)}
+          </ul>
+        </div>
+      )}
+      {found && found.project.publisherLinks.length > 0 && (
+        <div className="rc-stack">
+          <p className="rc-meta">{found.project.publisher ? `Links from ${found.project.publisher}` : "Links from its publisher"}</p>
+          <ul className="rc-stack">
+            {found.project.publisherLinks.map((link) => (
+              <li key={link.url}><Link href={link.url}>{link.label}</Link></li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {detail.status === "loading" ? (
+        <p className="rc-meta" role="status">Checking what this initiative needs and can offer.</p>
+      ) : detail.status === "failed" ? (
+        <section className="rc-notice" data-tone="warning" aria-label="Needs and offers">
+          <div className="rc-notice-body">
+            <p>Weave could not check what this initiative needs and can offer.</p>
+            <div className="rc-action-bar">
+              <button type="button" className="rc-button" data-variant="secondary" onClick={retry}>Try Again</button>
+            </div>
+          </div>
+        </section>
+      ) : found ? (
+        <>
+          <PublicAsks kind="needs" asks={found.needs.map(publicAsk)} />
+          <PublicAsks kind="offers" asks={found.offers.map(publicAsk)} />
+          {(found.needs.length > 0 || found.offers.length > 0) && (
+            <p className="rc-meta">Published by Weave to the project's own Certified repository. Anyone can read them.</p>
+          )}
+        </>
+      ) : null}
       <p className="rc-meta">
         Shared on Certified on <MatchingDate value={card.sharedAt} />. Weave last checked it on <MatchingDate value={card.checkedAt} />.
       </p>

@@ -25,6 +25,7 @@ export const ENDPOINTS = {
   // Answers GET and DELETE itself, with 405, so the switch that turns it off covers them too.
   mcp: { methods: ["GET", "POST", "DELETE"], load: () => import("./mcp.ts") },
   projects: { methods: ["POST"], load: () => import("./projects.ts") },
+  "public-initiative": { methods: ["GET"], load: () => import("./public-initiative.ts") },
   "public-projects": { methods: ["GET"], load: () => import("./public-projects.ts") },
   "record-image": { methods: ["GET", "HEAD"], load: () => import("./record-image.ts") },
   "record-page": { methods: ["GET", "HEAD"], load: () => import("./record-page.ts") },

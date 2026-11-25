@@ -12,7 +12,7 @@ export function PublicAsks({ kind, asks }: { kind: "needs" | "offers"; asks: rea
   return (
     <section className="rc-card-list" aria-labelledby={id}>
       <Heading className="rc-heading" data-size="section" id={id}>
-        {kind === "needs" ? "What They Need" : "What They Offer"}
+        {kind === "needs" ? "What They Need" : "What They Can Offer"}
       </Heading>
       {!asks.length ? (
         <p className="rc-meta">Nothing listed yet.</p>
@@ -29,7 +29,7 @@ export function PublicAsks({ kind, asks }: { kind: "needs" | "offers"; asks: rea
                   ))}
                 </ul>
                 <AskHeading className="rc-ask-title">{ask.title}</AskHeading>
-                <p>{ask.description}</p>
+                {ask.description && <p>{ask.description}</p>}
                 <p className="rc-ask-terms">{ask.terms}</p>
               </article>
             </li>

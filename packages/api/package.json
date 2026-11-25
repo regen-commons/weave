@@ -80,6 +80,11 @@
       "source": "./src/public-projects.ts",
       "default": "./dist/public-projects.js"
     },
+    "./public-initiative-contract": {
+      "types": "./src/public-initiative-contract.ts",
+      "source": "./src/public-initiative-contract.ts",
+      "default": "./dist/public-initiative-contract.js"
+    },
     "./public-projects-contract": {
       "types": "./src/public-projects-contract.ts",
       "source": "./src/public-projects-contract.ts",
