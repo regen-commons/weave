@@ -73,7 +73,7 @@ const publicEvidence: ProjectEvidence[] = [{
   cid: "fictional-cid",
   contentHash: "fixture-v1",
   fieldPath: "/description",
-  passage: "The Stream Survey Lab runs GPS watershed mapping, cartography and environmental monitoring workshops.",
+  passage: "The Stream Survey Lab runs GPS watershed mapping, cartography and environmental monitoring workshops in Vermont.",
   sourceCreatedAt: "2026-10-01T00:00:00Z",
   sourceIndexedAt: null,
   fetchedAt: "2026-11-08T00:00:00Z",
@@ -157,7 +157,7 @@ export function fixtureTeam(token: string, id: string) {
 const isFixtureTeam = (id: string) => [FIXTURE_TEAM_ID, FIXTURE_SECOND_TEAM_ID, externalWorkspace].includes(id);
 const teamDocument = parseTeamDocument({
   ...accountExample,
-  initiative: { ...accountExample.initiative, name: "Watershed Team (fixture)" },
+  initiative: { ...accountExample.initiative, name: "Watershed Team (fixture)", locations: ["Upper valley, Vermont"] },
   needs: accountExample.needs.map((entry) => ({ ...entry,
     value: { ...entry.value, title: "GPS watershed mapping", capitalForms: [], amount: null },
   })),

@@ -7,7 +7,7 @@ import {
   type NetworkLead, type SharingPreview,
 } from "./matching-client.ts";
 
-export function sharedEntries(entries: MatchingEntry[], now = Date.now()): MatchingEntry[] {
+export function sharedEntries<Entry extends MatchingEntry>(entries: readonly Entry[], now = Date.now()): Entry[] {
   return entries.filter(({ sharing, status, expiresAt }) =>
     sharing === "shared" && status === "open" && (expiresAt === null || Date.parse(expiresAt) > now));
 }

@@ -209,11 +209,14 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
           beside the whole page. */}
       <StepLayout wide more={saved ? <Stack wide>
           <CertifiedSuggestions workspaceId={workspaceId} queries={queries} compact={false} online={online}
-            onAccessLost={loseAccess} />
-          <SavedMatching key={saved.revision} refreshVersion={matchVersion} active={{ id: workspaceId, owner: state!.user!.id, revision: saved.revision,
-            document: saved.document, contentKey: JSON.stringify(saved.document) }} synced={!editing}
-            compact={false} online={online} onExpired={() => loseAccess("sign_in_required")}
-            fixture={false} team readOnly={loaded.accessRole === "viewer" || editing} presentation="results" />
+            onAccessLost={loseAccess} renderResults={(publicResults) => (
+              <SavedMatching key={saved.revision} refreshVersion={matchVersion}
+                active={{ id: workspaceId, owner: state!.user!.id, revision: saved.revision,
+                  document: saved.document, contentKey: JSON.stringify(saved.document) }} synced={!editing}
+                compact={false} online={online} onExpired={() => loseAccess("sign_in_required")}
+                fixture={false} team readOnly={loaded.accessRole === "viewer" || editing} presentation="results"
+                publicResults={publicResults} />
+            )} />
           <Section id="team-funding" title="Funding That Fits">
             <FirstFunding workspace={{ id: workspaceId, subject: loadedDraft(saved, owner) }} />
           </Section>

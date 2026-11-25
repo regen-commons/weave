@@ -389,7 +389,9 @@ step. Signing in alone never opens partner cards. A linked initiative sees fits 
 public sources, matched on the device, while its entries stay private. Searching what
 other teams shared also needs one shared, open need or offer. Results come in two
 groups: direct fits, where they have said they offer or need this, and possible fits,
-where their public work suggests a fit and they have not offered or asked. Each result
+where their public work suggests a fit and they have not offered or asked. A Partial
+Fits group follows for public work that covers a concrete part of a need. Its cards
+use the Possible fit treatment and show what to check. Each result
 leads with how strong the fit is, as a word and a bar, then says why in one-sentence reasons:
 which way it runs with the person's own need or offer named, that it goes both ways where it
 does, and the words both sides share. The other side's own words follow, then what still
