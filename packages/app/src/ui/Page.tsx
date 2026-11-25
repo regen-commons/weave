@@ -71,7 +71,6 @@ export function Page({
           status={status}
           back={back}
           ended={ended}
-          banner="Still in development. Live soon."
         />
         {/* One canvas under every page, fixed to the window. It outlives the page, so its resting
             network grows once. */}
