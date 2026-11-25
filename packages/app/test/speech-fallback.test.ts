@@ -13,7 +13,7 @@ import {
   storedSpeechRecord,
   type BrowserSpeechRecordState,
 } from "../src/describe/speech-fallback.ts";
-import { SPEECH_SETTING, speechProblem, speechSettingLine, speechSetupStore, talkControls } from "../src/describe/speech-setup.ts";
+import { SPEECH_SETTING, speechMode, speechProblem, speechSettings, speechSetupStore, talkControls } from "../src/describe/speech-setup.ts";
 
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -311,11 +311,80 @@ test("a failure noted while the first answer is still on its way is not lost", a
 });
 
 test("Settings says when cloud speech stands in for the browser's service, and offers it back", () => {
-  assert.equal(speechSettingLine(false, false, true), SPEECH_SETTING.failed);
   assert.match(SPEECH_SETTING.failed, /did not answer on this device, so Talk It Out offers cloud speech instead where Weave has it on\.$/u);
-  assert.equal(speechSettingLine(false, true, true), `${SPEECH_SETTING.cloudAgreed} ${SPEECH_SETTING.failed}`);
   assert.equal(SPEECH_SETTING.useBrowserAgain, "Use Browser Speech Again");
-  assert.equal(speechSettingLine(false, false), SPEECH_SETTING.notAgreed);
+  assert.deepEqual(speechSettings("cloud", false, false).permissions, [], "no agreement is listed before one is made");
+});
+
+test("with both agreements stored and cloud speech chosen, Settings names Cloudflare and labels each agreement apart", async () => {
+  // A phone on which the browser's speech service was agreed to, then failed, then cloud speech was agreed to:
+  // the QA notes of 25 November 2026. Settings asks the same store Talk It Out asks, so it names the same choice.
+  const record = memorySpeechRecord("failed");
+  const browser = memoryConsent(true), cloud = memoryConsent(true);
+  const store = speechSetupStore({ speech: recognizer().speech, cloud: async () => true, brave: async () => false, record });
+  const settings = () => speechSettings(store.state("en-US"), browser.agreed(), cloud.agreed());
+  assert.equal(settings().selected, "Checking how Talk It Out can turn speech into text here.", "nothing is named before the browser answers");
+  store.check("en-US");
+  await settle(); await settle(); await settle();
+  assert.equal(speechMode(store.state("en-US")), "cloud", "the intake chooses cloud speech here");
+  assert.equal(settings().selected, "Talk It Out uses cloud speech here: it sends a recording to Cloudflare Workers AI.");
+  assert.deepEqual(settings().permissions.map(({ kind, label, line, withdraw }) => ({ kind, label, line, withdraw })), [
+    { kind: "browser", label: "Browser speech service", line: "Allowed on this device. Not in use here: Talk It Out uses cloud speech.", withdraw: "Stop Using Browser Speech" },
+    { kind: "cloud", label: "Cloud speech with Cloudflare", line: "Allowed on this device. In use here.", withdraw: "Stop Using Cloud Speech" },
+  ]);
+  assert.deepEqual(settings().permissions.map((permission) => permission.meaning), [SPEECH_SETTING.agreed, SPEECH_SETTING.cloudAgreed]);
+
+  // Withdrawing the browser's agreement leaves cloud speech chosen and in force.
+  browser.withdraw();
+  await settle(); await settle(); await settle();
+  assert.equal(speechMode(store.state("en-US")), "cloud");
+  assert.equal(settings().selected, "Talk It Out uses cloud speech here: it sends a recording to Cloudflare Workers AI.");
+  assert.deepEqual(settings().permissions.map((permission) => [permission.kind, permission.line]), [["cloud", "Allowed on this device. In use here."]]);
+
+  // Withdrawing cloud speech, as Settings does, also forgets the failure: the browser's service is offered again, and asks first.
+  cloud.withdraw();
+  record.forget();
+  await settle(); await settle(); await settle();
+  assert.equal(speechMode(store.state("en-US")), "browser");
+  assert.equal(settings().selected, "Talk It Out would use your browser's speech service here, and asks before it starts.");
+  assert.deepEqual(settings().permissions, []);
+});
+
+test("withdrawing cloud speech first hands the choice back to an agreed browser service, and Settings says so", async () => {
+  const record = memorySpeechRecord("failed");
+  const browser = memoryConsent(true), cloud = memoryConsent(true);
+  const store = speechSetupStore({ speech: recognizer().speech, cloud: async () => true, brave: async () => false, record });
+  const settings = () => speechSettings(store.state("en-US"), browser.agreed(), cloud.agreed());
+  store.check("en-US");
+  await settle(); await settle(); await settle();
+  assert.equal(speechMode(store.state("en-US")), "cloud");
+  cloud.withdraw();
+  record.forget();
+  await settle(); await settle(); await settle();
+  assert.equal(speechMode(store.state("en-US")), "browser");
+  assert.equal(settings().selected, "Talk It Out uses your browser's speech service here.");
+  assert.deepEqual(settings().permissions.map((permission) => [permission.kind, permission.line]), [["browser", "Allowed on this device. In use here."]]);
+  browser.withdraw();
+  assert.equal(settings().selected, "Talk It Out would use your browser's speech service here, and asks before it starts.");
+  assert.deepEqual(settings().permissions, []);
+});
+
+test("Settings names speech on this device, a setup on offer and no speech at all, whatever is agreed", () => {
+  assert.equal(speechSettings("ready", true, true).selected, "Talk It Out uses speech on this device. Your voice does not leave it.");
+  assert.deepEqual(speechSettings("ready", true, true).permissions.map((permission) => permission.line), [
+    "Allowed on this device. Not in use here: speech on this device comes first.",
+    "Allowed on this device. Not in use here: speech on this device comes first.",
+  ]);
+  for (const state of ["offer", "installing", "slow", "failed"] as const)
+    assert.equal(speechSettings(state, false, false).selected, "Talk It Out can use speech on this device once it is set up. Your voice does not leave it.", state);
+  assert.equal(speechSettings("none", false, true).selected, "This browser cannot turn speech into text here. You can type instead.");
+  assert.equal(speechSettings("none", false, true).permissions[0]?.line, "Allowed on this device. Not in use here.");
+  assert.equal(speechSettings("cloud", false, false).selected, "Talk It Out would use cloud speech with Cloudflare Workers AI here, and asks before it records.");
+  for (const state of ["checking", "none", "cloud", "browser", "offer", "ready"] as const)
+    for (const line of [speechSettings(state, true, true).selected, ...speechSettings(state, true, true).permissions.flatMap((p) => [p.line, p.meaning])]) {
+      assert.match(line, /^[A-Z][^]*\.$/u, line);
+      assert.doesNotMatch(line, /[—→·]/u, line);
+    }
 });
 
 test("the record keeps one word on the device, follows other tabs, and never notes a failure after the service worked", () => {

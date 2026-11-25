@@ -1096,6 +1096,8 @@ Given up: on these browsers a person sees no words until they stop, and must tru
 
 Given up: a person who stays silent for three seconds twice on the first tries of a working service is offered cloud speech next time; Use Browser Speech Again in Settings brings the service back. The device keeps one word about the browser's service (`speech-fallback.ts`), and the data policy says so.
 
+**Revised 25 November 2026**, after the QA notes: on a phone that used Cloudflare, Settings offered Stop Using Browser Speech and did not say which way of talking was in use. Settings now asks the same store Talk It Out asks (`speechSetupStore`, in the language the intake starts in) and opens its Speech group with the way in use here, such as "Talk It Out uses cloud speech here: it sends a recording to Cloudflare Workers AI." Each agreement in force is its own row, Browser speech service and Cloud speech with Cloudflare, with what it allows, whether it is in use here ("Allowed on this device. Not in use here: Talk It Out uses cloud speech.") and its own Stop button. Withdrawing one leaves the other and its row as they were, and the line above says what Talk It Out uses afterwards (`speechSettings` in `speech-setup.ts`).
+
 From Krug: say where things go before the press that sends them. From Dirksen: say what is happening while the person waits.
 
 ## DL-139: Funding's first cards come with the page, and a list ranked by fit waits for its ranking

@@ -29,7 +29,7 @@ import {
   speechMode,
   speechNotStarted,
   speechProblem,
-  speechSettingLine,
+  speechSettings,
   speechSetupStore,
   SPEECH_SETTING,
   talkControls,
@@ -605,11 +605,11 @@ test("the two agreements are kept apart, and Settings says which are in force", 
   assert.deepEqual([browser.agreed(), cloud.agreed()], [true, false]);
   assert.deepEqual([...values.keys()], [BROWSER_SPEECH_KEY]);
 
-  assert.equal(speechSettingLine(false, false), SPEECH_SETTING.notAgreed);
+  assert.deepEqual(speechSettings("cloud", false, false).permissions, []);
   assert.match(SPEECH_SETTING.notAgreed, /Weave asks before your voice leaves this device\.$/u);
-  assert.equal(speechSettingLine(true, false), SPEECH_SETTING.agreed);
-  assert.equal(speechSettingLine(false, true), SPEECH_SETTING.cloudAgreed);
-  assert.equal(speechSettingLine(true, true), `${SPEECH_SETTING.agreed} ${SPEECH_SETTING.cloudAgreed}`);
+  assert.deepEqual(speechSettings("cloud", true, false).permissions.map((permission) => permission.meaning), [SPEECH_SETTING.agreed]);
+  assert.deepEqual(speechSettings("cloud", false, true).permissions.map((permission) => permission.meaning), [SPEECH_SETTING.cloudAgreed]);
+  assert.deepEqual(speechSettings("cloud", true, true).permissions.map((permission) => permission.kind), ["browser", "cloud"], "each agreement is its own row");
   assert.match(SPEECH_SETTING.cloudAgreed, /Cloudflare Workers AI[^]*Weave does not keep it\.$/u);
   assert.equal(SPEECH_SETTING.withdrawCloud, "Stop Using Cloud Speech");
 });

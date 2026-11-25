@@ -291,13 +291,55 @@ export const SPEECH_SETTING = {
   useBrowserAgain: "Use Browser Speech Again",
 } as const;
 
+/** One agreement Settings lists on its own row: which way of talking it allows, whether Talk It Out uses it here now, and how to withdraw it. */
+export interface SpeechPermission {
+  readonly kind: "browser" | "cloud";
+  readonly label: string;
+  /** What the agreement lets Weave do, as the person agreed to it. */
+  readonly meaning: string;
+  /** Whether it is in force and whether Talk It Out uses it here now. */
+  readonly line: string;
+  readonly withdraw: string;
+}
+
+/** What Settings says about speech: the way Talk It Out turns speech into text here now, then each agreement in force. */
+export interface SpeechSettings {
+  /** One status line, so withdrawing an agreement is heard as the line it leaves behind. */
+  readonly selected: string;
+  readonly permissions: readonly SpeechPermission[];
+}
+
+/** Why an agreement in force is not the one Talk It Out uses here now. */
+const notInUse = (mode: SpeechMode | null): string =>
+  mode === "cloud" ? "Not in use here: Talk It Out uses cloud speech."
+    : mode === "browser" ? "Not in use here: Talk It Out uses your browser's speech service."
+      : mode === "device" ? "Not in use here: speech on this device comes first."
+        : "Not in use here.";
+
 /**
- * The one line Settings says about speech: each agreement in force, or that Weave asks first.
- * It is one status line, so withdrawing an agreement is heard as the line it leaves behind.
+ * Settings' account of speech, from the same choice Talk It Out makes (`speechSetupStore`, 19 and 23
+ * November 2026): `state` is what the store says for the language the intake listens in. Agreeing to
+ * one way of talking never agrees to the other, so each agreement is its own row with its own action,
+ * and a row says whether Talk It Out uses it here. A phone can hold both agreements while only one of
+ * them is chosen; the QA notes of 25 November 2026 found Settings naming the browser's service while
+ * Talk It Out sent recordings to Cloudflare.
  */
-export const speechSettingLine = (browser: boolean, cloud: boolean, failed = false): string =>
-  [browser && SPEECH_SETTING.agreed, cloud && SPEECH_SETTING.cloudAgreed, failed && SPEECH_SETTING.failed].filter(Boolean).join(" ") ||
-  SPEECH_SETTING.notAgreed;
+export function speechSettings(state: SpeechSetupState, browser: boolean, cloud: boolean): SpeechSettings {
+  const mode = speechMode(state);
+  const selected =
+    state === "checking" ? "Checking how Talk It Out can turn speech into text here."
+      : mode === "device" ? "Talk It Out uses speech on this device. Your voice does not leave it."
+        : offersSetup(state) ? "Talk It Out can use speech on this device once it is set up. Your voice does not leave it."
+          : mode === "browser" ? (browser ? "Talk It Out uses your browser's speech service here." : "Talk It Out would use your browser's speech service here, and asks before it starts.")
+            : mode === "cloud" ? (cloud ? `Talk It Out uses cloud speech here: it sends a recording to ${CLOUD_SPEECH.provider}.` : `Talk It Out would use cloud speech with ${CLOUD_SPEECH.provider} here, and asks before it records.`)
+              : "This browser cannot turn speech into text here. You can type instead.";
+  const permissions: SpeechPermission[] = [];
+  if (browser) permissions.push({ kind: "browser", label: "Browser speech service", meaning: SPEECH_SETTING.agreed, withdraw: SPEECH_SETTING.withdraw,
+    line: `Allowed on this device. ${mode === "browser" ? "In use here." : notInUse(mode)}` });
+  if (cloud) permissions.push({ kind: "cloud", label: `Cloud speech with ${CLOUD_SPEECH.company}`, meaning: SPEECH_SETTING.cloudAgreed, withdraw: SPEECH_SETTING.withdrawCloud,
+    line: `Allowed on this device. ${mode === "cloud" ? "In use here." : notInUse(mode)}` });
+  return { selected, permissions };
+}
 
 /**
  * What Settings says about the recordings this device has sent, from the device's own record
