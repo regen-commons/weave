@@ -1,5 +1,5 @@
 import { busyProps } from "../account/busy.ts";
-import { useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { AccountSection } from "../account/AccountSection.tsx";
 import { SignOutAction } from "../account/SignOutAction.tsx";
 import { useAccount } from "../account/context.tsx";
@@ -8,10 +8,9 @@ import { revise } from "../describe/contracts.ts";
 import { deviceExport } from "../data/export.ts";
 import { blobDataUrl, downloadJson } from "../data/download.ts";
 import { applyTheme, THEME_CHOICES, type Theme } from "../theme.ts";
-import { deviceCloudConsent, deviceConsent } from "../describe/speech-consent.ts";
-import { deviceSpeechRecord } from "../describe/speech-fallback.ts";
-import { useBrowserSpeechAgreement, useBrowserSpeechRecord, useCloudSpeechAgreement, useCloudSpeechUses, useSpeechSetup } from "../describe/use-speech.ts";
-import { cloudSpeechUseLine, SPEECH_SETTING, speechSettings, type SpeechPermission } from "../describe/speech-setup.ts";
+import { deviceSpeech, useCloudSpeechUses, useSpeechAvailability, useSpeechSetup } from "../describe/use-speech.ts";
+import { chosenSpeech, cloudSpeechUseLine, speechOptions } from "../describe/speech-setup.ts";
+import { deviceSpeechChoice } from "../describe/speech-choice.ts";
 import { useTheme } from "../ui/ThemeSwitch.tsx";
 import { SignInButton } from "../account/SignInButton.tsx";
 import { COMMONS } from "../links.ts";
@@ -32,29 +31,18 @@ import { InstallGuide } from "../install/InstallGuide.tsx";
 import { DeviceBackups } from "../data/DeviceBackups.tsx";
 import { SignInReturnNotice } from "../account/SignInReturnNotice.tsx";
 import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
-/** Withdraws one agreement. Withdrawing cloud speech also offers the browser's own service again where cloud speech stood in for it (speech-fallback.ts). */
-function withdrawSpeech(permission: SpeechPermission) {
-  if (permission.kind === "browser") {
-    deviceConsent().withdraw();
-    return;
-  }
-  deviceCloudConsent().withdraw();
-  deviceSpeechRecord().forget();
-}
-
 export function Settings() {
   const { theme } = useTheme();
-  const browserSpeech = useBrowserSpeechAgreement();
-  const cloudSpeech = useCloudSpeechAgreement();
-  // Cloud speech stands in for a browser speech service that failed on this device (speech-fallback.ts).
-  const browserFailed = useBrowserSpeechRecord() === "failed";
   const cloudSpeechUses = cloudSpeechUseLine(useCloudSpeechUses());
-  // The way Talk It Out would turn speech into text now, chosen as the intake chooses it, in the language it starts in.
+  // One choice of how Talk It Out turns speech into text, read from the same store the intake uses, in
+  // the language it starts in (the user's decision of 25 November 2026).
   const [speechLanguage] = useState(() => navigator.language || "en-US");
   const speechSetup = useSpeechSetup(speechLanguage);
-  const speech = speechSettings(speechSetup.state, browserSpeech, cloudSpeech);
-  // Withdrawing removes its own button, so the line that says what changed takes the focus.
-  const speechLine = useRef<HTMLParagraphElement>(null);
+  const speechHere = useSpeechAvailability(speechLanguage);
+  // Settings shows every option, so it asks about cloud speech too, which Talk It Out asks only when it needs it.
+  useEffect(() => deviceSpeech().inspect(speechLanguage), [speechLanguage]);
+  const speechChosen = chosenSpeech(speechSetup.state);
+  const speechGroup = useId();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
@@ -213,50 +201,22 @@ export function Settings() {
           </button>
         </div>
       </SettingsSection>
-      <SettingsSection title="Speech" note="How talking turns into text.">
-        <p role="status" ref={speechLine} tabIndex={-1}>
-          {speech.selected}
-        </p>
-        {speech.permissions.length > 0 ? (
-          <ul className="rc-record-list" aria-label="Speech permissions on this device">
-            {speech.permissions.map((permission) => (
-              <li key={permission.kind} className="rc-record-row" data-layout="actions">
-                <div className="rc-record-text">
-                  <p className="rc-record-title">{permission.label}</p>
-                  <p className="rc-meta">{permission.meaning}</p>
-                  <p className="rc-meta">{permission.line}</p>
-                </div>
-                <div className="rc-action-bar">
-                  <button className="rc-button" data-variant="secondary" data-size="sm" type="button"
-                    onClick={() => { withdrawSpeech(permission); speechLine.current?.focus(); }}>
-                    {permission.withdraw}
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="rc-meta">{SPEECH_SETTING.notAgreed}</p>
-        )}
-        {browserFailed && (
-          <>
-            <p className="rc-meta">{SPEECH_SETTING.failed}</p>
-            <div className="rc-action-bar">
-              <button
-                className="rc-button"
-                data-variant="secondary"
-                type="button"
-                onClick={() => {
-                  deviceSpeechRecord().forget();
-                  speechLine.current?.focus();
-                }}
-              >
-                {SPEECH_SETTING.useBrowserAgain}
-              </button>
-            </div>
-          </>
-        )}
-        {cloudSpeechUses && <p className="rc-meta">{cloudSpeechUses}</p>}
+      <SettingsSection title="Speech" note="How Talk It Out turns speech into text.">
+        <fieldset className="rc-choice-group" aria-describedby={cloudSpeechUses ? `${speechGroup}-uses` : undefined}>
+          <legend className="rc-visually-hidden">How Talk It Out turns speech into text</legend>
+          {speechOptions(speechHere).map((option) => (
+            <label className="rc-choice" key={option.key}>
+              <input className="rc-check" type="radio" name={speechGroup} value={option.key}
+                checked={speechChosen === option.key} disabled={option.unavailable !== null && speechChosen !== option.key}
+                onChange={() => deviceSpeechChoice().choose(option.key)} />
+              <span className="rc-choice-text">
+                <span className="rc-choice-title">{option.label}</span>
+                <span className="rc-choice-note">{option.unavailable ?? option.note}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+        {cloudSpeechUses && <p className="rc-meta" id={`${speechGroup}-uses`}>{cloudSpeechUses}</p>}
       </SettingsSection>
       <SettingsSection title="Install Weave On Your Phone" note="It opens like an app, full screen.">
         <InstallGuide />
