@@ -3,8 +3,8 @@
  * agreement (DL-138, revised 23 November 2026). Two things say so:
  *
  * - **Brave.** It has the Web Speech API's recognizer but none of the speech service behind it, so a
- *   session fails with `network` once the microphone is allowed (brave/brave-browser#2802). Brave says
- *   who it is through `navigator.brave.isBrave()`.
+ *   session fails with `network` once the microphone is allowed (brave/brave-browser#2802). Brave
+ *   identifies itself through its own API or the browser brands in User-Agent Client Hints.
  * - **This device's own record**, before the service has ever given words here: it failed with
  *   `network` while the device was online, or with `service-not-allowed`; or it twice had the
  *   microphone open for a while and gave nothing back. One silent try may be a person thinking, so it
@@ -138,16 +138,16 @@ export function deviceSpeechRecord(): BrowserSpeechRecord {
   return (device ??= storedSpeechRecord());
 }
 
-/**
- * Whether this is Brave, which says so itself. Any other browser, one that does not answer, and an
- * answer that is not `true` all count as no.
- */
+/** Brave's own API is preferred. The declared brand can still be present when the API is hidden. */
 export async function isBrave(scope: unknown = globalThis.navigator): Promise<boolean> {
+  const browser = scope as {
+    brave?: { isBrave?: () => unknown };
+    userAgentData?: { brands?: readonly { brand: string }[] };
+  } | undefined;
   try {
-    const brave = (scope as { brave?: { isBrave?: () => unknown } } | undefined)?.brave;
-    if (typeof brave?.isBrave !== "function") return false;
-    return (await brave.isBrave()) === true;
+    if ((await browser?.brave?.isBrave?.()) === true) return true;
   } catch {
-    return false;
+    // A failed API call can still leave the brand available.
   }
+  return browser?.userAgentData?.brands?.some(({ brand }) => brand === "Brave") ?? false;
 }
