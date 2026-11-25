@@ -78,7 +78,7 @@ test("a list's skeleton is built from the loaded page's own parts, so nothing mo
   // words drawn while the device draft opens and its action holding its room, beside a checked
   // card's room for a device that has one (test/prompt-at-once.test.ts, test/checked-hint.test.ts).
   const page = read("pages/Funding.tsx");
-  assert.match(page, /\{\(!catalog\.subjectKnown \|\| !catalog\.personalized\) && \(\s*<div data-unless-checked-card=/u);
+  assert.match(page, /\{workspaceId === null && \(!catalog\.subjectKnown \|\| !catalog\.personalized\) && \(\s*<div data-unless-checked-card=/u);
   assert.doesNotMatch(page, /!loading && !catalog\.personalized/u);
   for (const file of ["pages/Funding.tsx", "partners/PublicProjects.tsx"]) assert.match(read(file), /\breserve="/u, file);
 });
@@ -122,7 +122,8 @@ test("Sort opens the same menu the filters open, says only Sort, and lives in a 
   assert.match(menu, /data-close-popover/u, "a menu of controls has a visible way to close it");
   const funding = read("pages/Funding.tsx");
   assert.match(funding, /<StatusLine\s+actions=\{\s*<>\s*\{subjectChoices\.length > 0 && \(\s*<RadioMenu/u, "the choice of initiative is offered only when there is something to choose (DL-129)");
-  assert.match(funding, /\{detailed && \(\s*<button[\s\S]*?>\s*Edit Details\s*<\/button>/u, "the details for funding open from beside the initiative's name (DL-131)");
+  assert.match(funding, /const canEditDetails = workspaceId === null && !!details;/u, "only a device draft can be edited from Funding");
+  assert.match(funding, /\{canEditDetails && \(\s*<button[\s\S]*?>\s*Edit Details\s*<\/button>/u, "the details for funding open from beside the initiative's name (DL-131)");
   assert.doesNotMatch(funding, /Change Funding Details/u);
   assert.match(bar, /data-variant="secondary"\s+type="button"\s+disabled=\{!query && choices\.length === 0 && !ordered\}\s+onClick=\{onClear\}/u);
 });

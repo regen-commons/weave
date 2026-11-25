@@ -200,10 +200,11 @@ let quietRoute: string | null = null;
 export const wroteQuietly = (route: string): boolean => route === quietRoute;
 
 /** Updates the address without changing page, as list filters do. */
-export function replaceRouteQuietly(route: string): void {
+export function replaceRouteQuietly(route: string, redraw = false): void {
   window.history.replaceState(window.history.state, "", address(route));
   quietRoute = currentRoute();
   shown = quietRoute;
+  if (redraw) notify();
 }
 
 type LinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & { href: string };

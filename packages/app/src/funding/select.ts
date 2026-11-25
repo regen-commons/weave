@@ -81,6 +81,12 @@ export const FUNDING_QUERY = {
  */
 export const BROWSING = { key: "initiative", value: "none" } as const;
 export const readBrowsing = (search: string) => new URLSearchParams(search).get(BROWSING.key) === BROWSING.value;
+export const FUNDING_WORKSPACE = "workspace";
+export const readFundingWorkspace = (search: string) => new URLSearchParams(search).get(FUNDING_WORKSPACE);
+
+export function workspaceFundingSearch(workspaceId: string): string {
+  return new URLSearchParams({ [FUNDING_WORKSPACE]: workspaceId }).toString();
+}
 export function writeBrowsing(browsing: boolean, params: URLSearchParams): void {
   if (browsing) params.set(BROWSING.key, BROWSING.value);
   else params.delete(BROWSING.key);
