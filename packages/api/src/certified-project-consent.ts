@@ -1,3 +1,4 @@
+import { observeApi } from "./usage.ts";
 import { renewalSettings } from "./account-runtime.ts";
 import { withRenewedSession } from "./account-session.ts";
 import { performance } from "node:perf_hooks";
@@ -36,7 +37,7 @@ export async function isWarmRequest(request: Request): Promise<boolean> {
 /** Whether this instance has answered a request before, for the timing label only. */
 let served = false;
 
-export async function POST(request: Request): Promise<Response> {
+async function post(request: Request): Promise<Response> {
   const timing = serverTiming(), cold = !served;
   served = true;
   if (await isWarmRequest(request)) {
@@ -59,3 +60,5 @@ export async function POST(request: Request): Promise<Response> {
   try { response.headers.set("Server-Timing", [timing.header(), own].filter(Boolean).join(", ")); } catch { /* Timing never changes an answer. */ }
   return response;
 }
+
+export const POST = observeApi("certified-project-consent", post);

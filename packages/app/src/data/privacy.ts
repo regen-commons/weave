@@ -9,8 +9,8 @@
  *   else (`src/account/document.ts`). Saved copies are not encrypted in the database.
  * - Team workspaces, sharing for matching and publishing are separate choices with their own
  *   readers (`src/social/LiveExposure.tsx`).
- * - The assistant sends no words to a cloud model, and the app loads no analytics (`vercel.json`,
- *   `src/describe`).
+ * - The assistant sends no words to a cloud model. When usage analytics are enabled, Weave's server
+ *   sends limited events to PostHog (`src/usage.ts`, `@weave/api` usage).
  * - Talking uses speech on the device where the browser has it; elsewhere the browser's own speech
  *   service, only after the person agrees (`src/describe/speech.ts`,
  *   `src/describe/speech-consent.ts`). That service is the browser's, and it may send the audio away.
@@ -138,7 +138,8 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
   {
     title: "Other Services",
     body: [
-      "The app loads no analytics or advertising scripts. The services that host Weave and handle sign-in keep their own request logs, which Weave does not control.",
+      "Weave may send PostHog the steps you reach when you sign in, search or save an initiative. Each attempt gets a new random code so PostHog can count where attempts stop. The events contain no account details, search words or initiative contents. PostHog can keep these events for up to a year.",
+      "Weave skips these events if your browser sends Global Privacy Control. Session replay and automatic click tracking are off. The services that host Weave and handle sign-in keep their own request logs.",
     ],
   },
   {

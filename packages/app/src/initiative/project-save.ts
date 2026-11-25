@@ -1,3 +1,4 @@
+import { measureInitiativeSave } from "../usage.ts";
 import { accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
 import { accountKey, loadedDraft, saveCommand } from "../account/document.ts";
 import { sendSave } from "../account/actions.ts";
@@ -70,23 +71,25 @@ export async function saveForProject(controller: DraftController, owner: string,
   const draft = controller.getSnapshot().draft;
   if (draft.account.saved?.owner === owner && draft.account.saved.contentKey === accountKey(draft))
     return { initiativeId: draft.account.saved.id, expectedRevision: draft.account.saved.revision };
-  const { binding, command } = saveCommand(draft, owner, deviceChoosers(draft.id));
-  controller.change((d) => revise(d, { account: { ...d.account, pending: binding } }));
-  await controller.settled();
-  signal.throwIfAborted();
-  if (controller.getSnapshot().storage !== "saved") throw Error("device_save_required");
-  const receipt = await sendSave(controller, command, signal);
-  signal.throwIfAborted();
-  if (receipt.id !== command.id || receipt.revision !== command.expectedRevision + 1
-      || JSON.stringify(receipt.document) !== binding.contentKey) throw Error("invalid_save_receipt");
-  // The receipt goes to the draft that asked, by its ID, even if the tab has left it meanwhile.
-  const bound = await controller.amend(draft.id, (d) =>
-    d.account.pending?.requestId === binding.requestId
-      ? revise(d, { account: { ...d.account, saved: { id: receipt.id, owner,
-          revision: receipt.revision, contentKey: binding.contentKey }, pending: null } })
-      : null);
-  if (!bound) throw Error("draft_changed");
-  signal.throwIfAborted();
-  if (controller.getSnapshot().draft.id === draft.id && controller.getSnapshot().storage !== "saved") throw Error("device_save_required");
-  return { initiativeId: receipt.id, expectedRevision: receipt.revision };
+  return measureInitiativeSave(async report => {
+    const { binding, command } = saveCommand(draft, owner, deviceChoosers(draft.id));
+    controller.change((d) => revise(d, { account: { ...d.account, pending: binding } }));
+    await controller.settled();
+    signal.throwIfAborted();
+    if (controller.getSnapshot().storage !== "saved") throw Error("device_save_required");
+    const receipt = await sendSave(controller, command, signal, report);
+    signal.throwIfAborted();
+    if (receipt.id !== command.id || receipt.revision !== command.expectedRevision + 1
+        || JSON.stringify(receipt.document) !== binding.contentKey) throw Error("invalid_save_receipt");
+    // The receipt goes to the draft that asked, by its ID, even if the tab has left it meanwhile.
+    const bound = await controller.amend(draft.id, (d) =>
+      d.account.pending?.requestId === binding.requestId
+        ? revise(d, { account: { ...d.account, saved: { id: receipt.id, owner,
+            revision: receipt.revision, contentKey: binding.contentKey }, pending: null } })
+        : null);
+    if (!bound) throw Error("draft_changed");
+    signal.throwIfAborted();
+    if (controller.getSnapshot().draft.id === draft.id && controller.getSnapshot().storage !== "saved") throw Error("device_save_required");
+    return { initiativeId: receipt.id, expectedRevision: receipt.revision };
+  });
 }

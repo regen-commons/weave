@@ -1,0 +1,53 @@
+name: Weave production monitor
+
+on:
+  schedule:
+    - cron: '3-58/5 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  availability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check Weave and its API from outside Vercel
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --retry 2 --retry-delay 2 --max-time 10 \
+            --output /dev/null https://weave.regencommons.com/
+          curl --fail --silent --show-error --retry 2 --retry-delay 2 --max-time 10 \
+            https://weave.regencommons.com/api/health | jq -e '.status == "ok"' >/dev/null
+  api-errors:
+    if: vars.WEAVE_API_ALERTS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check the last 15 minutes of production API errors
+        shell: bash
+        env:
+          MONITOR_DATABASE: ${{ secrets.WEAVE_API_ALERT_DATABASE_URL }}
+          MONITOR_CA: ${{ secrets.WEAVE_API_ALERT_DATABASE_CA_PEM }}
+          PGCONNECT_TIMEOUT: '5'
+          PGOPTIONS: '-c statement_timeout=5000'
+          PGSSLMODE: verify-full
+        run: |
+          if [[ -z "$MONITOR_DATABASE" ]]; then
+            echo "::error::The Weave API alert database connection is missing."
+            exit 1
+          fi
+          if [[ -n "$MONITOR_CA" ]]; then
+            export PGSSLROOTCERT="$RUNNER_TEMP/weave-monitor-ca.pem"
+            printf '%s\n' "$MONITOR_CA" > "$PGSSLROOTCERT"
+          fi
+          if ! routes=$(psql "$MONITOR_DATABASE" -XAt --set=ON_ERROR_STOP=1 \
+            --command='select weave.api_alert_routes()' 2>/dev/null); then
+            echo "::error::The Weave API monitor could not read the production counters."
+            exit 1
+          fi
+          if [[ -n "$routes" ]]; then
+            echo "::error::Weave logged at least five application API failures on a route in the last 15 minutes."
+            printf '%s\n' "$routes"
+            exit 1
+          fi

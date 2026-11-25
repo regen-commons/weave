@@ -28,6 +28,7 @@
     { "source": "/api/record-page", "destination": "/api/router?__route=record-page" },
     { "source": "/api/sitemap", "destination": "/api/router?__route=sitemap" },
     { "source": "/api/transcribe", "destination": "/api/router?__route=transcribe" },
+    { "source": "/api/usage", "destination": "/api/router?__route=usage" },
     { "source": "/funding/:id", "destination": "/api/router?__route=record-page&kind=funding&id=:id" },
     { "source": "/initiatives/:id", "destination": "/api/router?__route=record-page&kind=initiative&id=:id" },
     { "source": "/initiatives", "destination": "/api/router?__route=initiatives-page" },

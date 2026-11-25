@@ -1731,7 +1731,7 @@ The existing desk (`regencommons.com/admin`) gains a `weave` section group using
 
 ## 12. Security and privacy
 
-- Content Security Policy on the app shell: `default-src 'self'`; `connect-src` limited to the app origin, the Supabase project, the model asset origin (self-hosted model files under `/models` as today, checksum-verified) and nothing else; `worker-src 'self' blob:`; `wasm-unsafe-eval` for ONNX Runtime; no third-party fonts or analytics.
+- Content Security Policy on the app shell: `default-src 'self'`; `connect-src` limited to the app origin, the Supabase project, the model asset origin (self-hosted model files under `/models` as today, checksum-verified) and nothing else; `worker-src 'self' blob:`; `wasm-unsafe-eval` for ONNX Runtime; no third-party fonts or browser analytics scripts.
 - Models and runtime are served from the app origin with pinned revisions and SHA-256 checks (the current practice), not from the Hugging Face hub at runtime.
 - Write endpoints require a same-origin `Origin` header and JSON; bodies capped (64 KB; files go directly to Storage with RLS).
 - Rate limits: sign-in requests throttled client-side and by Supabase; save, share and intro commands limited per account per hour in a `private.limits` table (the website's intake quota pattern).
@@ -1745,9 +1745,30 @@ The cost figures below are original planning estimates, not measured costs for
 the new matching index. Section 7.6 requires indexing, storage, transfer and
 runtime measurements before choosing the pilot scheduler or approving new spend.
 
-- Metrics (R35) computed by SQL views and shown in the desk; no third-party analytics in Phase 0 and 1. Error reporting through Vercel and Supabase logs; optional Sentry later behind consent.
+- Metrics (R35) are computed by SQL views and shown in the desk. Weave uses the scoped PostHog Free integration below for product funnels. Error reporting uses Vercel and Supabase logs.
 - Costs in Phase 0: about USD 0 per month. Vercel Hobby in the existing Regen Commons team (cron once a day, 300 s functions, non-commercial use only); Supabase free plan or the existing Regen Commons project (500 MB database, paused after 7 days without activity, no automatic backups; sharing the website's project keeps it active, and a nightly `pg_dump` from GitHub Actions to private storage stands in for backups); Resend free (3,000 emails a month, 100 a day); domain and DNS existing; geocoder free tier. Upgrades only when needed: Supabase Pro USD 25 per month for the full place layers, daily backups and branching; Resend Pro USD 20 when daily sends approach 100; Vercel Pro USD 20 per developer seat once grant money pays a builder, or when per-minute cron or longer functions are needed. Cloud AI under USD 10 per month at a 20 percent fallback rate on Haiku 5.5 pricing; optional community inference server about EUR 214 per month in Phase 2.
 - Backups: Supabase daily backups (Pro); weekly export of public records to the repository as a versioned open-data release.
+
+### Free production monitoring and PostHog funnels
+
+The Weave production monitor runs on GitHub's standard public-repository runner every five minutes. It checks the homepage and requires `status: ok` from `/api/health`. Its optional API job fails when any application route records five or more 5xx responses or exceptions in 15 minutes. Vercel runtime logs hold the details. GitHub may delay scheduled runs and disables them after 60 days of public-repository inactivity. The API count covers application code that runs. The availability check also detects outages that prevent the app from running.
+
+The database keeps minute buckets of API failures by route for seven days. Enable alerts through the Platform migration owner using `supabase/candidates/weave-observability.sql` and separate restricted write and alert-reader login roles. Configure statement timeouts and TLS with hostname verification. Set `WEAVE_OBSERVABILITY_DATABASE_URL` in Vercel production and `WEAVE_API_ALERT_DATABASE_URL` in GitHub Actions. Supply their respective root certificates as `WEAVE_OBSERVABILITY_DATABASE_CA_PEM` and `WEAVE_API_ALERT_DATABASE_CA_PEM` if needed. Enable `WEAVE_API_ALERTS_ENABLED=true` in GitHub after confirming production writes. The alert owner enables GitHub Actions failure notifications and verifies receipt.
+
+Product analytics uses explicit events sent through the same-origin `/api/usage`. Weave sends PostHog a fixed event name, a random ID for the attempt, and its timing. A new attempt gets a new ID, which expires in the browser after 30 minutes. Sign-in keeps its ID in the same tab's session storage through the Certified redirect and removes it on return. The server sends no account details, search text, initiative contents, browser URLs, referrers, cookies, or client IP addresses to PostHog. Person profile processing and GeoIP are off. Weave honors Global Privacy Control and uses no PostHog browser SDK, autocapture, or session replay.
+
+Use a dedicated PostHog Free project with no payment method. Set `WEAVE_POSTHOG_HOST` to the project's US or EU ingestion host and `WEAVE_POSTHOG_PROJECT_TOKEN` to its project token in Vercel production. Set `VITE_WEAVE_USAGE_ENABLED=true` when ready to build and release. The endpoint stays inactive without production configuration. Leave project-level automatic capture and recording disabled.
+
+Build ordered funnels from these series with a 30-minute conversion window. IDs correspond to attempts, so the figures cannot measure unique people or connect different flows.
+
+| Funnel | Events in order |
+|---|---|
+| Sign-in | `weave-sign-in-started`, `weave-sign-in-handoff`, `weave-sign-in-completed` |
+| Funding search with results | `weave-funding-search-started`, `weave-funding-search-results` |
+| Initiative search with results | `weave-initiative-search-started`, `weave-initiative-search-results` |
+| Save an initiative | `weave-initiative-save-started`, `weave-initiative-save-requested`, `weave-initiative-save-accepted`, `weave-initiative-save-completed` |
+
+Compare each search funnel with its `-empty` and `-unavailable` events to distinguish zero results from a failed search. Sign-in and save failure and cancellation events provide context for drop-off. Offline use, browser privacy protections, and interrupted requests can reduce recorded totals.
 
 ## 14. Verification
 
