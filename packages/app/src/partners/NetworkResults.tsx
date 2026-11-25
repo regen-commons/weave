@@ -6,6 +6,7 @@ import { Card, CardGrid } from "../ui/Card.tsx";
 import { Fit } from "../ui/Fit.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { Tag } from "../ui/Tag.tsx";
+import type { CertifiedPartnerResults } from "./CertifiedSuggestions.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import {
   FIT_BASIS, PREVIEW_FITS, entryLine, fitLead, fitLines, fitStrength, groupFits, topicsLine, unknownLine,
@@ -40,7 +41,19 @@ export function reasonLead(type: MatchReason["type"]): string {
 }
 
 /** What supports one match and what to check: dates, why it fits, shared topics and what is unknown. */
-export function MatchDetails({ match }: { match: Omit<NetworkMatch, "reasons"> & { reasons: readonly MatchReason[] } }) {
+export function PartialFitDetails({ partial }: {
+  partial: { evidence: string; toCheck: string; supportingPassage?: string };
+}) {
+  return (
+    <div className="rc-stack">
+      <p>{partial.evidence}</p>
+      <p className="rc-meta">Check {partial.toCheck.charAt(0).toLowerCase() + partial.toCheck.slice(1)}</p>
+      {partial.supportingPassage && <blockquote className="rc-prose">{partial.supportingPassage}</blockquote>}
+    </div>
+  );
+}
+
+export function MatchDetails({ match }: { match: Omit<NetworkMatch, "reasons"> & { reasons: readonly MatchReason[]; partial?: unknown } }) {
   const evidence = match.evidence;
   return (
     <>
@@ -51,7 +64,7 @@ export function MatchDetails({ match }: { match: Omit<NetworkMatch, "reasons"> &
           Source dated <MatchingDate value={evidence.sourceCreatedAt} />. Checked on <MatchingDate value={evidence.fetchedAt} />.
         </p>
       )}
-      <p>{evidenceContext[match.evidenceKind]}</p>
+      {!match.partial && <p>{evidenceContext[match.evidenceKind]}</p>}
       {match.reasons.map(({ type, terms }) => <p className="rc-meta" key={`${type}:${terms.join(", ")}`}>
         {reasonLead(type)}{terms.join(", ")}.
       </p>)}
@@ -111,7 +124,7 @@ export function FitCard({
   level, name, href, entry, kind, reciprocal = false, topics = [], kinds = [], unknowns = [], basis, checkPlace = false,
   actions, children,
 }: {
-  level: 2 | 3 | 4 | 5;
+  level: 2 | 3 | 4 | 5 | 6;
   name: string;
   /** The public source the name opens, in a new tab. Left out where the card has its own Open the source. */
   href?: string;
@@ -192,7 +205,7 @@ function LeadButton({ label, name, variant = "quiet", onClick, disabled }: {
   );
 }
 
-export function NetworkResults({ search, leads, entries, compact, blocked, onChange, onRemove, readOnly = false, includePublic = true }: {
+export function NetworkResults({ search, leads, entries, compact, blocked, onChange, onRemove, readOnly = false, includePublic = true, publicResults, sharedNeeds = [], matchingLoading = false }: {
   search: MatchingSearch | null;
   leads: NetworkLead[] | null;
   entries: NamedEntry[];
@@ -200,12 +213,14 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
   blocked: boolean;
   readOnly?: boolean;
   includePublic?: boolean;
+  publicResults?: CertifiedPartnerResults;
+  sharedNeeds?: readonly NamedEntry[];
+  matchingLoading?: boolean;
   onChange: ChangeLead;
   onRemove(entry: MatchingEntryKey, candidateId: string): void;
 }) {
   const id = useId();
   const Group = compact ? "h4" : "h3";
-  const Title = compact ? "h5" : "h4";
   const leadIndex = new Map(leads?.map((lead) => [leadKey(lead, lead.candidateId), lead]));
   const now = Date.now();
   const matches = search?.results.filter(({ evidence }) =>
@@ -220,68 +235,135 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
   // A preview has no room for a hidden result, so the next one takes its place.
   const fits = compact ? current.filter(({ lead }) => lead?.disposition !== "dismissed") : current;
   const saved = compact ? [] : leads?.filter(({ disposition }) => disposition === "saved") ?? [];
+  const Need = compact ? "h4" : "h3";
+  const Evidence = compact ? "h5" : "h4";
+  const needCardLevel = compact ? 6 : 5;
+  const shownNeeds = publicResults && !matchingLoading ? sharedNeeds : [];
+  const needIds = new Set(shownNeeds.map(({ entryId }) => entryId));
+  const remainingFits = fits.filter(({ entry }) => entry.kind !== "need" || !needIds.has(entry.entryId));
+  const otherPublic = !matchingLoading && publicResults?.renderCards(
+    ({ kind, entryId }) => kind !== "need" || !needIds.has(entryId),
+    shownNeeds.length ? (compact ? 5 : 4) : (compact ? 4 : 3),
+  );
+  const otherPartial = !matchingLoading && publicResults?.renderCards(
+    ({ kind, entryId }) => kind === "need" && !needIds.has(entryId), compact ? 5 : 4, "partial",
+  );
+
+  function renderFit({ entry, match, lead }: typeof fits[number], level: 4 | 5 | 6) {
+    const name = match.counterpart.name;
+    const FitTitle = `h${level}` as const;
+    if (lead?.disposition === "dismissed") {
+      return (
+        <Card>
+          <FitTitle className="rc-card-title">{name}</FitTitle>
+          <p className="rc-card-meta">{entryLine(entry.kind, entry.title)}</p>
+          <p className="rc-meta">You hid this result.</p>
+          <div className="rc-action-bar">
+            {!readOnly && <LeadButton label="Undo Hide" name={name} disabled={disabled}
+              onClick={() => onRemove(entry, match.candidateId)} />}
+          </div>
+        </Card>
+      );
+    }
+    const { evidence } = match;
+    return (
+      <FitCard level={level} name={name} entry={entry} kind={match.evidenceKind}
+        reciprocal={match.reciprocal} topics={match.reasons.flatMap(({ terms }) => terms)}
+        kinds={entry.kinds} unknowns={match.unknowns}
+        basis={evidence.type === "shared" ? (
+          <>Shared in Weave on <MatchingDate value={evidence.confirmedAt} />.</>
+        ) : (
+          <>
+            Source dated <MatchingDate value={evidence.sourceCreatedAt} />, checked on{" "}
+            <MatchingDate value={evidence.fetchedAt} />.
+          </>
+        )}
+        actions={(evidence.type === "public" || !compact) && (
+          <>
+            {!compact && !readOnly && (
+              <LeadButton label={lead ? "Remove From Saved" : "Save"} name={name}
+                variant={lead ? "quiet" : "secondary"} disabled={disabled || readOnly}
+                onClick={() => lead
+                  ? onRemove(entry, match.candidateId)
+                  : onChange(entry, match.candidateId, "saved")} />
+            )}
+            {evidence.type === "public" && <SourceLink href={evidence.sourceUrl} name={name} />}
+            {!compact && !readOnly && (
+              <LeadButton label="Hide" name={name} disabled={disabled || readOnly}
+                onClick={() => onChange(entry, match.candidateId, "dismissed")} />
+            )}
+          </>
+        )}>
+        {evidence.type === "shared" ? (
+          <>
+            <p><strong>{evidence.title}</strong></p>
+            {evidence.passage && <p>{evidence.passage}</p>}
+          </>
+        ) : <blockquote className="rc-prose">{evidence.passage}</blockquote>}
+      </FitCard>
+    );
+  }
 
   return (
     <>
-      {search && <CoverageGaps coverage={search.coverage} />}
-      {search && !matches.length && <p>No team has shared a match for this yet.</p>}
-      <FitGroups results={fits} kindOf={({ match }) => match.evidenceKind}
+      {search && !publicResults && <CoverageGaps coverage={search.coverage} />}
+      {shownNeeds.map((need) => {
+        const heading = `${id}-need-${need.entryId}`;
+        const confirmed = fits.filter(({ entry, match }) => entry.kind === "need"
+          && entry.entryId === need.entryId && match.evidenceKind === "confirmed_offer");
+        const publicCards = publicResults?.renderCards(
+          ({ kind, entryId }) => kind === "need" && entryId === need.entryId, needCardLevel,
+        );
+        const partialCards = publicResults?.renderCards(
+          ({ kind, entryId }) => kind === "need" && entryId === need.entryId, needCardLevel, "partial",
+        );
+        return (
+          <section className="rc-section" key={need.entryId} aria-labelledby={heading}>
+            <Need className="rc-heading" data-size="section" id={heading}>{need.title}</Need>
+            {confirmed.length > 0 && (
+              <>
+                <Evidence className="rc-heading" data-size="section">Confirmed Offers</Evidence>
+                <CardGrid>
+                  {confirmed.slice(0, compact ? PREVIEW_FITS : undefined).map((fit) => (
+                    <li key={leadKey(fit.entry, fit.match.candidateId)}>{renderFit(fit, needCardLevel)}</li>
+                  ))}
+                </CardGrid>
+              </>
+            )}
+            {publicCards && (
+              <>
+                <Evidence className="rc-heading" data-size="section">From Public Project Details</Evidence>
+                {publicCards}
+              </>
+            )}
+            {partialCards && (
+              <>
+                <Evidence className="rc-heading" data-size="section">Partial Fits</Evidence>
+                {partialCards}
+              </>
+            )}
+            {search && publicResults?.checked && !confirmed.length && !publicCards && !partialCards && <p>No partners found for this need yet.</p>}
+          </section>
+        );
+      })}
+      {search && !matches.length && !shownNeeds.length && <p>No team has shared a match for this yet.</p>}
+      <FitGroups results={remainingFits} kindOf={({ match }) => match.evidenceKind}
         keyOf={({ entry, match }) => leadKey(entry, match.candidateId)}
         level={compact ? 4 : 3} limit={compact ? PREVIEW_FITS : undefined}>
-        {({ entry, match, lead }) => {
-          const name = match.counterpart.name;
-          if (lead?.disposition === "dismissed") {
-            return (
-              <Card>
-                <Title className="rc-card-title">{name}</Title>
-                <p className="rc-card-meta">{entryLine(entry.kind, entry.title)}</p>
-                <p className="rc-meta">You hid this result.</p>
-                <div className="rc-action-bar">
-                  {!readOnly && <LeadButton label="Undo Hide" name={name} disabled={disabled}
-                    onClick={() => onRemove(entry, match.candidateId)} />}
-                </div>
-              </Card>
-            );
-          }
-          const { evidence } = match;
-          return (
-            <FitCard level={compact ? 5 : 4} name={name} entry={entry} kind={match.evidenceKind}
-              reciprocal={match.reciprocal} topics={match.reasons.flatMap(({ terms }) => terms)}
-              kinds={entry.kinds} unknowns={match.unknowns}
-              basis={evidence.type === "shared" ? (
-                <>Shared in Weave on <MatchingDate value={evidence.confirmedAt} />.</>
-              ) : (
-                <>
-                  Source dated <MatchingDate value={evidence.sourceCreatedAt} />, checked on{" "}
-                  <MatchingDate value={evidence.fetchedAt} />.
-                </>
-              )}
-              actions={(evidence.type === "public" || !compact) && (
-                <>
-                  {!compact && !readOnly && (
-                    <LeadButton label={lead ? "Remove From Saved" : "Save"} name={name}
-                      variant={lead ? "quiet" : "secondary"} disabled={disabled || readOnly}
-                      onClick={() => lead
-                        ? onRemove(entry, match.candidateId)
-                        : onChange(entry, match.candidateId, "saved")} />
-                  )}
-                  {evidence.type === "public" && <SourceLink href={evidence.sourceUrl} name={name} />}
-                  {!compact && !readOnly && (
-                    <LeadButton label="Hide" name={name} disabled={disabled || readOnly}
-                      onClick={() => onChange(entry, match.candidateId, "dismissed")} />
-                  )}
-                </>
-              )}>
-              {evidence.type === "shared" ? (
-                <>
-                  <p><strong>{evidence.title}</strong></p>
-                  {evidence.passage && <p>{evidence.passage}</p>}
-                </>
-              ) : <blockquote className="rc-prose">{evidence.passage}</blockquote>}
-            </FitCard>
-          );
-        }}
+        {(fit) => renderFit(fit, compact ? 5 : 4)}
       </FitGroups>
+      {otherPublic && (shownNeeds.length > 0 ? (
+        <section className="rc-section" aria-labelledby={`${id}-other-public`}>
+          <Group className="rc-heading" data-size="section" id={`${id}-other-public`}>Other Public Suggestions</Group>
+          {otherPublic}
+        </section>
+      ) : otherPublic)}
+      {otherPartial && (
+        <section className="rc-section" aria-labelledby={`${id}-partial`}>
+          <Group className="rc-heading" data-size="section" id={`${id}-partial`}>Partial Fits</Group>
+          {otherPartial}
+        </section>
+      )}
       {saved.length > 0 && (
         <section className="rc-section" aria-labelledby={`${id}-saved`}>
           <Group className="rc-heading" data-size="section" id={`${id}-saved`}>Saved Partners</Group>

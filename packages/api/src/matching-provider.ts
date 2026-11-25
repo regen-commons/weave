@@ -6,6 +6,7 @@ import {
   type MatchingCommand, type MatchingCoverage, type MatchingLeads, type MatchingPreview, type MatchingSearch, type MatchingState,
 } from "./matching-contract.ts";
 import { PARTNER_ENGINE_VERSION, rankPartnerMatches, type ProjectEvidence, type SharedPartnerEntry } from "./partner-matcher.ts";
+import { publicEvidenceForMatching } from "./partner-ranking.ts";
 
 type MatchingResponse = MatchingState | MatchingPreview | MatchingLeads | MatchingSearch;
 export interface MatchingProvider {
@@ -29,7 +30,7 @@ function rank(initiativeId: string, payload: unknown): MatchingSearch {
       return;
     }
     if (publicModelVersion === PROJECT_MODEL_VERSION) modelUsed = true;
-    publicEvidenceByEntry[key] = evidence.flatMap(value => {
+    const parsed = evidence.flatMap(value => {
       try {
         const row = parseProjectEvidence(value);
         evidenceCount++;
@@ -39,6 +40,7 @@ function rank(initiativeId: string, payload: unknown): MatchingSearch {
         return [];
       }
     });
+    publicEvidenceByEntry[key] = publicEvidenceForMatching(entry, parsed);
   });
   const coverage: MatchingCoverage = {
     shared: groups.length ? "available" : "not_joined",

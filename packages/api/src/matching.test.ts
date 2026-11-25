@@ -69,6 +69,9 @@ test("rejects foreign origins, missing sessions, duplicate selection and injecte
 test("matches both directions with shared entries and public evidence without confusing evidence classes", async () => {
   const ownerOffer = { ...offer, initiativeId: owner };
   const peerNeed = { ...need, initiativeId: peer };
+  const otherProject = source.projectUri.replace("/example", "/other");
+  const mentionsWorkshop: ProjectEvidence = { ...source, id: "evidence-2", projectUri: otherProject,
+    sourceUri: otherProject, passage: "The watershed mapping workshop was held by another group." };
   const rpc = createSupabaseWeaveRpc("https://db.example.test", "publishable-fixture", async (url, init) => {
     assert.equal(url, "https://db.example.test/rest/v1/rpc/matching_shortlist");
     const headers = new Headers(init?.headers);
@@ -76,7 +79,7 @@ test("matches both directions with shared entries and public evidence without co
     assert.equal(headers.get("content-profile"), "weave");
     assert.deepEqual(JSON.parse(String(init?.body)), { p_id: owner, p_entries: null });
     return Response.json({ externalCoverage: { status: "bounded", corpusVersion: "pilot-1" }, groups: [
-      { entry: need, candidates: [offer], publicEvidence: [source] },
+      { entry: need, candidates: [offer], publicEvidence: [mentionsWorkshop, source] },
       { entry: ownerOffer, candidates: [peerNeed], publicEvidence: [source, { ...source, sourceUrl: "javascript:bad()" }] },
     ] });
   });

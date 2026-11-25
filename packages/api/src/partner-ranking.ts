@@ -14,7 +14,8 @@
  * - the fields of work both sides name (themes.ts), the initiative's examples included: the kinds of
  *   work a tool builder lists ("keeping solar panels running, teaching classes") are the communities
  *   it is looking for;
- * - the countries and regions both name.
+ * - the capabilities a need asks for, against what one public passage says a project provides;
+ * - the countries and regions both name, with unambiguous cities and states resolved to countries.
  * Shared words from the word matcher still count, and still carry their own reasons.
  *
  * Evidence keeps its kind and provenance. A project read this way is an inferred capability or a
@@ -28,9 +29,12 @@ import {
   type ProjectEvidence, type SharedPartnerEntry,
 } from "./partner-matcher.ts";
 import { readThemes, type ThemeReading } from "./themes.ts";
-import { namedPlaces, regionsOf, type Region } from "./places.ts";
+import { partnerPlaces } from "./partner-places.ts";
+import { regionsOf, type Region } from "./places.ts";
+import { providesInstruction, providesTool, requestedCapability, showsCapability, SOFTWARE, wantsGeneralPilot } from "./partner-capabilities.ts";
+import { evidencedPartialFit, meetsPartialRuleDetails, partialRulesFor, type PartialPartnerFit } from "./partner-partial.ts";
 
-export const PARTNER_RANKING_VERSION = "partner-complement-v1";
+export const PARTNER_RANKING_VERSION = "partner-complement-v3";
 
 export type PartnerRole = "place" | "builder" | "research" | "culture" | "learning" | "funder";
 export const ROLE_LABELS: Readonly<Record<PartnerRole, string>> = {
@@ -42,8 +46,6 @@ const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLo
 const str = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 const strings = (value: unknown) => (Array.isArray(value) ? value.map(str).filter(Boolean) : []);
 
-/** A product the writer builds, said as what they are or make. Using a tool ("with AudioMoth sensors") is not building one. */
-const BUILDS = /\b(?:open[- ]source|we build|we develop|we built|we developed|we make|we maintain|builds?|develops?|is an?|are an?|is building|is developing)\s+(?:(?:an?|the|our|its)\s+)?(?:[\p{L}-]+\s+){0,4}(?:apps?|application|platform|protocol|software|tool|tools|toolkit|dashboard|marketplace|layer|database|wallet|network of tools)\b/iu;
 /** Words that put a project in a place: where it is, the land it tends, the people there. */
 const LOCAL = /\b(?:villages?|county|counties|district|province|municipality|state of|city of|neighbou?rhoods?|valley|island|islands|river|rivers|estuary|wetlands?|farms?|reserve|park|forest|forests|gardens?|land|lands|landscape|basin|coast|coastline|hubs?|campus|community[- ]led|community[- ]based|community[- ]driven|local communit(?:y|ies)|our communit(?:y|ies)|grassroots|ecovillage|living lab)\b/iu;
 /** Research the project does. Being based at a university is a place, not research. */
@@ -58,13 +60,13 @@ const fundsOthers = (text: string) =>
 /** The roles a project's own words show. */
 export function projectRoles(text: string, themes: ReadonlyMap<string, ThemeReading>, places: number): Set<PartnerRole> {
   const roles = new Set<PartnerRole>();
-  const builds = BUILDS.test(text);
+  const builds = providesTool(text);
   if (builds) roles.add("builder");
   if (places > 0 || LOCAL.test(text)) roles.add("place");
   if (RESEARCH.test(text)) roles.add("research");
   const core = (id: string) => themes.has(id) && !themes.get(id)!.example;
   if (core("arts")) roles.add("culture");
-  if (core("education")) roles.add("learning");
+  if (core("education") || providesInstruction(text)) roles.add("learning");
   if (fundsOthers(text)) roles.add("funder");
   // A tool for many places is not itself one of them.
   if (builds && places === 0 && !/\b(?:villages?|farms?|reserve|hubs?|campus|ecovillage)\b/iu.test(text)) roles.delete("place");
@@ -73,23 +75,37 @@ export function projectRoles(text: string, themes: ReadonlyMap<string, ThemeRead
 
 /** Words that ask for a community or a place to work with. "At the hub" names the asker's own place, so hub is not one. */
 const WANTS_PLACE = /\b(?:communities|community groups|local groups|groups doing|grassroots groups|pilots?|piloting|to pilot|test it|testers|users|local partners?|host sites?|sites for|on the ground|gardens|farms|villages|cooperatives|neighbou?rhoods|comunidades|grupos|cooperativas|aldeias|veredas|bairros|barrios|usuarios|usuários)\b/iu;
-const WANTS_RESEARCH = /\b(?:evaluat\w*|research\w*|evidence|baseline|measur\w*|study|studies|scientists?|data analysis|monitor\w*|assessment|reviewers?|pesquisa\w*|investigaci\w*|avalia\w*|evalua\w*|medir|medi[cç][aã]o|monitoreo|monitoramento|cient[ií]fic\w*)\b/iu;
-const WANTS_BUILDER = /\b(?:tools?|apps?|software|platform|record|records|recording|track|tracking|dashboard|database|digital|system|reports?|reporting|ferramentas?|herramientas?|aplicativos?|aplicaci[oó]n|aplicaciones|plataformas?|registrar|registro|rastrear|rastreo|rastreabilidade|trazabilidad|sistema|relat[oó]rios?|informes?)\b/iu;
+const WANTS_RESEARCH = /\b(?:evaluat\w*|research\w*|evidence|baseline|measur\w*|study|studies|studied|studying|scientists?|data analysis|monitor\w*|assessment|reviewers?|pesquisa\w*|investigaci\w*|avalia\w*|evalua\w*|medir|medi[cç][aã]o|monitoreo|monitoramento|cient[ií]fic\w*)\b/iu;
+const WANTS_BUILDER = /\b(?:tools?|tooling|apps?|software|platform|record|records|recording|track|tracking|dashboard|database|digital|system|reports?|reporting|ferramentas?|herramientas?|aplicativos?|aplicaci[oó]n|aplicaciones|plataformas?|registrar|registro|rastrear|rastreo|rastreabilidade|trazabilidad|sistema|relat[oó]rios?|informes?)\b/iu;
 const WANTS_CULTURE = /\b(?:artists?|story|stories|storytell\w*|film\w*|music\w*|murals?|culture|cultural|creative|artistas?|hist[oó]rias?|historias?|cine|m[uú]sica|cultura)\b/iu;
-const WANTS_LEARNING = /\b(?:workshops?|training|trainers?|teach\w*|mentors?|mentoring|courses?|curriculum|skills|education|educators?|classes|oficinas|talleres|capacita\w*|forma[cç][aã]o|formaci[oó]n|cursos|educa[cç][aã]o|educaci[oó]n|mentor[ae]s)\b/iu;
+const WANTS_LEARNING = /\b(?:workshops?|training|trainers?|teach\w*|mentors?|mentoring|courses?|curriculum|skills|education|educators?|classes|tutor\w*|consultanc\w*|oficinas|talleres|capacita\w*|forma[cç][aã]o|formaci[oó]n|formations?|formateurs?|accompagnement|cursos|educa[cç][aã]o|educaci[oó]n|mentor[ae]s)\b/iu;
 const WANTS_FUNDER = /\b(?:funding|funds?|grants?|money|donors?|funders?|investors?|investment|budget|financiamento|financiaci[oó]n|fondos|dinheiro|dinero|doadores|donantes)\b/iu;
 
-/** The roles a need asks for: who could answer it. */
-export function neededRoles(entry: PartnerEntry): Set<PartnerRole> {
-  const text = partnerQueryProjection(entry);
-  const kinds = new Set(strings(entry.value.capitalForms));
+function rolesInNeed(text: string): Set<PartnerRole> {
   const roles = new Set<PartnerRole>();
-  if (WANTS_PLACE.test(text) || kinds.has("living")) roles.add("place");
+  if (WANTS_PLACE.test(text)) roles.add("place");
   if (WANTS_RESEARCH.test(text)) roles.add("research");
-  if (WANTS_BUILDER.test(text)) roles.add("builder");
-  if (WANTS_CULTURE.test(text) || kinds.has("cultural")) roles.add("culture");
+  if (WANTS_CULTURE.test(text)) roles.add("culture");
   if (WANTS_LEARNING.test(text)) roles.add("learning");
-  if (WANTS_FUNDER.test(text) || kinds.has("financial")) roles.add("funder");
+  if (WANTS_FUNDER.test(text)) roles.add("funder");
+  return roles;
+}
+
+/** The title names the ask. Details can explain its use at an existing site or pilot. */
+export function neededRoles(entry: PartnerEntry): Set<PartnerRole> {
+  const title = str(entry.value.title);
+  const text = partnerQueryProjection(entry);
+  const titleRoles = rolesInNeed(title);
+  // The app in "communities to pilot our app" names the thing they would work with.
+  const titleAsk = fold(title).split(/\b(?:using|to (?:use|test|pilot))\b/u)[0]!;
+  const softwareOptional = /\b(?:people|practitioners|experts|researchers) or (?:\w+ )?tools\b/iu.test(text);
+  const roles = SOFTWARE.test(titleAsk) || (!titleRoles.size && !softwareOptional && SOFTWARE.test(fold(text)))
+    ? new Set<PartnerRole>(["builder"])
+    : titleRoles.size ? titleRoles : rolesInNeed(text);
+  const kinds = new Set(strings(entry.value.capitalForms));
+  if (kinds.has("living")) roles.add("place");
+  if (kinds.has("cultural")) roles.add("culture");
+  if (kinds.has("financial")) roles.add("funder");
   return roles;
 }
 /** The roles that could use an offer: places, and research groups for a tool or a method. */
@@ -123,7 +139,7 @@ function readProject(passages: ProjectEvidence[]): ProjectReading {
   // A public project's title usually says what it does ("...waste value chain..."), so it is read too.
   const text = [first.projectName, ...passages.map(({ passage }) => passage)].join(". ");
   const themes = readThemes(text);
-  const places = namedPlaces(text);
+  const places = partnerPlaces(text);
   const regions = new Set<Region>([...places.regions, ...[...places.countries].flatMap(regionsOf)]);
   return {
     uri: first.projectUri, name: first.projectName, passages, themes,
@@ -132,9 +148,22 @@ function readProject(passages: ProjectEvidence[]): ProjectReading {
   };
 }
 
+function readProjects(passages: readonly ProjectEvidence[]): ProjectReading[] {
+  const byUri = new Map<string, ProjectEvidence[]>();
+  for (const passage of passages) {
+    const existing = byUri.get(passage.projectUri);
+    if (existing) existing.push(passage);
+    else byUri.set(passage.projectUri, [passage]);
+  }
+  return [...byUri.values()].map(readProject);
+}
+
 type QueryReading = {
   entry: PartnerEntry;
   wanted: Set<PartnerRole>;
+  capability: ReturnType<typeof requestedCapability>;
+  generalPilot: boolean;
+  partialRules: ReturnType<typeof partialRulesFor>;
   /**
    * Whether the initiative's own examples say whom this entry is looking for. A tool builder asking for
    * communities to pilot with, or offering its tool, is looking for groups doing the work it lists.
@@ -151,11 +180,20 @@ function readQuery(entry: PartnerEntry): QueryReading {
   const summary = entry.summary ?? {};
   const name = str(summary.name);
   const description = str(summary.description);
-  const places = namedPlaces([description, ...strings(summary.locations)].join(". "));
+  const places = partnerPlaces(description, strings(summary.locations));
   const wanted = entry.kind === "need" ? neededRoles(entry) : offerUsers(entry);
+  const title = str(entry.value.title);
+  const details = [str(entry.value.description), str(entry.value.purpose)].filter(Boolean).join(". ");
+  const generalPilot = entry.kind === "need" && wantsGeneralPilot(title, details, name);
+  const capability = entry.kind === "need" && !generalPilot
+    ? requestedCapability(title, details, wanted.has("builder"))
+    : null;
   return {
     entry,
     wanted,
+    capability,
+    generalPilot,
+    partialRules: entry.kind === "need" ? partialRulesFor(partnerQueryProjection(entry)) : [],
     examplesAreUsers: entry.kind === "offer" || wanted.has("place"),
     own: readThemes(partnerQueryProjection(entry), name),
     context: readThemes([description, ...strings(summary.themes)].join(". "), name),
@@ -167,7 +205,7 @@ function readQuery(entry: PartnerEntry): QueryReading {
 /** A reason a ranked match rests on: the word matcher's shared or related words, or what links the two sides. */
 export type PartnerReason = { type: "shared_terms" | "related_terms" | "complement"; terms: string[] };
 /** A match as Partners shows it: the word matcher's match, with what links the two sides among its reasons. */
-export type RankedPartnerMatch = Omit<PartnerMatch, "reasons"> & { reasons: PartnerReason[] };
+export type RankedPartnerMatch = Omit<PartnerMatch, "reasons"> & { reasons: PartnerReason[]; partial?: PartialPartnerFit };
 
 /** Why a project complements an entry, and how strongly. Null when nothing but words could link them. */
 export type Complement = {
@@ -228,8 +266,8 @@ export function complement(query: QueryReading, project: ProjectReading, rarity:
 /** Whether a project is where an entry limited to here, or to its region, must be. Unknown places never qualify. */
 function inScope(query: QueryReading, project: ProjectReading): boolean {
   const scope = str(query.entry.value.placeScope);
-  if (scope === "here" && query.countries.size) return [...project.countries].some((code) => query.countries.has(code));
-  if (scope === "region" && query.regions.size) return [...project.regions].some((name) => query.regions.has(name));
+  if (scope === "here") return [...project.countries].some((code) => query.countries.has(code));
+  if (scope === "region") return [...project.regions].some((name) => query.regions.has(name));
   return true;
 }
 
@@ -241,16 +279,17 @@ const evidenceOrder: PartnerEvidenceKind[] = [
   "confirmed_offer", "confirmed_need", "published_offer", "published_request", "inferred_capability", "potential_use",
 ];
 const compare = (a: Candidate, b: Candidate) =>
-  evidenceOrder.indexOf(a.match.evidenceKind) - evidenceOrder.indexOf(b.match.evidenceKind)
+  Number(!!a.match.partial) - Number(!!b.match.partial)
+  || evidenceOrder.indexOf(a.match.evidenceKind) - evidenceOrder.indexOf(b.match.evidenceKind)
   || b.score - a.score
   || Number(b.match.reciprocal) - Number(a.match.reciprocal)
   || a.match.unknowns.length - b.match.unknowns.length
   || b.freshness - a.freshness
   || a.match.candidateId.localeCompare(b.match.candidateId, "en");
 
-const complementReason = (found: Complement) => ({
+const complementReason = (found: Complement, capability: string | undefined) => ({
   type: "complement" as const,
-  terms: [...(found.role ? [ROLE_LABELS[found.role]] : []), ...found.fields, ...(found.place ? [found.place] : [])].slice(0, 6),
+  terms: [found.role && ROLE_LABELS[found.role], capability, ...found.fields, found.place].filter((term): term is string => !!term).slice(0, 6),
 });
 /**
  * What links them, as far as the passage shown and the project's title support it (spec 7.2 item 4): a
@@ -260,13 +299,31 @@ const complementReason = (found: Complement) => ({
 function supported(found: Complement, passage: ProjectEvidence, read: (text: string) => Map<string, ThemeReading>): Complement {
   const text = `${passage.projectName}. ${passage.passage}`;
   const labels = new Set([...read(text).values()].map(({ theme }) => theme.label));
-  const places = namedPlaces(text);
+  const places = partnerPlaces(text);
   const named = new Set([...[...places.countries].map((code) => display.of(code) ?? code), ...places.regions]);
   return {
     ...found, fields: found.fields.filter((label) => labels.has(label)), own: found.own.filter((label) => labels.has(label)),
     place: found.place && named.has(found.place) ? found.place : null,
   };
 }
+
+/** Public descriptions must show the requested capability for an inferred answer to a need. */
+function supportsNeed(query: QueryReading, project: ProjectReading, passage: ProjectEvidence, money: boolean): boolean {
+  if (query.entry.kind !== "need") return true;
+  if (money) return fundsOthers(passage.passage);
+  if (!meetsPartialRuleDetails(passage.passage, query.partialRules)) return false;
+  if (query.capability) return showsCapability(passage.passage, query.capability, passage.projectName, passage.kind === "published_offer");
+  return query.generalPilot && project.roles.has("place");
+}
+/** Apply the same public need evidence rule before the signed-in shortlist's lexical ranking. */
+export function publicEvidenceForMatching(entry: PartnerEntry, passages: ProjectEvidence[]): ProjectEvidence[] {
+  if (entry.kind !== "need" || !passages.length) return passages;
+  const query = readQuery(entry);
+  const money = moneyOnly(entry, query.wanted);
+  return readProjects(passages).flatMap((project) => project.uri === entry.initiativeId || !inScope(query, project) ? []
+    : project.passages.filter((passage) => supportsNeed(query, project, passage, money)));
+}
+
 const PUBLIC_UNKNOWNS: PartnerMatch["unknowns"] = ["terms", "timing", "capacity", "audience", "availability"];
 
 /**
@@ -282,9 +339,7 @@ export function rankPartners(input: Parameters<typeof rankPartnerMatches>[0]): R
   const projects = (passages: readonly ProjectEvidence[]) => {
     let read = projectsOf.get(passages);
     if (!read) {
-      const byUri = new Map<string, ProjectEvidence[]>();
-      for (const passage of passages) byUri.set(passage.projectUri, [...(byUri.get(passage.projectUri) ?? []), passage]);
-      const readings = [...byUri.values()].map(readProject);
+      const readings = readProjects(passages);
       projectsOf.set(passages, (read = { readings, rarity: rarityOf(readings) }));
     }
     return read;
@@ -304,6 +359,7 @@ export function rankPartners(input: Parameters<typeof rankPartnerMatches>[0]): R
     const { readings: projectReadings, rarity } = projects(passages);
     const byUri = new Map(projectReadings.map((reading) => [reading.uri, reading]));
     const money = entry.kind === "need" && moneyOnly(entry, query.wanted);
+    const capability = !money ? query.capability?.label : undefined;
     const candidates: Candidate[] = [];
     for (const match of ownWords) {
       // An initiative's own public project is never its own partner.
@@ -311,16 +367,18 @@ export function rankPartners(input: Parameters<typeof rankPartnerMatches>[0]): R
       const project = match.evidence.type === "public" ? byUri.get(match.evidence.projectUri) : undefined;
       if (project && money && !project.roles.has("funder")) continue;
       if (project && !inScope(query, project)) continue;
+      if (project && match.evidence.type === "public" && !supportsNeed(query, project, match.evidence, money)) continue;
       const whole = project ? complement(query, project, rarity) : null;
       const found = whole && match.evidence.type === "public" ? supported(whole, match.evidence, read) : null;
       const overlap = match.reasons.reduce((sum, reason) => sum + reason.terms.length, 0);
       candidates.push({
-        match: { ...match, reasons: found && (found.role || found.fields.length || found.place) ? [...match.reasons, complementReason(found)] : match.reasons },
+        match: { ...match, reasons: found && match.evidence.type === "public" && (found.role || found.fields.length || found.place || capability)
+          ? [...match.reasons, complementReason(found, match.evidence.kind === "work" ? capability : undefined)] : match.reasons },
         score: (found?.score ?? 0) + 8 * Math.min(4, overlap),
         freshness: match.evidence.type === "shared" ? Date.parse(match.evidence.confirmedAt) : Date.parse(match.evidence.sourceIndexedAt ?? match.evidence.sourceCreatedAt) || 0,
       });
     }
-    const listed = new Set(ownWords.map((match) => match.candidateId));
+    const listed = new Set(candidates.map(({ match }) => match.candidateId));
     {
       for (const project of projectReadings) {
         // A need for money alone looks only at projects that say they fund others.
@@ -329,18 +387,22 @@ export function rankPartners(input: Parameters<typeof rankPartnerMatches>[0]): R
         // The device snapshot already leaves out the initiative's own project; this guards a caller that does not.
         if (listed.has(candidateId) || project.uri === entry.initiativeId || !inScope(query, project)) continue;
         const whole = complement(query, project, rarity);
-        if (!whole.role || whole.score < STANDS_ALONE) continue;
         // Only a passage describing the project's work can show a capability or a use for an offer.
-        const work = project.passages.filter(({ kind }) => kind === "work");
+        const work = capability || (whole.role && whole.score >= STANDS_ALONE)
+          ? project.passages.filter((passage) => passage.kind === "work" && supportsNeed(query, project, passage, money))
+          : [];
         const best = work.map((passage) => ({ passage, found: supported(whole, passage, read) }))
           .sort((a, b) => weight(b.found) - weight(a.found))[0];
-        if (!best) continue;
-        const { passage, found } = best;
+        const related = !best && !money && evidencedPartialFit(query.partialRules, project.name, project.passages);
+        const evidence = best ?? related;
+        if (!evidence) continue;
+        const { passage } = evidence;
+        const found = best?.found ?? supported(whole, passage, read);
         // The role asked for, and in the passage shown: the field the entry itself names, two fields of its
         // initiative, or one and the same country. A theme in common alone is not a match (spec 7.2). An offer
         // kept to here may stand on the same country alone, since where it is used is the point.
         const country = !!found.place && [...project.countries].some((code) => query.countries.has(code));
-        if (!(found.own.length >= 1 || found.fields.length >= 2 || (found.fields.length >= 1 && country)
+        if (!(related || capability || found.own.length >= 1 || found.fields.length >= 2 || (found.fields.length >= 1 && country)
           || (entry.kind === "offer" && entry.value.placeScope === "here" && country)
           // A funder that funds the same field, or in the same country, answers a need for money.
           || (money && (found.fields.length >= 1 || country)))) continue;
@@ -353,7 +415,8 @@ export function rankPartners(input: Parameters<typeof rankPartnerMatches>[0]): R
             counterpart: { id: project.uri, name: project.name },
             evidenceKind: entry.kind === "need" ? "inferred_capability" : "potential_use",
             evidence: { ...passage, type: "public" },
-            reasons: [complementReason(found)],
+            reasons: related ? [] : [complementReason(found, capability)],
+            ...(related ? { partial: related.partial } : {}),
             unknowns,
             reciprocal: false,
             action: "open_source",
@@ -364,12 +427,13 @@ export function rankPartners(input: Parameters<typeof rankPartnerMatches>[0]): R
       }
     }
     const seen = new Set<string>();
-    const counts = new Map<PartnerEvidenceKind, number>();
+    const counts = new Map<PartnerEvidenceKind | "partial", number>();
     return candidates.sort(compare).flatMap(({ match }) => {
-      const count = counts.get(match.evidenceKind) ?? 0;
+      const category = match.partial ? "partial" : match.evidenceKind;
+      const count = counts.get(category) ?? 0;
       if (count >= limit || seen.has(match.candidateId)) return [];
       seen.add(match.candidateId);
-      counts.set(match.evidenceKind, count + 1);
+      counts.set(category, count + 1);
       return [match];
     });
   });

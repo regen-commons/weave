@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import type { PublicEvidenceSnapshot } from "@weave/api/matching-contract";
 import type { PartnerEntry } from "@weave/api/partner-matcher";
 import type { RankedPartnerMatch } from "@weave/api/partner-ranking";
@@ -7,7 +7,7 @@ import { Card, CardGrid } from "../ui/Card.tsx";
 import { availabilityUnknownForAll, entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
 import { Fit } from "../ui/Fit.tsx";
 import { Icon } from "../ui/Icon.tsx";
-import { MatchDetails } from "./NetworkResults.tsx";
+import { MatchDetails, PartialFitDetails } from "./NetworkResults.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import { projectSuggestions, rankCertifiedSuggestions, type ProjectSuggestion } from "./certified-suggestions.ts";
 import { requestPublicEvidence } from "./matching-client.ts";
@@ -22,7 +22,12 @@ type SnapshotState = { workspaceId: string } & (
   | { status: "error"; code: string }
 );
 
-export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compact, online, onAccessLost }: {
+export type CertifiedPartnerResults = {
+  checked: boolean;
+  renderCards: (select: (query: PartnerEntry) => boolean, level: 3 | 4 | 5 | 6, group?: "matches" | "partial") => ReactNode;
+};
+
+export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compact, online, onAccessLost, renderResults }: {
   workspaceId: string;
   queries: readonly PartnerEntry[];
   /**
@@ -33,6 +38,7 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
   compact: boolean;
   online: boolean;
   onAccessLost?: (code: string) => void;
+  renderResults?: (publicResults: CertifiedPartnerResults) => ReactNode;
 }) {
   const heading = useId();
   const [loaded, setLoaded] = useState<SnapshotState | null>(null);
@@ -104,12 +110,25 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
   const matches = snapshot && ranked?.snapshot === snapshot && ranked.queries === queries
     ? ranked.matches : null;
   const Heading = compact ? "h3" : "h2";
-  const Title = compact ? "h4" : "h3";
-  // A project that fits several needs and offers shows once, naming each (DL-052).
-  const projects = matches ? projectSuggestions(matches, queries, compact ? 2 : undefined) : [];
+  const PartialHeading = compact ? "h4" : "h3";
+  const renderCards: CertifiedPartnerResults["renderCards"] = (select, level, group = "matches") => {
+    // A project that fits several entries within this group shows once, naming each.
+    const projects = matches ? projectSuggestions(matches.filter((match) => !!match.partial === (group === "partial")), queries.filter(select), compact ? 2 : undefined) : [];
+    if (!projects.length) return null;
+    const Title = `h${level}` as const;
+    return (
+      <CardGrid>
+        {projects.map((project) => (
+          <li key={project.id}><ProjectCard project={project} Title={Title} /></li>
+        ))}
+      </CardGrid>
+    );
+  };
+  const partialCards = !renderResults && renderCards(() => true, compact ? 5 : 4, "partial");
   return (
     <section className="rc-stack" aria-labelledby={heading}>
       <Heading id={heading} className="rc-heading" data-size="section">Partners For You</Heading>
+      {renderResults?.({ checked: matches !== null, renderCards })}
       {!hasQueries ? (waiting.length ? (
         <>
           <p>{partnersWaitingLine(waiting)}</p>
@@ -133,15 +152,13 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
               {snapshot?.truncated && " More projects are indexed."}
               {snapshot?.indexedAt && <> Last full check <MatchingDate value={snapshot.indexedAt} />.</>}
             </p>
-            {matches.length === 0 && <p>No matches in this collection.</p>}
-            {projects.length > 0 && (
-              <CardGrid>
-                {projects.map((project) => (
-                  <li key={project.id}>
-                    <ProjectCard project={project} Title={Title} />
-                  </li>
-                ))}
-              </CardGrid>
+            {!renderResults && matches.length === 0 && <p>No matches in this collection.</p>}
+            {!renderResults && renderCards(() => true, compact ? 4 : 3)}
+            {partialCards && (
+              <section className="rc-section" aria-labelledby={`${heading}-partial`}>
+                <PartialHeading className="rc-heading" data-size="section" id={`${heading}-partial`}>Partial Fits</PartialHeading>
+                {partialCards}
+              </section>
             )}
           </>
         )}
@@ -153,17 +170,19 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
  * One project (DL-052, DL-064): how strong its best fit is, each of the person's needs and offers it
  * fits and which way, then the project's own words once and why each fits on request.
  */
-function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h3" | "h4" }) {
+function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h3" | "h4" | "h5" | "h6" }) {
   // The project opens at its Weave address, as on Initiatives (DL-136). Only one without an address
   // falls back to its public record's data.
   const address = projectAddress(project.id);
   const sources = address ? [] : [...new Set(project.passages.flatMap(({ sourceUrl }) => (sourceUrl ? [sourceUrl] : [])))];
   const several = project.fits.length > 1;
   const strength = strongestFit(project.fits.map(({ match }) => fitStrength(match.evidenceKind, match.reciprocal)));
+  const onlyPartial = project.fits.every(({ match }) => match.partial);
   const unknownForAll = availabilityUnknownForAll(project.fits);
   return (
     <Card>
-      <Fit level={strength} explanation={FIT_BASIS[strength]} />
+      <Fit level={strength} explanation={onlyPartial ? "Public evidence covers part of the need." : FIT_BASIS[strength]}
+        label={onlyPartial ? "Partial fit" : undefined} />
       <Title className="rc-card-title">{project.name}</Title>
       <ul className="rc-reasons">
         {project.fits.map(({ query, match }) => {
@@ -172,13 +191,14 @@ function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h
             <li className="rc-reason" key={`${query.kind}:${query.entryId}`}>
               <Icon name={direction === "they-offer" ? "offer" : "need"} size="sm" />
               <span>
-                {lead}: <strong>{String(query.value.title)}</strong>
+                {match.partial ? "They cover part of your need" : lead}: <strong>{String(query.value.title)}</strong>
                 {!unknownForAll && match.unknowns.includes("availability") && ". Availability is unknown."}
               </span>
             </li>
           );
         })}
       </ul>
+      {project.fits.map(({ query, match }) => match.partial && <PartialFitDetails key={query.entryId} partial={match.partial} />)}
       {unknownForAll && <p className="rc-meta">Availability is unknown.</p>}
       {project.passages.map(({ text }) => <blockquote className="rc-prose" key={text}>{text}</blockquote>)}
       <details className="rc-stack">
