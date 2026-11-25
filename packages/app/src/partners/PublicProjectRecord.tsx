@@ -14,7 +14,7 @@ import { Icon } from "../ui/Icon.tsx";
 import { Link } from "../router.tsx";
 import { ShareMenu } from "../ui/ShareMenu.tsx";
 import { entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
-import { MatchDetails } from "./NetworkResults.tsx";
+import { MatchDetails, PartialFitDetails } from "./NetworkResults.tsx";
 import { missingLine, projectAddress, projectFit, projectPassages, rememberedProject, requestPublicProject } from "./public-project.ts";
 import { sharedByLine, type PublicProjectCard } from "./public-projects.ts";
 import { MatchingDate } from "./SharingReview.tsx";
@@ -177,10 +177,12 @@ function ProjectFitPanel({ card }: { card: PublicProjectCard }) {
       </p>
     );
   const strength = strongestFit(fit.fits.map(({ match }) => fitStrength(match.evidenceKind, match.reciprocal)));
+  const onlyPartial = fit.fits.every(({ match }) => match.partial);
   const several = fit.fits.length > 1;
   return (
     <>
-      <Fit level={strength} explanation={FIT_BASIS[strength]} />
+      <Fit level={strength} explanation={onlyPartial ? "Public evidence covers part of the need." : FIT_BASIS[strength]}
+        label={onlyPartial ? "Partial fit" : undefined} />
       <ul className="rc-reasons">
         {fit.fits.map(({ query, match }) => {
           const { direction, lead } = fitLead(match.evidenceKind);
@@ -188,12 +190,19 @@ function ProjectFitPanel({ card }: { card: PublicProjectCard }) {
             <li className="rc-reason" key={`${query.kind}:${query.entryId}`}>
               <Icon name={direction === "they-offer" ? "offer" : "need"} size="sm" />
               <span>
-                {lead}: <strong>{String(query.value.title)}</strong>
+                {match.partial ? "They cover part of your need" : lead}: <strong>{String(query.value.title)}</strong>
               </span>
             </li>
           );
         })}
       </ul>
+      {fit.fits.map(({ query, match }) => match.partial && (
+        <div key={query.entryId} className="rc-stack">
+          {several && <p><strong>{entryLine(query.kind, String(query.value.title))}</strong></p>}
+          {match.evidence.type === "public" && <blockquote className="rc-prose">{match.evidence.passage}</blockquote>}
+          <PartialFitDetails partial={match.partial} />
+        </div>
+      ))}
       <details className="rc-stack">
         <summary>{several ? "Why these fit" : "Why this fits"}</summary>
         {fit.fits.map(({ query, match }) => (

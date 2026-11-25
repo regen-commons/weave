@@ -16,7 +16,7 @@ import { MatchingFeedback } from "./MatchingFeedback.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { CardGridSkeleton, LinesSkeleton } from "../ui/CardSkeleton.tsx";
 import { waitingSuggestions } from "../initiative/import.ts";
-import { CertifiedSuggestions } from "./CertifiedSuggestions.tsx";
+import { CertifiedSuggestions, type CertifiedPartnerResults } from "./CertifiedSuggestions.tsx";
 import { privatePartnerQueries } from "./certified-suggestions.ts";
 import { MatchingDate, SharingReview } from "./SharingReview.tsx";
 import { entryKey, entryReference, type MatchingEntry } from "./matching-client.ts";
@@ -75,15 +75,21 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
         : link === "checking" || link === "unchecked" ? projectLinkLine(link)
           : "Link a Certified project to get partner suggestions for your private needs and offers.";
   const online = useSyncExternalStore(subscribeOnline, isOnline);
+  const synced = !!active && active.contentKey === accountKey(draft);
+  const combined = synced && linkedPersonal;
+  const savedMatching = (publicResults?: CertifiedPartnerResults) => active && (
+    <SavedMatching key={`${active.owner}/${active.id}/${active.revision}`}
+      active={active} synced={synced} compact={compact} online={online} fixture={state?.fixture === true}
+      presentation={separateActions ? "results" : "all"} refreshVersion={refreshVersion}
+      publicResults={publicResults} onShared={onShared} />
+  );
   return (
     <div className="rc-stack">
       {linkedId && ready && <CertifiedSuggestions key={`${owner}/${linkedId}`}
-        workspaceId={linkedId} queries={queries} waiting={waitingSuggestions(draft)} compact={compact} online={online} />}
+        workspaceId={linkedId} queries={queries} waiting={waitingSuggestions(draft)} compact={compact} online={online}
+        renderResults={combined ? savedMatching : undefined} />}
       {active && ready && linkedPersonal ? (
-        <SavedMatching key={`${active.owner}/${active.id}/${active.revision}`}
-          active={active} synced={active.contentKey === accountKey(draft)}
-          compact={compact} online={online} fixture={state?.fixture === true} presentation={separateActions ? "results" : "all"} refreshVersion={refreshVersion}
-          onShared={onShared} />
+        !combined && savedMatching()
       ) : (
         // With no card yet there is nothing to save: the list below asks for the card first. A session
         // that ended is said once, by the page's own notice (SessionEndedNotice).
@@ -113,7 +119,7 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
   );
 }
 
-export function SavedMatching({ active, synced, compact, online, onExpired, fixture, readOnly = false, team = false, presentation = "all", visible = true, refreshVersion = 0, onShared }: {
+export function SavedMatching({ active, synced, compact, online, onExpired, fixture, readOnly = false, team = false, presentation = "all", visible = true, refreshVersion = 0, publicResults, onShared }: {
   active: ActiveInitiative;
   synced: boolean;
   compact: boolean;
@@ -126,6 +132,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
   presentation?: "all" | "sharing" | "results";
   visible?: boolean;
   refreshVersion?: number;
+  publicResults?: CertifiedPartnerResults;
   onShared?(): void;
 }) {
   const heading = useId();
@@ -147,7 +154,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
   // what other signed-in teams will see before anything is shared (23 November 2026, the user's choice).
   const [sharing, setSharing] = useState(false);
   const [withdrawal, setWithdrawal] = useState<string | null>(null);
-  const Title = compact ? "h3" : "h2";
+  const Title = compact || publicResults ? "h3" : "h2";
   const state = network.state;
   const stale = state !== null && state.initiativeRevision !== active.revision;
   const blocked = network.loading || network.busy || !!network.pending || !online;
@@ -169,7 +176,9 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
   }
 
   const results = (<NetworkResults search={online ? network.search : null} leads={online ? network.leads : null} entries={entries}
-        compact={compact} blocked={blocked} readOnly={readOnly} includePublic={presentation !== "results"}
+        compact={compact} blocked={blocked} readOnly={readOnly} includePublic={presentation !== "results" && !publicResults}
+        publicResults={publicResults} sharedNeeds={sharedEntries(entries).filter(({ kind }) => kind === "need")}
+        matchingLoading={network.loading}
         onChange={(entry, candidateId, disposition) => void network.mutate({
           action: "set_lead", input: { entry: entryReference(entry), candidateId, disposition, requestId: crypto.randomUUID() },
         })}
@@ -194,9 +203,10 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
         fixture={fixture} team={team} readOnly={readOnly} presentation="sharing" visible={sharing} />}
     </TaskDialog>
   </div>;
-  return (
+  return <>
+    {publicResults && results}
     <section className="rc-stack" aria-labelledby={presentation === "sharing" ? undefined : heading} aria-label={presentation === "sharing" ? "Sharing for matching" : undefined}>
-      {presentation !== "sharing" && <Title id={heading} className="rc-heading" data-size="section">{team ? "Sharing For Matching" : String(active.document.initiative.name)}</Title>}
+      {presentation !== "sharing" && <Title id={heading} className="rc-heading" data-size="section">{team || publicResults ? "Sharing For Matching" : String(active.document.initiative.name)}</Title>}
       {import.meta.env.DEV && fixture && (
         <p className="rc-notice" data-tone="info">Local matching fixture. Changes last until the development server restarts.</p>
       )}
@@ -294,7 +304,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
             });
           }} />
       )}
-      {presentation !== "sharing" && results}
+      {presentation !== "sharing" && !publicResults && results}
     </section>
-  );
+  </>;
 }
