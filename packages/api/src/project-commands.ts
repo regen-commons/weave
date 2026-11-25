@@ -21,8 +21,38 @@ function invalid(): never { throw new AccountError(400, "invalid_project_command
 function keys(value: Record<string, unknown>, expected: string[]) {
   if (Object.keys(value).length !== expected.length || expected.some(key => !Object.hasOwn(value, key))) invalid();
 }
+const tid = (value: unknown): value is string => typeof value === "string" && /^[2-7a-j][2-7a-z]{12}$/u.test(value);
+const graphemes = new Intl.Segmenter();
+/** A project title as the project record takes one: 1 to 80 graphemes and 800 bytes, on one line. */
+function projectTitle(value: string) {
+  return Boolean(value) && !/[\p{Cc}\p{Surrogate}]/u.test(value) && Buffer.byteLength(value) <= 800
+    && [...graphemes.segment(value)].length <= 80;
+}
+/** A description as an initiative card keeps one: up to 800 characters, line breaks and tabs allowed. */
+function projectDescription(value: string) {
+  return !/[\p{Surrogate}\0-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/u.test(value) && [...value].length <= 800;
+}
+function parsePersonalProject(value: Record<string, unknown>) {
+  const placed = Object.hasOwn(value, "place");
+  keys(value, ["action", "requestId", "projectRkey", "title", "description", ...placed ? ["locationRkey", "place"] : []]);
+  if (!uuid(value.requestId) || !tid(value.projectRkey) || typeof value.title !== "string"
+    || typeof value.description !== "string") invalid();
+  const title = value.title.trim(), description = value.description.trim();
+  if (!projectTitle(title) || !projectDescription(description)) invalid();
+  let place: { rkey: string; name: string } | undefined;
+  if (placed) {
+    // One line of plain text, as a card keeps a place: spaces run together, nothing else is changed.
+    if (!tid(value.locationRkey) || typeof value.place !== "string" || /[\p{Cc}\p{Surrogate}]/u.test(value.place)) invalid();
+    const name = value.place.replace(/\s+/gu, " ").trim();
+    if (!name || name.length > 120) invalid();
+    place = { rkey: value.locationRkey, name };
+  }
+  return { action: "create_personal_project", requestId: value.requestId, projectRkey: value.projectRkey,
+    title, description, ...(place ? { place } : {}) } as const;
+}
 export function parseProjectCommand(value: Record<string, unknown>) {
   const action = value.action;
+  if (action === "create_personal_project") return parsePersonalProject(value);
   if (action === "team_load" || action === "public_evidence") {
     keys(value, ["action", "workspaceId"]);
     if (!uuid(value.workspaceId)) invalid();
@@ -114,6 +144,36 @@ export function requireCertifiedProjectResult<T>(result: ProviderResult<T>): T {
     case "invalid_input": return invalid();
     default: throw new AccountError(503, "certified_project_unavailable");
   }
+}
+
+export type PersonalProjectCommand = Extract<Command, { action: "create_personal_project" }>;
+/** What a personal project command answers, for a first attempt and for any retry of the same draft. */
+export type PersonalProjectCreated = { status: "created"; projectUri: string; cid: string };
+
+/**
+ * Puts the person's draft on Certified as their own project, in their own repository, as the signed-in actor.
+ * It needs the `publish-initiative` grant before anything is read or written. Idempotency rests on the
+ * record keys the draft chose, so the request ID is checked but not stored.
+ */
+export function createPersonalProjectCommand(
+  provider: Pick<CertifiedProjectProvider, "createPersonalProject">,
+  assertGrant: (did: string) => Promise<void>,
+) {
+  return async (actor: ProjectActor, command: PersonalProjectCommand): Promise<PersonalProjectCreated> => {
+    await assertGrant(actor.did);
+    const result = await provider.createPersonalProject(actor.did, {
+      projectRkey: command.projectRkey, title: command.title, createdAt: new Date().toISOString(),
+      ...(command.description ? { description: command.description } : {}),
+      ...(command.place ? { place: command.place } : {}),
+    });
+    if (result.ok) return { status: "created", projectUri: result.value.uri, cid: result.value.cid };
+    switch (result.code) {
+      case "authorization_required": case "forbidden": throw new AccountError(403, "project_consent_required");
+      case "conflict": throw new AccountError(409, "project_conflict");
+      case "invalid_input": return invalid();
+      default: throw new AccountError(503, "project_workspace_unavailable");
+    }
+  };
 }
 
 interface CreateIntent {
@@ -257,7 +317,8 @@ export function createProjectCommands(provider: CertifiedProjectProvider, store:
   }
 
   return async (actor: ProjectActor, command: Command) => {
-    if (command.action === "team_load" || command.action === "team_save" || command.action === "public_evidence") return invalid();
+    if (command.action === "team_load" || command.action === "team_save" || command.action === "public_evidence"
+      || command.action === "create_personal_project") return invalid();
     if (command.action === "create") return create(actor, command);
     const project = requireCertifiedProjectResult(await provider.getProject(command.projectUri));
     if (project.uri !== command.projectUri) throw new AccountError(404, "project_not_found");

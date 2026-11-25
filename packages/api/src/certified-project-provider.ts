@@ -71,6 +71,25 @@ export type CertifiedProject = {
   publisherLinks?: string[];
 };
 export type CertifiedProjectDraft = { rkey: string; title: string; description?: string; createdAt: string };
+/**
+ * A project for the person's own repository and, when it names one, its place, at record keys the caller
+ * chose so that a retry finds what an earlier attempt wrote. The place is one line of plain text.
+ */
+export type CertifiedPersonalProjectDraft = {
+  projectRkey: string;
+  title: string;
+  description?: string;
+  createdAt: string;
+  place?: { rkey: string; name: string };
+};
+/** One record to create in the signed-in person's own repository, sent with their consent. */
+export type CertifiedOwnRecordWrite = {
+  actorDid: string;
+  collection: typeof collection | typeof locationNsid;
+  rkey: string;
+  record: Record<string, unknown>;
+  signal: AbortSignal;
+};
 export type CertifiedProjectTarget = { kind: "personal" } | { kind: "group"; groupDid: string };
 export type CertifiedProjectPage = { repositoryDid: string; certifiedRole?: CertifiedGroupRole; projects: CertifiedProject[]; cursor?: string };
 
@@ -82,6 +101,8 @@ export type CertifiedProjectProviderOptions = {
   serviceAuth: (request: CertifiedServiceAuthRequest) => Promise<string | null>;
   /** Use PDS service proxying for service-level methods when AT OAuth scopes require it. */
   serviceProxy?: (request: CertifiedServiceProxyRequest) => Promise<Response | null>;
+  /** Create a record in the actor's own repository under their consent; null when they have not granted it. */
+  ownRecordWrite?: (write: CertifiedOwnRecordWrite) => Promise<Response | null>;
   fetch?: typeof fetch;
   timeoutMs?: number;
 };
@@ -281,6 +302,27 @@ function placeName(value: Record<string, unknown>): string | undefined {
   if (value.locationType === "country-code" && typeof string === "string" && countryCodes.has(string))
     return placeLabel(regionNames.of(string));
   return undefined;
+}
+
+/**
+ * The location record Weave writes for a draft's place: an address written as text, in the Location
+ * Protocol fields the `app.certified.location` lexicon requires. `name` repeats it for readers that show
+ * only a name, and is left out when the place is longer than the lexicon's 100 graphemes for a name.
+ */
+function addressRecord(place: string, createdAt: string) {
+  if (placeLabel(place) !== place || !isTimestamp(createdAt)) throw Error("invalid_place");
+  return {
+    $type: locationNsid, lpVersion: "1.0.0", srs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+    locationType: "address", location: { $type: `${locationNsid}#string`, string: place },
+    ...(validText(place, 1000, 100) ? { name: place } : {}), createdAt,
+  };
+}
+
+/** The same record apart from the time it says it was made, which a retry cannot know. */
+function sameContent(found: Record<string, unknown>, expected: Record<string, unknown>) {
+  const { createdAt, ...content } = found;
+  const { createdAt: _, ...wanted } = expected;
+  return isTimestamp(createdAt) && isDeepStrictEqual(content, wanted);
 }
 
 /** The location record a project pins in its own repository, or null for anything else. */
@@ -537,6 +579,97 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
     return ok(project);
   }
 
+  /**
+   * Creates one record in the actor's own repository at a fixed key and returns the CID of what is stored
+   * there afterwards. A refusal means nothing was written. Any other answer, a lost one included, may have
+   * written it, so the record at that key decides: the expected content (whenever it says it was made) is
+   * success, other content is a conflict, and nothing there yet is unavailable for a later retry.
+   */
+  async function createOwnRecord(actorDid: string, pds: string, nsid: CertifiedOwnRecordWrite["collection"], rkey: string,
+    entry: Record<string, unknown>, cancellation?: AbortSignal): Promise<CertifiedProjectResult<string>> {
+    const write = options.ownRecordWrite;
+    if (!write) return fail("unsupported");
+    const uri = `at://${actorDid}/${nsid}/${rkey}`;
+    const signal = deadline(cancellation);
+    const sent = decode(await fetchJson(new URL("/xrpc/com.atproto.repo.createRecord", pds), signal, { method: "POST" },
+      () => write({ actorDid, collection: nsid, rkey, record: entry, signal })), value => {
+      const row = record(value);
+      if (row.uri !== uri || typeof row.cid !== "string" || !cid.test(row.cid)) throw Error("invalid_create_result");
+      return row.cid;
+    });
+    if (!sent.ok && (sent.code === "authorization_required" || sent.code === "forbidden")) return sent;
+    const stored = await readRecord(pds, actorDid, nsid, rkey, deadline(cancellation));
+    if (!stored.ok) return fail("unavailable");
+    if (!sameContent(stored.value.value, entry) || (sent.ok && sent.value !== stored.value.cid)) return fail("conflict");
+    return ok(stored.value.cid);
+  }
+
+  /**
+   * The person's own project from their draft, written once at the keys the draft chose: its place's location
+   * record first, then the project pinning that record's version. A retry with the same draft finds both and
+   * writes nothing; a different record at either key is a conflict and stops before any write. The answer is
+   * the project as Weave reads it back, public, in the person's repository, naming the draft's place.
+   */
+  async function createPersonalProject(actorDid: string, input: CertifiedPersonalProjectDraft, cancellation?: AbortSignal)
+    : Promise<CertifiedProjectResult<CertifiedProject>> {
+    let base: ReturnType<typeof projectRecord>;
+    let address: ReturnType<typeof addressRecord> | undefined;
+    if (!isDid(actorDid) || (input.place !== undefined && !tid.test(input.place.rkey))) return fail("invalid_input");
+    try {
+      base = projectRecord({ rkey: input.projectRkey, title: input.title, createdAt: input.createdAt,
+        ...(input.description === undefined ? {} : { description: input.description }) });
+      address = input.place && addressRecord(input.place.name, input.createdAt);
+    } catch { return fail("invalid_input"); }
+    const signal = deadline(cancellation);
+    const identity = await readIdentity(actorDid, signal);
+    if (!identity.ok) return fail(identity.code === "unsupported" ? "unsupported" : "unavailable");
+    // A group's repository holds group projects, which the group service writes; this is the person's own.
+    if (identity.value.groupService !== undefined) return fail("unsupported");
+    const pds = identity.value.pds;
+    const projectUri = `at://${actorDid}/${collection}/${input.projectRkey}`;
+    const locationUri = input.place && `at://${actorDid}/${locationNsid}/${input.place.rkey}`;
+    type Stored = { cid: string; value: Record<string, unknown> } | null;
+    const existing = async (nsid: string, rkey: string): Promise<CertifiedProjectResult<Stored>> => {
+      const read = await readRecord(pds, actorDid, nsid, rkey, signal);
+      return read.ok ? read : read.code === "not_found" ? ok(null) : fail("unavailable");
+    };
+    const [placed, found] = await Promise.all([
+      input.place ? existing(locationNsid, input.place.rkey) : Promise.resolve(ok<Stored>(null)),
+      existing(collection, input.projectRkey),
+    ]);
+    if (!placed.ok) return placed;
+    if (!found.ok) return found;
+    const expected = (locationCid: string | undefined) =>
+      ({ ...base, ...(locationUri ? { location: { uri: locationUri, cid: locationCid } } : {}) });
+    let locationCid = placed.value?.cid;
+    if (placed.value && address && !sameContent(placed.value.value, address)) return fail("conflict");
+    let projectCid = found.value?.cid;
+    if (found.value) {
+      // The project already at this key is this draft only if it pins this place as it is stored now.
+      if ((address && !locationCid) || !sameContent(found.value.value, expected(locationCid))) return fail("conflict");
+    } else {
+      if (address && input.place && !locationCid) {
+        const created = await createOwnRecord(actorDid, pds, locationNsid, input.place.rkey, address, cancellation);
+        if (!created.ok) return created;
+        locationCid = created.value;
+      }
+      const created = await createOwnRecord(actorDid, pds, collection, input.projectRkey, expected(locationCid), cancellation);
+      if (!created.ok) return created;
+      projectCid = created.value;
+    }
+    const read = await readProject(projectUri, deadline(cancellation));
+    if (!read.ok) return fail("unavailable");
+    const { project, value } = read.value;
+    if (project.cid !== projectCid || project.repoDid !== actorDid || project.groupDid !== undefined
+      || !sameContent(value, expected(locationCid)) || project.title !== input.title
+      || project.description !== input.description || project.visibility !== "public") return fail("conflict");
+    // A place that could not be reached this time is left out by the read; it is not yet confirmed.
+    if (input.place && !project.place) return fail("unavailable");
+    if (input.place ? project.place?.status !== "named" || project.place.name !== input.place.name : project.place)
+      return fail("conflict");
+    return ok(project);
+  }
+
   /** Bidirectional handle proof. Only approved PDS origins receive requests; no handle-derived URL is fetched. */
   async function resolveHandle(input: string, cancellation?: AbortSignal) {
     const normalized = input.trim().replace(/^@/u, "").toLowerCase();
@@ -728,6 +861,7 @@ export function createCertifiedProjectProvider(options: CertifiedProjectProvider
     confirmProject(groupDid: string, input: CertifiedProjectDraft) {
       return confirmRecord(groupDid, input);
     },
+    createPersonalProject,
     async createProject(actorDid: string, groupDid: string, input: CertifiedProjectDraft) {
       if (!isDid(actorDid) || !isDid(groupDid) || actorDid === groupDid) return fail("invalid_input");
       let entry: ReturnType<typeof projectRecord>;
