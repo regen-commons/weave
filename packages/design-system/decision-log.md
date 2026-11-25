@@ -1188,3 +1188,11 @@ Measured on the must-match suite's real projects: Green Goods' need for communit
 Weave has the website's Feedback tab: a copper tab on the window's right edge, half way down, on every page (`rc-feedback-tab`). It is clear of the app bar, a phone's tab bar and Dock and a wide screen's Step bar. On a phone a focused step leaves it out (`data-from="wide"`), where it would sit over the step's fields. It comes last in the keyboard's order, after the footer.
 
 It opens a feedback sheet in place, so a person stays on their page, with the website's fields: a message of 3 to 5,000 characters, the website's seven kinds of feedback, and a hidden field a form filler fills. Weave's server passes it to the website's own `/api/feedback`, so Weave's feedback lands in the stewards' desk with the website's. The page's address goes with it under `/weave`, such as `/weave/funding`, so stewards can tell Weave's from the website's, and never its query. Where Weave cannot pass it on, the sheet keeps the words and links to the website's form. The colour pair is its own role, `--feedback` and `--on-feedback`, because copper is not a section accent (DL-050).
+
+## DL-146: The header and Home hold their layout while Weave checks the session
+
+**Status:** user request, 24 November 2026.
+
+On the first paint and while Weave checks the session, the desktop header keeps the Account button's space. Once the check settles, the header offers the appropriate control. A phone keeps the account menu in You.
+
+Home keeps Start An Initiative as its primary action, with the second action in the same spot. The second action opens Your Initiatives by default. It can open the current draft or resume the last team workspace once Weave confirms the account still has access. The initiative's name and save status are shown on its own page.

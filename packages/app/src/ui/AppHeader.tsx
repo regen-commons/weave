@@ -43,7 +43,7 @@ export function AppHeader({
   back: BackTarget | null;
 }) {
   const openAccount = useAccountDoor();
-  const { state } = useAccount();
+  const { state, checkingAccount } = useAccount();
   const social = useSocialFixture();
   const signedIn = !!state?.user || (import.meta.env.DEV && !!social?.state.identity);
   const route = matchRoute(pathname);
@@ -88,10 +88,13 @@ export function AppHeader({
         <ThemeSwitch />
         {/* One press goes to Certified, as every other Sign in does. A failure opens the account
             dialog, which says what went wrong and offers the same step again. */}
-        {!signedIn && (
+        {!signedIn && !checkingAccount && (
           <SignInButton ref={signIn} variant="secondary" size="sm" onProblem={(message) => openAccount("sign-in", message)}>
             Sign In
           </SignInButton>
+        )}
+        {checkingAccount && (
+          <span className="rc-icon-button" data-size="sm" data-from="wide" data-account-pending aria-hidden="true" />
         )}
         {/* A wide screen gives a signed-in person the account's menu, which holds Settings; signed
             out, Settings is in the footer (DL-070). A phone's bar has neither that nor a gear: its

@@ -54,6 +54,7 @@ export class AccountSession {
   private presence: AccountPresence;
   /** An account is expected, and the check that will say so has not answered yet. */
   private awaited: boolean;
+  private initialCheck = true;
   constructor(request = accountRequest, timers = browserTimers, spread = () => Math.random() * 20000, presence = noPresence) {
     this.request = request;
     this.timers = timers;
@@ -70,6 +71,8 @@ export class AccountSession {
    * first answer, and with a check that fails, so sign-in is never withheld for want of a connection.
    */
   getExpected = () => this.state === null && this.awaited;
+  /** The header holds its place until the initial or expected check has settled. */
+  getChecking = () => this.state === null && (this.initialCheck || this.awaited);
   /** Why the last session ended, until the person signs in again or the note is acknowledged. */
   getEnding = () => this.ending;
   acknowledgeEnding = () => {
@@ -86,6 +89,7 @@ export class AccountSession {
   }
   /** `ending` says why, when this state takes a signed-in account off the screen. Unknown (null) states keep the holder. */
   private update(state: AccountState | null, ending: SessionEnding = "ended") {
+    if (state !== null) this.initialCheck = false;
     if (state?.user) {
       this.holder = state.user.id;
       this.ending = null;
@@ -273,11 +277,14 @@ export class AccountSession {
     } catch (error) {
       check();
       // Without an answer, sign-in is offered again; the note on the device stays for the next visit.
-      if (this.awaited) { this.awaited = false; if (this.state === null) this.notify(); }
+      const checking = this.getChecking();
+      this.initialCheck = false;
+      this.awaited = false;
       if (error instanceof AccountFailure && error.code === "sign_in_required") this.clear();
       else if (this.state?.user) this.schedule(RETRY_SECONDS);
       // An account hidden for want of a check is tried again until one answers, less often each time.
       else this.retryLater();
+      if (checking && this.state === null) this.notify();
       throw error;
     } finally {
       if (this.pending === task) this.pending = null;

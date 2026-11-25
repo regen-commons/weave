@@ -467,6 +467,8 @@
    and the way to Settings (DL-086). Both are outlined Icon buttons at Sign in's height, so
    whatever the bar ends with is drawn the same way (DL-107, DL-116). */
 .rc-app-header-state > [data-from="wide"] { display: none; }
+/* Keep the Account button's room while the session is checked. */
+.rc-app-header-state > [data-account-pending] { visibility: hidden; }
 @media (min-width: 56.25rem) {
   .rc-app-header-state > [data-from="wide"] { display: inline-grid; }
 }
