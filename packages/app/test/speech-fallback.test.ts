@@ -220,17 +220,23 @@ test("speech on the device never counts against the browser's service, and never
 
 test("Brave is offered cloud speech from the first press, and only where cloud speech is on", async () => {
   const brave = recognizer();
-  const on = speechSetupStore({ speech: brave.speech, cloud: async () => true, brave: async () => true, record: memorySpeechRecord() });
+  const identifyBrave = () => isBrave({ userAgentData: { brands: [{ brand: "Chromium" }, { brand: "Brave" }] } });
+  const on = speechSetupStore({ speech: brave.speech, cloud: async () => true, brave: identifyBrave, record: memorySpeechRecord() });
   on.check("en-US");
   await settle();
   assert.equal(on.state("en-US"), "cloud");
   const controls = talkControls("cloud");
   assert.deepEqual([controls.action, controls.mode, controls.agreement], ["talk", "cloud", true], "cloud speech still asks first");
 
-  const off = speechSetupStore({ speech: brave.speech, cloud: async () => false, brave: async () => true, record: memorySpeechRecord() });
+  let cloudAvailable = false;
+  const off = speechSetupStore({ speech: brave.speech, cloud: async () => cloudAvailable, brave: async () => true, record: memorySpeechRecord() });
   off.check("en-US");
   await settle();
-  assert.equal(off.state("en-US"), "browser", "with cloud speech off, Brave keeps what it has");
+  assert.equal(off.state("en-US"), "none", "Brave's browser speech service cannot work when cloud speech is off");
+  cloudAvailable = true;
+  off.check("en-US");
+  await settle();
+  assert.equal(off.state("en-US"), "cloud", "a later check can offer cloud speech again");
 
   // Speech on the device, where a browser has it, still comes first.
   const ready = speechSetupStore({ speech: recognizer({ status: "available" }).speech, cloud: async () => true, brave: async () => true, record: memorySpeechRecord() });
@@ -360,8 +366,11 @@ test("the record keeps one word on the device, follows other tabs, and never not
   assert.equal(refusing.state(), "failed");
 });
 
-test("Brave is known by its own answer, and nothing else counts", async () => {
+test("Brave is identified by its API or its declared browser brand", async () => {
   assert.equal(await isBrave({ brave: { isBrave: async () => true } }), true);
+  assert.equal(await isBrave({ userAgentData: { brands: [{ brand: "Chromium" }, { brand: "Brave" }] } }), true);
+  assert.equal(await isBrave({ userAgentData: { brands: [{ brand: "Chromium" }, { brand: "Google Chrome" }] } }), false);
+  assert.equal(await isBrave({ userAgent: "Brave" }), false);
   assert.equal(await isBrave({ brave: { isBrave: async () => "yes" } }), false);
   assert.equal(await isBrave({ brave: {} }), false);
   assert.equal(await isBrave({}), false);

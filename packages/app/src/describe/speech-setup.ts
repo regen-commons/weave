@@ -21,7 +21,7 @@ export type { Wait } from "./speech.ts";
 export type SpeechSetupState =
   /** The browser has not answered yet, so nothing about speech shows. */
   | "checking"
-  /** This browser has no speech recognition at all, as in Firefox, and cloud speech is not on offer. */
+  /** The browser has no usable speech recognition here and cloud speech is unavailable. */
   | "none"
   /**
    * The browser cannot turn speech into text itself, the page can record and cloud speech is on:
@@ -161,12 +161,11 @@ export function speechSetupStore({
     asking.add(language);
     void speechSupport(language, speech)
       .then(async (support): Promise<SpeechSetupState> => {
-        if (support === "none") return (await offerCloud()) ? "cloud" : "none";
-        // The browser's own service cannot work here, so cloud speech is offered in its place,
-        // with its own agreement. Where cloud speech is off, the browser's service stays on offer.
-        if (support === "browser" && (record.state() === "failed" || (await brave().catch(() => false))))
-          return (await offerCloud()) ? "cloud" : "browser";
-        return support;
+        if (support === "ready" || support === "offer") return support;
+        // Brave has no browser speech service. If cloud speech is unavailable, typing still works.
+        if (support === "none" || (await brave().catch(() => false))) return (await offerCloud()) ? "cloud" : "none";
+        if (record.state() === "failed" && (await offerCloud())) return "cloud";
+        return "browser";
       })
       .then((support) => {
         asking.delete(language);
