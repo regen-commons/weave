@@ -127,6 +127,13 @@ A person can manage several workspaces with the same Certified identity. See the
 
 ## Public project creation and return
 
+Since 25 November 2026 (DL-148), Make It Public can create a personal Certified project from the draft in
+the person's own account, after warning of a likely existing project on Certified or Ma Earth. The
+external editor route below remains for group projects and for Ma Earth, where Weave offers the
+draft's name, place and description to copy before opening Ma Earth. Weave's
+own public page for a new project appears after the public list's next daily
+refresh (`/api/project-index-refresh`), because public pages read that list.
+
 The user [decided on 12 November](open-decisions.md#public-project-editors-decided-12-november-2026)
 that public organizations/projects are created in Ma Earth or Certified for the
 first release. Weave retains private drafting, saving, needs, offers, matching

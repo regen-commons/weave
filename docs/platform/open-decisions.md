@@ -199,6 +199,8 @@ not assignments to people or authorization to provision infrastructure.
 
 ### Public project editors, decided 12 November 2026
 
+**Amended 25 November 2026** by the user: Weave may create a personal Certified project from a person's draft, in their own Certified account, when they make it public (DL-148). Before creating, Weave warns of a likely existing project among the account's own (personal and group, Ma Earth organizations included) and in the public list (Ma Earth's projects included), and a match needs the person's explicit word that it is a different initiative. Ma Earth remains an external editor: Weave offers the details to copy and the existing handoff, since there is no Ma Earth API or prefill. Group projects are still created in Certified's or Ma Earth's editors. The new Certified permission (`publish-initiative`: create the project, its place record and its listings in the person's own repository) and hosted write and read-back are unproven.
+
 The user chose external public project editors for the first release. Guide a
 new initiative that aligns with Ma Earth and chooses its ecosystem to create
 its public organization/project in Ma Earth using Certified. Guide other new
