@@ -1,6 +1,6 @@
 # Usability testing plan
 
-Phases 0 and 1 run no third-party analytics, so watching people is our main feedback. This plan follows chapter 9 and chapter 13 of Krug's book (141-172, 225-226). Three people find most of the serious problems, and testing early with something rough beats testing late with something polished.
+Watching people use Weave is our main source of usability feedback. Funnel counts show where to look, and observing a session can show what got in the way. This plan follows chapter 9 and chapter 13 of Krug's book (141-172, 225-226). Three people find most of the serious problems, and testing early with something rough beats testing late with something polished.
 
 ## Rhythm
 

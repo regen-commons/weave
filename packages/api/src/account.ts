@@ -1,3 +1,4 @@
+import { observeApi } from "./usage.ts";
 import { boundedJson, sessionCookies } from "./account-http.ts";
 import { accountRuntime } from "./account-runtime.ts";
 import { parseDocument, uuid } from "./account-contract.ts";
@@ -218,5 +219,5 @@ function configuredHandlers() {
   return createAccountHandlers({ provider: runtime?.provider ?? null, secureCookies: runtime?.secureCookies ?? true,
     emailHintAvailable: !!runtime?.emailHints, onSignOut: forgetProjectGrants });
 }
-export const GET = (request: Request) => configuredHandlers().GET(request);
-export const POST = (request: Request) => configuredHandlers().POST(request);
+export const GET = observeApi("account", (request: Request) => configuredHandlers().GET(request));
+export const POST = observeApi("account", (request: Request) => configuredHandlers().POST(request));

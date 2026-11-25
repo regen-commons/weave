@@ -1,3 +1,4 @@
+import { beginSearchUsage } from "../usage.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { uuid } from "@weave/api/account-contract";
 import { useDraft } from "../describe/use-draft.ts";
@@ -166,6 +167,26 @@ export function Funding({ fixture, search }: { fixture?: FixtureContext; search:
   const expectsFit = catalog.subjectKnown && catalog.personalized && !browsing;
   const awaitingFit = workspace.state === "loading" ||
     (expectsFit && !catalog.results && !catalog.error && fundingOrder(filters.sort, true) === "fit");
+  const searchText = visibleFilters.search.trim();
+  type MeasuredSearch = { text: string; report: ReturnType<typeof beginSearchUsage> };
+  const [measuredSearch, setMeasuredSearch] = useState<MeasuredSearch | null>(null);
+  const reportedSearch = useRef<MeasuredSearch | null>(null);
+  useEffect(() => {
+    if (fixture || !searchText) {
+      setMeasuredSearch(null);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setMeasuredSearch({ text: searchText, report: beginSearchUsage("funding") });
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [searchText, fixture]);
+  useEffect(() => {
+    if (!measuredSearch || measuredSearch.text !== searchText || loading && !failed ||
+        reportedSearch.current === measuredSearch) return;
+    reportedSearch.current = measuredSearch;
+    measuredSearch.report(failed || !entries.length ? "unavailable" : selected.length ? "results" : "empty");
+  }, [measuredSearch, searchText, loading, failed, entries.length, selected.length]);
   // Funding's first cards are in its first draw, the same one the build's prerender draws (DL-140):
   // while the catalog loads, in the list's own first view. With an initiative compared they stay
   // until its ranking is ready, and the list then moves once, into its fit order.

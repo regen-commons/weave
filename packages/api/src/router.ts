@@ -6,6 +6,8 @@
 // Each handler is loaded only when its endpoint is first asked for, so a cold start loads one.
 
 /** The query key the rewrites add to say which endpoint a request is for. Taken off before the handler sees it. */
+import { observeApi } from "./usage.ts";
+
 export const ROUTE_KEY = "__route";
 
 type Method = "GET" | "HEAD" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -28,6 +30,7 @@ export const ENDPOINTS = {
   "record-page": { methods: ["GET", "HEAD"], load: () => import("./record-page.ts") },
   sitemap: { methods: ["GET", "HEAD"], load: () => import("./sitemap.ts") },
   transcribe: { methods: ["GET", "POST"], load: () => import("./transcribe.ts") },
+  usage: { methods: ["POST"], load: () => import("./usage.ts") },
 } as const satisfies Endpoints;
 export type Endpoint = keyof typeof ENDPOINTS;
 
@@ -93,7 +96,8 @@ export function createRouter(endpoints: Endpoints = ENDPOINTS) {
     const handler = handlers?.[method];
     if (typeof handler !== "function") return new Response(null, { status: 405 });
     const body = method === "GET" || method === "HEAD" ? undefined : request.body;
-    return handler(new Request(found.url, {
+    const handle = found.endpoint === "usage" ? handler : observeApi(found.endpoint, handler);
+    return handle(new Request(found.url, {
       method, headers: request.headers, body, signal: request.signal, ...(body ? { duplex: "half" } : {}),
     } as RequestInit));
   };

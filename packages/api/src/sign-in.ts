@@ -1,3 +1,4 @@
+import { observeApi } from "./usage.ts";
 import { createHash, randomBytes } from "node:crypto";
 import { performance } from "node:perf_hooks";
 import { uuid, type SignInResult } from "./account-contract.ts";
@@ -140,11 +141,11 @@ export function createSignInHandlers({ origin, secureCookies, store, provider, e
 }
 const unavailable = () => new Response(JSON.stringify({ error: "sign_in_unavailable" }), { status: 503,
   headers: { "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
-export const POST = (request: Request) => {
+export const POST = observeApi("sign-in", (request: Request) => {
   const runtime = accountRuntime();
   return runtime ? createSignInHandlers(runtime).POST(request) : unavailable();
-};
-export const GET = (request: Request) => {
+});
+export const GET = observeApi("sign-in", (request: Request) => {
   const runtime = accountRuntime();
   return runtime ? createSignInHandlers(runtime).GET(request) : unavailable();
-};
+});

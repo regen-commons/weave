@@ -1,3 +1,4 @@
+import { beginUsage, rememberSignInUsage, reportUsage, takeSignInUsage } from "../usage.ts";
 import { signInResults, type SignInResult } from "@weave/api/account-contract";
 import type { DraftController } from "../describe/controller.ts";
 import { AccountFailure } from "./client.ts";
@@ -9,22 +10,31 @@ export async function continueToCertified(
   start: (returnTo: string) => Promise<Record<string, unknown>>,
   navigate: (target: string) => void,
 ): Promise<void> {
-  const before = controller.getSnapshot().draft;
-  const check = () => {
-    const current = controller.getSnapshot();
-    if (!current.ready || current.draft !== before || !["saved", "none"].includes(current.storage))
-      throw new Error("Your latest changes need to be stored on this device before sign-in. Keep this tab open and try device storage again.");
-  };
-  await controller.settled();
-  check();
-  const result = await start(returnTo);
-  if (typeof result.redirect !== "string") throw new AccountFailure("sign_in_unavailable");
-  const url = new URL(result.redirect);
-  if (url.username || url.password ||
-      (url.protocol !== "https:" && !(url.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname))))
-    throw new AccountFailure("sign_in_unavailable");
-  check();
-  navigate(url.href);
+  const attempt = beginUsage("sign-in-started");
+  try {
+    const before = controller.getSnapshot().draft;
+    const check = () => {
+      const current = controller.getSnapshot();
+      if (!current.ready || current.draft !== before || !["saved", "none"].includes(current.storage))
+        throw new Error("Your latest changes need to be stored on this device before sign-in. Keep this tab open and try device storage again.");
+    };
+    await controller.settled();
+    check();
+    const result = await start(returnTo);
+    if (typeof result.redirect !== "string") throw new AccountFailure("sign_in_unavailable");
+    const url = new URL(result.redirect);
+    if (url.username || url.password ||
+        (url.protocol !== "https:" && !(url.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname))))
+      throw new AccountFailure("sign_in_unavailable");
+    check();
+    reportUsage(attempt, "sign-in-handoff");
+    rememberSignInUsage(attempt);
+    navigate(url.href);
+  } catch (error) {
+    if (attempt) takeSignInUsage(attempt.id);
+    reportUsage(attempt, "sign-in-start-failed");
+    throw error;
+  }
 }
 const returnMessages: Record<SignInResult, string> = {
   "signed-in": "You are signed in. Choose Save or Load when you are ready. Your device draft is unchanged.",
