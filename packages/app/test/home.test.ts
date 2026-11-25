@@ -7,7 +7,7 @@ import { fundingFixture, readFixtures } from "../src/fixtures.ts";
 import { catalogEntries } from "../src/funding/catalog.ts";
 import { emptyFundingFilters, filterFunding } from "../src/funding/select.ts";
 import {
-  CLOSING_SOON_DAYS, FUNDING_PREVIEW_COUNT, RECENT_PREVIEW_COUNT, fundingPreviews, homeDoors, homePreviews, openLabel,
+  CLOSING_SOON_DAYS, FUNDING_PREVIEW_COUNT, RECENT_PREVIEW_COUNT, fundingPreviews, homePreviews, openLabel,
   resumeLabel,
 } from "../src/home.ts";
 import { cardRoute } from "../src/initiative/status.ts";
@@ -89,21 +89,6 @@ test("Home shows the open calls that close soonest, today included, never ranked
 test("Home has no invented records or activity when no feed is supplied", () => {
   assert.deepEqual(homePreviews([], "2026-11-04"), { recent: [], sharedCount: 0 });
   assert.deepEqual(fundingPreviews([], noon), { upcoming: [], closingSoon: 0 });
-});
-
-test("Home keeps one solid primary: resume a card, open one kept elsewhere, or start", () => {
-  const newcomer = homeDoors(false, 0);
-  const signedInElsewhere = homeDoors(false, 2);
-  const returning = homeDoors(true, 0);
-  assert.deepEqual(newcomer, { resume: false, start: "primary", open: "secondary" });
-  assert.deepEqual(signedInElsewhere, { resume: false, start: "secondary", open: "primary" });
-  assert.deepEqual(returning, { resume: true, start: null, open: null }, "a card to resume stands alone");
-  assert.deepEqual(homeDoors(true, 2), returning, "a card on this device comes before ones kept elsewhere");
-  for (const doors of [newcomer, signedInElsewhere, returning])
-    assert.equal(
-      [doors.resume, doors.start === "primary", doors.open === "primary"].filter(Boolean).length,
-      1,
-    );
 });
 
 test("Home's resume link is named for where the card stopped", () => {

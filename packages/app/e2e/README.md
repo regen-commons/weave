@@ -35,6 +35,10 @@ person's browser does.
 
 ## What is checked
 
+- **`account-refresh.spec.ts`** tests a signed-in Home refresh with delayed account and
+  workspace responses. It measures the header and both actions before the app starts,
+  while it checks the session, and once the workspace is ready. It also checks that
+  Sign In returns if the request fails.
 - **`describe.spec.ts`**: typing through all three steps to a checked card; speech, with a
   stand-in on-device recognizer (`fake-speech.ts`) that says a script without punctuation,
   filling the fields on step 1 and making a card for each need said in one go, with no
@@ -86,6 +90,6 @@ repository; never commit those.
 
 ## Not covered
 
-A real recognizer and the cloud speech recording (`speech-cloud.ts`), signed-in flows,
+A real recognizer and the cloud speech recording (`speech-cloud.ts`), live sign-in,
 an initiative's record page (it needs the public project list), Safari and Firefox, and
 the live site.

@@ -10,6 +10,7 @@ import { revise } from "../describe/contracts.ts";
 import { forgetSavedCard } from "./delete-card.ts";
 const AccountContext = createContext<{
   state: AccountState | null;
+  checkingAccount: boolean;
   /**
    * The session has not been checked yet and an account is expected: this device last saw one signed
    * in, or another tab has just signed in. Hold the page's shape and do not offer sign-in.
@@ -33,6 +34,7 @@ const unavailable: AccountState = { available: false, fixture: false, user: null
 export function AccountProvider({ children, fixture = false }: { children: ReactNode; fixture?: boolean }) {
   const session = useMemo(() => new AccountSession(undefined, undefined, undefined, browserPresence()), [fixture]);
   const state = useSyncExternalStore(session.subscribe, session.getSnapshot);
+  const checking = useSyncExternalStore(session.subscribe, session.getChecking);
   const expected = useSyncExternalStore(session.subscribe, session.getExpected);
   const ending = useSyncExternalStore(session.subscribe, session.getEnding);
   const { controller, draft } = useDraft();
@@ -78,6 +80,7 @@ export function AccountProvider({ children, fixture = false }: { children: React
     <AccountContext.Provider
       value={{
         state: fixture ? unavailable : state,
+        checkingAccount: !fixture && checking,
         expectsAccount: !fixture && expected,
         refresh: fixture ? async () => unavailable : session.refresh,
         clear: session.clear,

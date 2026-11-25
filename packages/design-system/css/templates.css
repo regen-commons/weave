@@ -297,7 +297,7 @@
 .rc-home-hero .rc-heading [data-accent="initiatives"] { color: var(--text-initiatives); }
 .rc-home-hero .rc-heading [data-accent="funding"] { color: var(--text-funding); }
 .rc-home-hero > .rc-prose { max-inline-size: var(--prose-width); }
-.rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--list-width); }
+.rc-home-hero .rc-home-actions { inline-size: 100%; max-inline-size: var(--prose-width); }
 /* Signs of life under the actions: shared initiatives and funding closing soon. One per line on a
    phone, where the two already fill the row and one more digit would wrap them unevenly, and side
    by side when wide (DL-063). Each count arrives when its own list has loaded, so the hero keeps
@@ -378,8 +378,8 @@
   .rc-home-hero > .rc-heading { font: var(--type-headline-hero); }
   .rc-home-live { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--space-4); min-block-size: var(--control-sm-height); }
   .rc-home-actions {
-    grid-auto-flow: column;
-    justify-content: center;
+    /* The second label can change when a draft or workspace is ready. Both positions stay put. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (forced-colors: active) { .rc-mycelium, .rc-home-hero::before, .rc-doorway::before { display: none; } }
