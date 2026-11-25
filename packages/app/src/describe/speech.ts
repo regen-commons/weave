@@ -137,7 +137,8 @@ export const SERVICE_SILENT_MS = 3000;
 
 export interface SpeechCallbacks {
   result(finalText: string, interimText: string): void;
-  error(problem: SpeechProblem): void;
+  /** Cloud speech can provide the time, in milliseconds since the epoch, when a limit resets. */
+  error(problem: SpeechProblem, retryAt?: number): void;
   /** `requested` is true after the person's own Stop, false when the recognizer ended by itself. */
   end(requested: boolean): void;
 }

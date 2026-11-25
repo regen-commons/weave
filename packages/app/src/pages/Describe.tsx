@@ -16,10 +16,11 @@ import {
   saidText,
 } from "../describe/fill.ts";
 import { closeKeywordReader, keywordExtract, warmKeywordReader } from "../describe/keyword-client.ts";
-import { startSpeech } from "../describe/speech.ts";
+import { cloudSession } from "../describe/speech-cloud.ts";
+import { startSpeech, type SpeechProblem } from "../describe/speech.ts";
 import { deviceEngines, ledgerRows, structureWords } from "../describe/structure.ts";
 import { useSpeechSetup } from "../describe/use-speech.ts";
-import { speechMode, speechNotStarted, speechPaused, speechProblem, talksHere } from "../describe/speech-setup.ts";
+import { isCloudSpeechLimit, speechMode, speechNotStarted, speechPaused, speechProblem, talksHere } from "../describe/speech-setup.ts";
 import { draftText, previewFields } from "../describe/view.ts";
 import { exampleConsent, exampleOutcome, exampleSpeech, type FixtureContext } from "../fixtures.ts";
 import { navigate, routeSearch } from "../router.tsx";
@@ -85,6 +86,7 @@ export function Describe({
   const [listening, setListening] = useState(false);
   const [working, setWorking] = useState(false);
   const [status, setStatus] = useState("");
+  const [speechLimitNotice, setSpeechLimitNotice] = useState("");
   const [fileNote, setFileNote] = useState("");
   // What stopped Continue: about one field, where it is then written, or about the form as a whole.
   const [problem, setProblem] = useState<{ field?: FieldKey; message: string } | null>(null);
@@ -107,6 +109,7 @@ export function Describe({
   useEffect(() => {
     setWorking(view === "building");
     setListening(view === "listening");
+    setSpeechLimitNotice("");
     setStatus(
       view === "speech-error" ? "The microphone did not work. Your words are still here, and you can type in the box." : "",
     );
@@ -201,9 +204,16 @@ export function Describe({
   }
   async function talk() {
     setStatus("");
+    setSpeechLimitNotice("");
     setProblem(null);
     const mode = speechMode(speech.state);
     if (!mode) return;
+    const showSpeechProblem = (code: SpeechProblem, retryAt?: number) => {
+      if (cloudSession.rememberLimit(code, retryAt)) return;
+      const message = speechProblem(code, mode, speech.touch, retryAt);
+      if (isCloudSpeechLimit(code)) setSpeechLimitNotice(message);
+      else setStatus(message);
+    };
     const base = saidText(controller.getSnapshot().draft);
     // An example pretends to listen. The words are written here, inside the development-only
     // branch, so no example content reaches the production bundle.
@@ -214,7 +224,7 @@ export function Describe({
         return;
       }
       if (outcome) {
-        setStatus(speechProblem(outcome, mode, speech.touch));
+        showSpeechProblem(outcome);
         return;
       }
       const said = "We are Orchard learning circle. Families share what they learn about the orchard.";
@@ -262,9 +272,9 @@ export function Describe({
               controller.change((current) => changeSaid(current, [base, final].filter(Boolean).join(" ")));
             }
           },
-          error: (code) => {
+          error: (code, retryAt) => {
             failed = true;
-            setStatus(speechProblem(code, mode, speech.touch));
+            showSpeechProblem(code, retryAt);
           },
           end: (requested) => {
             // A session cut off at Stop's deadline ends with its last words unsettled; they are kept.
@@ -459,6 +469,7 @@ export function Describe({
                 actions={addFilesButton}
                 onAction={() => void fill()}
                 onCancel={() => task.current?.abort()}
+                speechLimitNotice={speechLimitNotice}
                 status={status || boxNote(said) || (draft.attachments.length ? "" : "Files are optional, up to 25 MB each, and stay on this device.")}
                 lead={talkLeads}
               />

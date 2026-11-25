@@ -36,7 +36,8 @@ export type SpeechFailure =
   | "request_timeout"
   /** Cloud speech is switched off or not configured. */
   | "speech_unavailable"
-  /** The provider's allowance for the day is used up. */
+  | "speech_caller_limited"
+  /** The daily allowance for Weave or its provider is used up. */
   | "speech_limit_reached"
   /** The provider has no capacity right now. */
   | "speech_busy"
@@ -92,8 +93,19 @@ const FAILURES: readonly SpeechFailure[] = [
   "recording_unreadable",
   "request_timeout",
   "speech_unavailable",
+  "speech_caller_limited",
   "speech_limit_reached",
   "speech_busy",
   "speech_timeout",
   "speech_failed",
 ];
+
+export const SPEECH_DAY_MS = 24 * 60 * 60_000;
+
+/** Accept HTTP Retry-After in seconds or as a date, up to the daily reset. */
+export function speechRetryAt(value: string | null, now: number): number | undefined {
+  if (!value) return undefined;
+  const retryAt = /^\d+$/u.test(value) ? now + Number(value) * 1000 : Date.parse(value);
+  if (retryAt > now && retryAt <= now + SPEECH_DAY_MS) return retryAt;
+  return undefined;
+}

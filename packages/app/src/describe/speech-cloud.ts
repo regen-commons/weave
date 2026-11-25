@@ -19,6 +19,7 @@ import {
   parseSpeechFailure,
   parseSpeechStatus,
   parseTranscript,
+  speechRetryAt,
   type SpeechFailure,
   type SpeechStatus,
 } from "@weave/api/transcribe-contract";
@@ -143,6 +144,9 @@ export interface CloudSessionView {
 }
 const IDLE: CloudSessionView = { phase: "idle", since: null };
 let view: CloudSessionView = IDLE;
+type CloudSpeechCooldown = { problem: "cloud-caller-limited" | "cloud-limit"; retryAt: number };
+let cooldown: CloudSpeechCooldown | null = null;
+let cooldownTimer: ReturnType<typeof setTimeout> | undefined;
 let discardCurrent: (() => void) | undefined;
 /** The session the view describes. A session that is not the latest one changes nothing here. */
 let owner: object | undefined;
@@ -154,6 +158,22 @@ function show(next: CloudSessionView) {
 }
 export const cloudSession = {
   view: (): CloudSessionView => view,
+  cooldown: (): CloudSpeechCooldown | null => cooldown,
+  /** Share a known limit across the intake steps. Temporary provider overload does not close the microphone. */
+  rememberLimit(problem: SpeechProblem, retryAt?: number): boolean {
+    if (problem !== "cloud-caller-limited" && problem !== "cloud-limit") return false;
+    const remaining = retryAt === undefined ? 0 : retryAt - Date.now();
+    if (!retryAt || remaining <= 0) return false;
+    if (cooldown && cooldown.retryAt >= retryAt) return true;
+    clearTimeout(cooldownTimer);
+    cooldown = { problem, retryAt };
+    cooldownTimer = setTimeout(() => {
+      cooldown = null;
+      for (const listener of viewListeners) listener();
+    }, remaining);
+    for (const listener of viewListeners) listener();
+    return true;
+  },
   subscribe(listener: () => void): () => void {
     viewListeners.add(listener);
     return () => viewListeners.delete(listener);
@@ -165,8 +185,10 @@ export const cloudSession = {
 };
 
 /** What the page says for each way the server can refuse a recording: see `speechProblem`. */
-function problemFor(failure: SpeechFailure): SpeechProblem {
+function problemFor(failure: SpeechFailure, status: number): SpeechProblem {
   switch (failure) {
+    case "speech_caller_limited":
+      return "cloud-caller-limited";
     case "speech_limit_reached":
       return "cloud-limit";
     case "speech_busy":
@@ -180,7 +202,7 @@ function problemFor(failure: SpeechFailure): SpeechProblem {
     case "speech_unavailable":
       return "cloud-off";
     default:
-      return "cloud-failed";
+      return status === 429 ? "cloud-busy" : "cloud-failed";
   }
 }
 
@@ -278,9 +300,9 @@ export async function startCloudSpeech(
       show(IDLE);
     }
   };
-  const fail = (problem: SpeechProblem) => {
+  const fail = (problem: SpeechProblem, retryAt?: number) => {
     if (phase === "ended") return;
-    callbacks.error(problem);
+    callbacks.error(problem, retryAt);
     dispose();
     callbacks.end(false);
   };
@@ -299,7 +321,7 @@ export async function startCloudSpeech(
   });
 
   /** Sends the recording, once. Answers the words, or the problem to say. */
-  const post = async (recording: Blob, seconds: number): Promise<{ text: string } | { problem: SpeechProblem }> => {
+  const post = async (recording: Blob, seconds: number): Promise<{ text: string } | { problem: SpeechProblem; retryAt?: number }> => {
     const timeout = AbortSignal.timeout(CLOUD_SEND_MS);
     const sentAt = new Date(now()).toISOString();
     const note = () => log.add({ at: sentAt, seconds });
@@ -331,7 +353,12 @@ export async function startCloudSpeech(
     // The server answered, so the recording left this device, whatever the answer.
     note();
     const body: unknown = await response.json().catch(() => null);
-    if (!response.ok) return { problem: problemFor(parseSpeechFailure(body)) };
+    if (!response.ok) {
+      return {
+        problem: problemFor(parseSpeechFailure(body), response.status),
+        retryAt: speechRetryAt(response.headers.get("retry-after"), now()),
+      };
+    }
     try {
       return parseTranscript(body);
     } catch {
@@ -350,7 +377,7 @@ export async function startCloudSpeech(
     if (!recording.size) return fail("no-speech");
     const outcome = await post(recording, Math.max(0, Math.round((recordedUntil - (began ?? recordedUntil)) / 1000)));
     if (phase !== "sending") return;
-    if ("problem" in outcome) return fail(outcome.problem);
+    if ("problem" in outcome) return fail(outcome.problem, outcome.retryAt);
     const text = outcome.text.trim();
     if (!text) return fail("no-speech");
     try {

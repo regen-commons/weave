@@ -477,19 +477,23 @@ export function talkHold(
   return focused ? "held" : "disabled";
 }
 
-/**
- * What the page says when a session stops early, in the status line under the box. It says only
- * what the browser reported, and every line keeps typing open. Talk It Out stays where it was, so
- * the page does not move and the focus stays on the button; pressing it again tries again. On a
- * touch screen, a service that cannot be reached or will not work here also points to the
- * keyboard's microphone key. Every code has a line: a session the page itself ends never reaches
- * the page, so whatever does reach it is news to the person, and an empty line read as nothing
- * having happened (23 November 2026).
- */
-export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = false): string {
+/** Limits belong beside the microphone, where the person can see when to use it again. */
+export function isCloudSpeechLimit(problem: SpeechProblem): boolean {
+  return problem === "cloud-busy" || problem === "cloud-caller-limited" || problem === "cloud-limit";
+}
+
+/** What the page says when speech stops early. Every line leaves typing open. */
+export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = false, retryAt?: number): string {
   const instead = touch
     ? "If your keyboard has a microphone key, you can use it, or type in the box."
     : "Your words are still here, and you can type in the box.";
+  const retry = () => {
+    if (retryAt === undefined) return "You can type in the box.";
+    // Round up so the displayed minute begins after the limit has reset.
+    const time = new Intl.DateTimeFormat(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" })
+      .format(Math.ceil(retryAt / 60_000) * 60_000);
+    return `Try again after ${time}, or type in the box.`;
+  };
   switch (problem) {
     // The browser ended the session itself, as some phones do when another app takes the microphone.
     case "aborted":
@@ -536,9 +540,11 @@ export function speechProblem(problem: SpeechProblem, mode: SpeechMode, touch = 
     case "cloud-unreachable":
       return "The recording could not be sent. It was not kept. Try again, or type in the box.";
     case "cloud-busy":
-      return `${CLOUD_SPEECH.company} is busy right now, so the recording was not turned into text. It was not kept. Try again in a moment, or type in the box.`;
+      return `Cloud speech is busy right now. The recording was not kept. ${retryAt === undefined ? "Try again in a moment, or type in the box." : retry()}`;
+    case "cloud-caller-limited":
+      return `This connection has reached its limit for cloud speech. The recording was not kept. ${retry()}`;
     case "cloud-limit":
-      return "Cloud speech has reached its limit for today. The recording was not kept. You can type in the box.";
+      return `Cloud speech has reached its daily limit. The recording was not kept. ${retry()}`;
     case "cloud-off":
       return "Cloud speech is not available right now. The recording was not kept. You can type in the box.";
     case "cloud-too-long":

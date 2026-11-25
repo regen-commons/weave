@@ -24,6 +24,61 @@ test("speech: a recognizer's words fill the fields, and a list said in one go ma
   await expect(page).toHaveURL(/\/start\/needs$/u);
 });
 
+test("a known cloud quota reset holds the microphone while typing stays open", async ({ page }) => {
+  const now = new Date("2026-11-25T09:00:00Z");
+  const reset = new Date("2026-11-25T09:10:00Z");
+  await page.clock.install({ time: now });
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "SpeechRecognition", { value: undefined });
+    Object.defineProperty(window, "webkitSpeechRecognition", { value: undefined });
+    Object.defineProperty(navigator, "mediaDevices", {
+      value: { getUserMedia: async () => ({ getTracks: () => [] }) },
+    });
+    class Recorder {
+      static isTypeSupported() { return true; }
+      ondataavailable?: (event: { data: Blob }) => void;
+      onstop?: () => void;
+      start() {}
+      stop() {
+        this.ondataavailable?.({ data: new Blob(["fixture audio"]) });
+        this.onstop?.();
+      }
+    }
+    Object.defineProperty(window, "MediaRecorder", { value: Recorder });
+  });
+  let attempts = 0;
+  await page.route("**/api/transcribe", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: { enabled: true, maxSeconds: 180, maxBytes: 3_000_000 } });
+      return;
+    }
+    attempts++;
+    await route.fulfill({
+      status: 429,
+      headers: { "Retry-After": reset.toUTCString() },
+      json: { error: "speech_caller_limited" },
+    });
+  });
+  await page.goto("/start/new");
+  const talk = page.getByRole("button", { name: "Talk It Out", exact: true });
+  await talk.click();
+  await page.getByRole("button", { name: "Agree And Record" }).click();
+  await expect(page.getByText(/^Recording 0:/u)).toBeVisible();
+  await page.getByRole("button", { name: "Stop", exact: true }).click();
+  const notice = page.getByRole("status").filter({ hasText: "This connection has reached its limit" });
+  await expect(notice).toContainText("or type in the box.");
+  await expect(talk).toBeDisabled();
+  await talk.press("Enter");
+  await expect(notice).toBeVisible();
+  await expect(page.getByRole("button", { name: "Stop", exact: true })).toHaveCount(0);
+  await box(page).fill("Our orchard draft is still here.");
+  await page.clock.fastForward(10 * 60_000);
+  await expect(talk).toBeEnabled();
+  await talk.click();
+  await expect(page.getByRole("button", { name: "Stop", exact: true })).toBeVisible();
+  expect(attempts).toBe(1);
+});
+
 test("speech on needs: one recording becomes one card per need, with no press after Stop", async ({ page }) => {
   await fakeSpeech(page, ["we need seedlings and a meeting room", "and also some funding for fencing"]);
   await typeStepOne(page);

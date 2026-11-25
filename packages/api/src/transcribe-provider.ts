@@ -2,16 +2,18 @@
 // Cloudflare's data-usage page says Workers AI keeps no inputs or outputs after a request and
 // trains on none. Weave keeps neither the recording nor the words: this module returns the text
 // to its caller and writes nothing, to storage or to a log.
-import type { SpeechFailure } from "./transcribe-contract.ts";
+import { SPEECH_DAY_MS, speechRetryAt, type SpeechFailure } from "./transcribe-contract.ts";
 
 /** A failure with the status and the stable code the handler answers with. Never a provider's own words. */
 export class SpeechError extends Error {
   readonly status: number;
   readonly code: SpeechFailure;
-  constructor(status: number, code: SpeechFailure) {
+  readonly retryAt: number | undefined;
+  constructor(status: number, code: SpeechFailure, retryAt?: number) {
     super(code);
     this.status = status;
     this.code = code;
+    this.retryAt = retryAt;
   }
 }
 
@@ -50,16 +52,19 @@ function object(value: unknown): Record<string, unknown> | null {
  * large, 3007 a timeout, and 5004 and 3003 input it could not read. A refused token or a blocked
  * account is Weave's configuration, so it reads as unavailable and says nothing more.
  */
-function refusal(status: number, data: unknown): SpeechError {
+function refusal({ status, headers }: Response, data: unknown): SpeechError {
   const first = object(data)?.errors;
   const code = Array.isArray(first) ? object(first[0])?.code : undefined;
-  if (code === 3036) return new SpeechError(503, "speech_limit_reached");
-  if (code === 3040) return new SpeechError(503, "speech_busy");
+  const now = Date.now();
+  if (code === 3036) {
+    return new SpeechError(503, "speech_limit_reached", now - now % SPEECH_DAY_MS + SPEECH_DAY_MS);
+  }
+  if (code === 3040 || status === 429)
+    return new SpeechError(503, "speech_busy", speechRetryAt(headers.get("retry-after"), now));
   if (code === 3006 || status === 413) return new SpeechError(413, "recording_too_large");
   if (code === 3007 || status === 408) return new SpeechError(504, "speech_timeout");
   if (code === 5004 || code === 3003 || status === 400) return new SpeechError(422, "recording_unreadable");
   if (status === 401 || status === 403) return new SpeechError(503, "speech_unavailable");
-  if (status === 429) return new SpeechError(503, "speech_busy");
   return new SpeechError(502, "speech_failed");
 }
 
@@ -94,14 +99,18 @@ export function createCloudflareSpeech({
           redirect: "error",
           signal: AbortSignal.any([signal, deadline]),
         });
-        data = await response.json();
+        data = await response.json().catch((error: unknown) => {
+          // A rate limit can come from infrastructure that sends a non-JSON response.
+          if (response.status === 429 && !signal.aborted && !deadline.aborted) return null;
+          throw error;
+        });
       } catch {
         // The caller's own cancellation is theirs to report. Anything else is the provider's.
         signal.throwIfAborted();
         throw new SpeechError(deadline.aborted ? 504 : 502, deadline.aborted ? "speech_timeout" : "speech_failed");
       }
       const body = object(data);
-      if (!response.ok || body?.success !== true) throw refusal(response.status, data);
+      if (!response.ok || body?.success !== true) throw refusal(response, data);
       const text = object(body.result)?.text;
       if (typeof text !== "string") throw new SpeechError(502, "speech_failed");
       return { text: text.replace(/\s+/gu, " ").trim() };
