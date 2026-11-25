@@ -1,3 +1,4 @@
+import { beginSearchUsage } from "../usage.ts";
 import { useEffect, useRef, useState } from "react";
 import { fullDate } from "../home.ts";
 import { Link, replaceRouteQuietly, routePath, routeSearch } from "../router.tsx";
@@ -149,6 +150,7 @@ export function PublicProjects() {
   const [workScope, setWorkScope] = useState(() => chosenWorkScope(routeSearch()));
   const [sort, setSort] = useState<PublicProjectSort>(() => chosenSort(routeSearch()));
   const q = usePaused(searchQuery(search), SEARCH_PAUSE_MS);
+  const measuredSearch = useRef<{ q: string; finished: boolean; report: ReturnType<typeof beginSearchUsage> } | null>(null);
   useEffect(() => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
@@ -161,6 +163,19 @@ export function PublicProjects() {
   const { list, more, retry } = usePublicProjects(q, {
     organizationType: organizationType ?? undefined, workScope: workScope ?? undefined, sort,
   });
+  useEffect(() => {
+    if (!q || searchQuery(search) !== q) {
+      measuredSearch.current = null;
+      return;
+    }
+    if (measuredSearch.current?.q !== q) {
+      measuredSearch.current = { q, finished: false, report: beginSearchUsage("initiative") };
+    }
+    if (measuredSearch.current.finished || list.q !== q || list.status === "loading") return;
+    measuredSearch.current.finished = true;
+    measuredSearch.current.report(list.status === "failed" || list.page.index.status === "off"
+      ? "unavailable" : list.projects.length ? "results" : "empty");
+  }, [q, search, list]);
   // Whether a page has shown the list is switched on, so later searches keep the index while they load.
   const [indexSeen, setIndexSeen] = useState(false);
   // The last list that arrived stays on screen while the next search loads, so the cards do not blink.

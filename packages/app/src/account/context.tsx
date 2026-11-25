@@ -1,3 +1,5 @@
+import { reportUsage, takeSignInUsage } from "../usage.ts";
+import { isSignInReturn } from "./sign-in.ts";
 import { createContext, useContext, useEffect, useState, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { type AccountState } from "./client.ts";
 import { AccountSession } from "./session.ts";
@@ -72,7 +74,11 @@ export function AccountProvider({ children, fixture = false }: { children: React
   useEffect(() => {
     if (fixture) return;
     const disconnect = session.connect(browserSessionEvents());
-    if (returnResult === "signed-in" && !announced.current) { announced.current = true; session.changed(); }
+    if (!announced.current && isSignInReturn(returnResult)) {
+      announced.current = true;
+      if (returnResult === "signed-in") session.changed();
+      reportUsage(takeSignInUsage(), returnResult === "signed-in" ? "sign-in-completed" : `sign-in-${returnResult}`);
+    }
     void session.refresh().catch(() => {});
     return disconnect;
   }, [session, fixture]);

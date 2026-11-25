@@ -22,6 +22,7 @@ test("each shared endpoint keeps the methods its own function exported", () => {
     "record-page": ["GET", "HEAD"],
     sitemap: ["GET", "HEAD"],
     transcribe: ["GET", "POST"],
+    usage: ["POST"],
   });
 });
 
