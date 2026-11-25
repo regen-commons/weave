@@ -56,10 +56,11 @@
 <main class="rc-main" id="main">
         <div class="rc-list-layout">
           <h1 class="rc-heading" data-size="page">Your Initiatives</h1>
-          <section class="rc-section" aria-labelledby="initiatives-weave">
+          <section class="rc-section" aria-labelledby="initiatives-device">
             <div class="rc-section-head">
-              <h2 class="rc-heading" data-size="section" id="initiatives-weave">Drafts And Private Saves</h2>
+              <h2 class="rc-heading" data-size="section" id="initiatives-device">On This Device</h2>
             </div>
+            <p class="rc-section-note">Kept only in this browser. Nobody else can see these until you publish one to a Certified project.</p>
             <ul class="rc-card-grid">
               <li>
                 <article class="rc-card" data-layout="listing">
@@ -72,19 +73,14 @@
                   </div>
                 </article>
               </li>
-              <li>
-                <article class="rc-card" data-layout="listing">
-                  <h3 class="rc-card-title"><button type="button">Valley pruning days</button></h3>
-                  <div class="rc-tag-list"><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#lock" /></svg>Saved privately</span></div>
-                  <p class="rc-card-meta">Saved on 28 October 2026.</p>
-                </article>
-              </li>
             </ul>
+            <div class="rc-action-bar"><button class="rc-button" data-variant="quiet" type="button">Remove A Draft From This Device</button></div>
           </section>
           <section class="rc-section" aria-labelledby="initiatives-certified">
             <div class="rc-section-head">
-              <h2 class="rc-heading" data-size="section" id="initiatives-certified">On Certified</h2>
+              <h2 class="rc-heading" data-size="section" id="initiatives-certified">Certified Projects</h2>
             </div>
+            <p class="rc-section-note">Public on Certified, where each project's name, description and place are edited. What you publish from Weave adds needs and offers that anyone can read.</p>
             <ul class="rc-card-grid">
               <li>
                 <article class="rc-card" data-layout="listing">
@@ -108,6 +104,25 @@
                 </article>
               </li>
             </ul>
+          </section>
+          <section class="rc-section" aria-labelledby="initiatives-private">
+            <div class="rc-section-head">
+              <h2 class="rc-heading" data-size="section" id="initiatives-private">Private Weave Saves</h2>
+            </div>
+            <p class="rc-section-note">Copies saved in your Weave account. Only you can see them, when signed in. Nothing here is public or shared for matching.</p>
+            <ul class="rc-card-grid">
+              <li>
+                <article class="rc-card" data-layout="listing">
+                  <h3 class="rc-card-title"><button type="button">Valley pruning days</button></h3>
+                  <div class="rc-tag-list"><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#lock" /></svg>Saved privately</span></div>
+                  <p class="rc-card-meta">Saved on 28 October 2026.</p>
+                </article>
+              </li>
+            </ul>
+            <div class="rc-action-bar">
+              <button class="rc-button" data-variant="quiet" type="button">Download Private Saves</button>
+              <button class="rc-button" data-variant="quiet" type="button">Delete A Saved Card</button>
+            </div>
           </section>
           <p class="rc-meta">Opening another initiative backs up the card on this device first.</p>
           <div class="rc-action-bar">

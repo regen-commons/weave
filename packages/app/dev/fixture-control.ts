@@ -1,7 +1,7 @@
 /** Local fixture identities only. This module has no production API entry. */
 import { sessionCookies } from "../../api/src/account-http.ts";
 import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureSession } from "./account-fixture.ts";
-import { FIXTURE_TEAM_ADMIN, FIXTURE_TEAM_EDITOR, FIXTURE_GROUP_MEMBER, FIXTURE_UNAVAILABLE, FIXTURE_PROJECT_STARTER, publishFixtureProject } from "./matching-fixture.ts";
+import { FIXTURE_TEAM_ADMIN, FIXTURE_TEAM_EDITOR, FIXTURE_GROUP_MEMBER, FIXTURE_UNAVAILABLE, FIXTURE_PROJECT_STARTER, publishFixtureProject, setFixturePublishPermission } from "./matching-fixture.ts";
 const profiles = { viewer: FIXTURE_ACCOUNT_ID, editor: FIXTURE_TEAM_EDITOR, admin: FIXTURE_TEAM_ADMIN,
   member: FIXTURE_GROUP_MEMBER, unavailable: FIXTURE_UNAVAILABLE, creator: FIXTURE_PROJECT_STARTER } as const;
 export async function fixtureControl(request: Request) {
@@ -18,6 +18,13 @@ export async function fixtureControl(request: Request) {
     try { publishFixtureProject(fixtureActor(sessionCookies(false).token(request) ?? "").userId); }
     catch { return new Response(null, { status: 403 }); }
     return new Response(null, { status: 303, headers: { ...headers, Location: "/your-initiatives" } });
+  }
+  // Holds public publication back for Certified's permission, or gives it, for every fixture account.
+  if (body.get("action") === "publish-permission") {
+    const value = body.get("value");
+    if (value !== "granted" && value !== "missing") return new Response(null, { status: 400 });
+    setFixturePublishPermission(value);
+    return new Response(null, { status: 204, headers });
   }
   const profile = body.get("profile");
   if (!profile || !Object.hasOwn(profiles, profile)) return new Response(null, { status: 400 });

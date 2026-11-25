@@ -3,7 +3,7 @@ import { parseSummaries, record, uuid, type InitiativeSummary } from "@weave/api
 import type { AccountState } from "../account/client.ts";
 import { AccountFailure, accountMessage, accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
 import { AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../account/document.ts";
-import { deleteSavedCard } from "../account/delete-card.ts";
+import { CardReferenced, cardReferences, deleteSavedCard } from "../account/delete-card.ts";
 import { withConfirmedSession } from "../account/session-end.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { hasDraft } from "../describe/view.ts";
@@ -375,6 +375,11 @@ export function createLiveSocialService(options: Options): LiveSocialService {
           state = { ...state, cards: state.cards.filter(item => item.id !== card.id) }; emit();
         }
         return result;
+      } catch (error) {
+        // The account gives one code for every reference. Say only what Weave can verify (QA notes, 25 November 2026).
+        if (error instanceof AccountFailure && error.code === "initiative_referenced" && !(error instanceof CardReferenced))
+          throw new CardReferenced(await cardReferences(card.id, state.workspaces ?? [], request, signal));
+        throw error;
       } finally {
         // The account list is the authority afterwards, whether the card went or was refused.
         if (!lifetime.signal.aborted) await options.refreshAccount().then(account => service.syncAccount(account), () => {});
