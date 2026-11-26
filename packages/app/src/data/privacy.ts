@@ -34,13 +34,20 @@
  *   `/api/feedback` with no cookie, header or address of the person's, keeps nothing, logs only the
  *   website's status when it did not confirm, and counts posts by address in memory only
  *   (`src/feedback/send.ts`, `@weave/api` feedback).
+ * - The shortlist of funds and initiatives is kept in this browser only, never in an account, and saving
+ *   does not include it (`src/shortlist/store.ts`). To show a shortlisted initiative, the page asks
+ *   Weave's server for that one public project, as any list page does, with nothing of the person's
+ *   attached (`src/shortlist/use-initiative-lookups.ts`). Exports are made on the device (DL-152, DL-153).
  * - One saved card and one device backup can be deleted. A whole account cannot, yet.
  * Change a sentence here only with the code that makes it true.
  */
 export type Term = readonly [question: string, answer: string];
 
 export const STORAGE_SUMMARY: readonly Term[] = [
-  ["On this device", "Your draft, conversations, files and backups stay in this browser until you save."],
+  [
+    "On this device",
+    "Your draft, conversations, files and backups stay in this browser until you save. Your shortlist of funds and initiatives stays in this browser only.",
+  ],
   [
     "When you save",
     "Your checked card, the needs and offers you kept and your funding details go to the Regen Commons database, linked to your Certified sign-in. Conversations and files are not sent.",
@@ -67,7 +74,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
   {
     title: "What Stays On This Device",
     body: [
-      "Your draft, conversations, files, unfinished edits, assistant records and backups are kept in this browser. Settings can download all of it, including files.",
+      "Your draft, conversations, files, unfinished edits, assistant records, backups and shortlist are kept in this browser. Settings can download all of it, including files. Saving does not include the shortlist. To show a shortlisted initiative, Weave asks for that public project only, with nothing of yours.",
       "Clearing this site's data in your browser removes them. Work you have not saved cannot be recovered after that.",
     ],
   },

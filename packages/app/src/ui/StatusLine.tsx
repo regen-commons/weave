@@ -8,7 +8,12 @@ import { useEffect, useRef, type ReactNode } from "react";
  * while the account is checked again. The browser then drops the focus on the page, so the line
  * that says the outcome takes it (DL-032).
  */
-export function StatusLine({ children, actions }: { children: ReactNode; actions?: ReactNode }) {
+export function StatusLine({ children, actions, until }: {
+  children: ReactNode;
+  actions?: ReactNode;
+  /** Shown only where the side panel is not, which holds the same thing on a wide page (DL-153). */
+  until?: "wide";
+}) {
   const line = useRef<HTMLParagraphElement>(null);
   /** The control in this row that last held the focus, until the focus moves somewhere else. */
   const focused = useRef<Element | null>(null);
@@ -22,6 +27,7 @@ export function StatusLine({ children, actions }: { children: ReactNode; actions
   return (
     <div
       className="rc-status-line"
+      data-until={until}
       onFocus={(event) => {
         if (event.target !== line.current) focused.current = event.target;
       }}

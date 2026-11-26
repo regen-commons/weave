@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { connectPopover } from "@regen-commons/design-system/overlays";
 import { shareTargets, type RecordShare } from "../record-share.ts";
 import { Link } from "../router.tsx";
@@ -9,8 +9,12 @@ import { Icon } from "./Icon.tsx";
  * share sheet where the browser has one, and one link a place to post it. The menu sends nothing itself;
  * each place opens in a new tab with the words filled in, and the person posts from there. The line
  * under the button says what happened, for a copy that worked or one the browser refused.
+ *
+ * `before` is the action that keeps the record rather than sends it, the shortlist's, which shares
+ * Share's row so going to the funder stands apart from keeping and sending (DL-153). `note` is what
+ * that action could not do, said on the same line.
  */
-export function ShareMenu({ share }: { share: RecordShare }) {
+export function ShareMenu({ share, before, note = "" }: { share: RecordShare; before?: ReactNode; note?: string }) {
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -44,6 +48,7 @@ export function ShareMenu({ share }: { share: RecordShare }) {
   }
   return (
     <div className="rc-action-bar">
+      {before}
       <button ref={trigger} className="rc-button" data-variant="secondary" type="button" popoverTarget={id}>
         <Icon name="share" size="sm" />
         Share
@@ -67,7 +72,7 @@ export function ShareMenu({ share }: { share: RecordShare }) {
         ))}
       </div>
       <p className="rc-meta" role="status">
-        {result}
+        {result || note}
       </p>
     </div>
   );

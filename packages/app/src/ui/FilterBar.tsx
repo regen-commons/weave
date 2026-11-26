@@ -123,7 +123,7 @@ function SortMenu({ sort, name, onSort }: { sort: SortChoice; name: string; onSo
  * menu for each filter and Sort. The bar draws it under the search, and the pinned row draws it
  * again while the bar is out of view, so each copy names its radios for its own place.
  */
-function Controls({ place, facets, onFacet, sort, onSort, sheetLabel, narrowed, ordered, onSheet, lead }: {
+function Controls({ place, facets, onFacet, sort, onSort, sheetLabel, narrowed, ordered, onSheet, lead, actions }: {
   place: string;
   facets: readonly Facet[];
   onFacet: ChangeFacet;
@@ -135,6 +135,8 @@ function Controls({ place, facets, onFacet, sort, onSort, sheetLabel, narrowed, 
   onSheet(): void;
   /** What comes first in the row, such as the pinned row's way back to the search. */
   lead?: ReactNode;
+  /** What comes last: an action on the list as shown, such as Funding's Export. */
+  actions?: ReactNode;
 }) {
   return (
     <div className="rc-filter-controls">
@@ -154,6 +156,7 @@ function Controls({ place, facets, onFacet, sort, onSort, sheetLabel, narrowed, 
         <FilterMenu key={facet.key} facet={facet} name={`${place}-${facet.key}-menu`} onChange={onFacet} />
       ))}
       {sort && onSort && <SortMenu sort={sort} name={`${place}-sort`} onSort={onSort} />}
+      {actions}
     </div>
   );
 }
@@ -207,6 +210,8 @@ export function FilterBar({
   loading = false,
   reserve,
   onClear,
+  actions,
+  after,
 }: {
   /** What the list holds, as the search field names it: "initiatives", "funding". */
   noun: string;
@@ -234,6 +239,16 @@ export function FilterBar({
   reserve?: string;
   /** Takes off the search and every filter, and returns the order to the list's own (DL-122). */
   onClear(): void;
+  /**
+   * An action on the list as shown, last in the bar's row at every width, such as Funding's Export
+   * (DL-152). The pinned row leaves it out, so that row stays one row. It draws its own waiting state.
+   */
+  actions?: ReactNode;
+  /**
+   * What follows the count and its note on the same line, such as the way to the shortlist (DL-153).
+   * It is said as it changes.
+   */
+  after?: ReactNode;
 }) {
   const id = useId();
   const [sheet, setSheet] = useState(false);
@@ -420,9 +435,10 @@ export function FilterBar({
               Sort
             </button>
           )}
+          {actions}
         </div>
       ) : controls ? (
-        <Controls place={id} onSheet={() => openSheet("bar")} {...controlProps} />
+        <Controls place={id} onSheet={() => openSheet("bar")} actions={actions} {...controlProps} />
       ) : null}
       {(query || choices.length > 0 || ordered) && (
         <div className="rc-active-filters" role="group" aria-label="Chosen filters">
@@ -460,9 +476,10 @@ export function FilterBar({
           </button>
         </div>
       )}
-      {/* The count has one line and the fact about the whole list its own line under it. Each keeps
-          set room, so the bar is one height loading and loaded (DL-108). While the list loads the
-          words are for assistive technology and the eye gets the lines' shapes. */}
+      {/* The count, the fact about the whole list and what follows run on as one sentence, in room
+          set for them: a line on a wide screen and two on a phone, so the bar is one height loading
+          and loaded (DL-108) and the cards start higher (DL-153). While the list loads the words are
+          for assistive technology and the eye gets the shapes of the words to come. */}
       <p className="rc-meta">
         <span role="status" aria-atomic="true" className={loading ? "rc-visually-hidden" : undefined}>
           {loading ? `Loading ${noun}` : countLine}
@@ -473,9 +490,18 @@ export function FilterBar({
           </span>
         )}
         {noted && (
-          <span data-part="note" aria-hidden={loading || undefined}>
-            {loading ? <span className="rc-skeleton" data-shape="hold">{noted}</span> : noted}
-          </span>
+          <>
+            {" "}
+            <span data-part="note" aria-hidden={loading || undefined}>
+              {loading ? <span className="rc-skeleton" data-shape="hold">{noted}</span> : noted}
+            </span>
+          </>
+        )}
+        {after && !loading && (
+          <>
+            {" "}
+            <span data-part="after" role="status">{after}</span>
+          </>
         )}
       </p>
       <div className="rc-filter-pin" ref={pin} role="group" aria-label={`Filter ${noun}`} hidden={!pinned}>

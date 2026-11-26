@@ -1,14 +1,8 @@
 import type { Evaluation } from "../funding/contracts.ts";
-import { fitExplanation, fundingFit, type FundingFit } from "../funding/fit.ts";
+import { FIT_LABELS, fitExplanation, fundingFit, type FundingFit } from "../funding/fit.ts";
 import { Tooltip } from "./Tooltip.tsx";
 /** Every fit the app shows. Partner cards use the first three; funding uses all four (DL-129). */
 export type FitLevel = FundingFit;
-const LABELS: Record<FitLevel, string> = {
-  strong: "Strong fit",
-  good: "Good fit",
-  possible: "Possible fit",
-  low: "Low fit",
-};
 /** A fit as a word and a bar of four steps. The same word always fills the same steps. */
 export function Fit({ level, explanation, label }: { level: FitLevel; explanation: string; label?: string }) {
   return (
@@ -20,7 +14,7 @@ export function Fit({ level, explanation, label }: { level: FitLevel; explanatio
           <i />
           <i />
         </span>
-        {label ?? LABELS[level]}
+        {label ?? FIT_LABELS[level]}
       </span>
     </Tooltip>
   );

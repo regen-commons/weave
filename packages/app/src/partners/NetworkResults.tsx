@@ -193,7 +193,7 @@ export function SourceLink({ href, name }: { href: string; name: string }) {
 }
 
 /**
- * Opens a public Certified project at its Weave address, in place, as the Initiatives list does (DL-152).
+ * Opens a public Certified project at its Weave address, in place, as the Initiatives list does (DL-154).
  * Its record's raw data is never the way in: a project with no Weave address shows no link.
  */
 export function InitiativeLink({ uri, name }: { uri: string; name: string }) {

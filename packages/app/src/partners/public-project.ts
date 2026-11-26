@@ -65,7 +65,7 @@ export function missingLine(status: "missing" | "off"): string {
 
 /**
  * How to reach the initiative, said honestly: Weave makes no introductions, so the way is the publisher's
- * own links where it shared any (DL-152). Null while its own answer has not come.
+ * own links where it shared any (DL-154). Null while its own answer has not come.
  */
 export function contactLine(hasLinks: boolean | null): string {
   if (hasLinks === null) return "Weave makes no introductions yet.";

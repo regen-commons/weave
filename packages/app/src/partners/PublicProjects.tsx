@@ -12,6 +12,9 @@ import { Icon } from "../ui/Icon.tsx";
 import { PartnerDiscovery } from "./PartnerDiscovery.tsx";
 import { projectAddress, rememberProject } from "./public-project.ts";
 import { MatchingDate } from "./SharingReview.tsx";
+import { InitiativeShortlistButton, SHORTLIST_FULL, type ShortlistChange } from "../shortlist/ShortlistButton.tsx";
+import { ShortlistCount } from "../shortlist/ShortlistCount.tsx";
+import { firstAddOfVisit } from "../shortlist/use-shortlist.ts";
 import {
   askedFor, chosenOrganizationType, chosenSort, chosenWorkScope, countLine, emptyList, filtersChosen, firstPage, indexLine,
   nextPage, ORGANIZATION_TYPE_KEY, isPublicProjectSort, organizationTypeFacets, PUBLIC_PROJECT_SORT_OPTIONS, sameAsk, SORT_KEY,
@@ -27,9 +30,15 @@ const day = (iso: string) => fullDate(new Date(iso).toISOString().slice(0, 10));
  * shared and where it comes from. The card opens the project at its Weave address from its name, so it
  * has the one target every card in a list has: over the list inside the app, and as its own page from a
  * link (22 November 2026). The card is kept in memory as it opens, so the project shows at once. A
- * project with no Weave address shows its name alone: its record's raw data is no page to read (DL-152).
+ * project with no Weave address shows its name alone, since its record's raw data is no page to read
+ * (DL-154), and has no shortlist bookmark, since the shortlist keeps Weave addresses only (DL-153).
  */
-export function PublicProjectCard({ project, level }: { project: Project; level: 2 | 3 }) {
+export function PublicProjectCard({ project, level, onShortlist }: {
+  project: Project;
+  level: 2 | 3;
+  /** Hears each press of the card's shortlist bookmark. */
+  onShortlist?(change: ShortlistChange): void;
+}) {
   const Title = level === 3 ? "h3" : "h2";
   const line = sharedByLine(project);
   const address = projectAddress(project.uri);
@@ -38,6 +47,7 @@ export function PublicProjectCard({ project, level }: { project: Project; level:
       <Title className="rc-card-title">
         {address ? <Link href={address} onClick={() => rememberProject(project)}>{project.name}</Link> : project.name}
       </Title>
+      <InitiativeShortlistButton project={project} place="card" onChange={onShortlist} />
       {/* Who shared it and where keep one line on every card, so cards are one height (DL-108). It is
           empty where the project names neither, and a line cut at its end is whole one hover away.
           The place is the publisher's own label, shown as it is. */}
@@ -162,6 +172,13 @@ export function PublicProjects() {
   const { list, more, retry } = usePublicProjects(q, {
     organizationType: organizationType ?? undefined, workScope: workScope ?? undefined, sort,
   });
+  // Whether this page has said where the first bookmark of the visit went, and what one could not do (DL-153).
+  const [told, setTold] = useState(false);
+  const [shortlistProblem, setShortlistProblem] = useState("");
+  function shortlistChanged(change: ShortlistChange) {
+    setShortlistProblem(change === "full" ? SHORTLIST_FULL : "");
+    if (change === "added" && firstAddOfVisit()) setTold(true);
+  }
   useEffect(() => {
     if (!q || searchQuery(search) !== q) {
       measuredSearch.current = null;
@@ -232,6 +249,7 @@ export function PublicProjects() {
       total={ready?.page.index.total ?? 0}
       summary={ready ? countLine(ready.page.index.total, ready.q !== "", filters) : undefined}
       note={ready ? indexLine(ready.page.index, day) : undefined}
+      after={<ShortlistCount kind="initiatives" told={told} />}
       loading={loading}
       reserve="Checked on 00 November 0000."
       onClear={clear}
@@ -272,11 +290,12 @@ export function PublicProjects() {
         </>
       ) : (
         <>
+          {shortlistProblem && <p className="rc-notice" data-tone="warning" role="alert">{shortlistProblem}</p>}
           {ready.projects.length ? (
             <CardGrid>
               {ready.projects.map((project, index) => (
                 <li key={project.uri} {...added.item(index)}>
-                  <PublicProjectCard project={project} level={2} />
+                  <PublicProjectCard project={project} level={2} onShortlist={shortlistChanged} />
                 </li>
               ))}
             </CardGrid>

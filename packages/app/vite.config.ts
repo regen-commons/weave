@@ -137,6 +137,9 @@ export default defineConfig(({ mode }) => {
           skipWaiting: true,
           clientsClaim: true,
           globPatterns: ["**/*.{js,mjs,css,html,svg,woff2,webmanifest}", "assets/*.json"],
+          // The PDF maker loads only when someone asks for a PDF, so an installed app does not
+          // download it ahead of time on a phone's connection (DL-153). CSV export works offline.
+          globIgnores: ["**/pdf-document-*.js"],
           // Only the imported public catalog release and screening assets, never device drafts.
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
           navigateFallback: "/index.html",

@@ -520,10 +520,11 @@
 /* The count line: how much of the list is left, and under it one fact about the whole list. Each
    keeps set room, a line for the count and a line for the fact, two for the fact on a phone, so
    the bar is one height loading and loaded and the list under it does not move (DL-108). */
-.rc-filter-bar > .rc-meta { display: grid; }
-.rc-filter-bar > .rc-meta > :not(.rc-visually-hidden) { min-block-size: 1lh; }
+/* The count, the fact about the whole list and the way to the shortlist run on as one sentence
+   (DL-153), in room set for them: a line on a wide screen, two on a phone, loading or loaded (DL-108). */
+.rc-filter-bar > .rc-meta { min-block-size: 1lh; }
 @container (width < 37.5rem) {
-  .rc-filter-bar > .rc-meta > [data-part="note"] { min-block-size: 2lh; }
+  .rc-filter-bar > .rc-meta { min-block-size: 2lh; }
 }
 /* List end: the foot of a long list. It says how much of the list is on the page and holds Show
    More, which the keyboard uses and which waits once the list has stopped filling in on its own

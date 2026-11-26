@@ -181,6 +181,9 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
     row-gap: var(--space-8);
   }
+  /* A page whose side panel has nothing to hold, such as Your Initiatives with an empty shortlist,
+     gives its working column the whole width, so no empty column is left beside it (DL-153). */
+  .rc-step-layout[data-main="wide"]:has(> .rc-step-aside:empty) { grid-template-columns: minmax(0, 1fr); }
   .rc-step-layout > * { grid-column: 1; }
   .rc-step-aside[data-from="wide"] { display: grid; }
   /* The record beside the work stays whole under the app bar, and above a step's bar where there

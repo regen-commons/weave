@@ -53,7 +53,7 @@ test("a card is the app's card: its link, who and where, its words and its two d
   assert.match(bare, /<p class="rc-card-meta"><\/p>/u, "an empty line that keeps its room, with no title");
   assert.match(listCardHtml(card(3, { publisher: undefined })), /<span class="rc-visually-hidden">Place: <\/span>Upper valley/u);
   // A project the index gave no Weave address shows its name alone, as the app's card does: its record's
-  // raw data is no page to read (DL-152).
+  // raw data is no page to read (DL-154).
   const away = listCardHtml(card(4, { uri: "at://did:web:example.org/org.hypercerts.collection/x" }));
   assert.match(away, /<h2 class="rc-card-title">Watershed circle 4<\/h2>/u);
   assert.doesNotMatch(away, /api\.hypercerts\.dev/u, "no link to the raw record");

@@ -44,18 +44,12 @@ export function ListPage({
       };
   const selected = selectRecords(records, visibleFilters, subject);
   const partners = kind === "partners";
-  // Every list opens the same way: its name, one line that says what it is for, then its filter bar.
-  const opening =
-    kind === "funding"
-      ? "Find support for your next chapter."
-      : partners
-        ? "Find people whose work complements yours."
-        : "See the work people are sharing.";
+  // Every list opens the same way: its name, then its filter bar. The name says what the list is,
+  // so no line under it repeats that, and the cards start a line and a gap higher (DL-153).
   if (!fixture && kind !== "funding") {
     return (
       <ListLayout>
         <Heading level={1} size="page">{title}</Heading>
-        <p className="rc-prose">{opening}</p>
         {partners ? <PartnerExperience mode="matches" /> : <PublicProjects />}
       </ListLayout>
     );
@@ -68,7 +62,6 @@ export function ListPage({
       <Heading level={1} size="page">
         {title}
       </Heading>
-      <p className="rc-prose">{opening}</p>
       {fixture?.state === "error" ? (
         <section className="rc-notice" data-tone="warning">
           <div className="rc-notice-body">

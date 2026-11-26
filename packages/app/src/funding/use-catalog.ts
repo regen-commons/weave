@@ -12,15 +12,17 @@ export type FundingSubject = Pick<DeviceDraft, "id" | "confirmed" | "funding" | 
 /**
  * The funding catalog, loaded once and shared, so Home and Funding read the same request. An
  * example bundle replaces it in the fixture world. With `idle`, the first load waits until the
- * browser is idle, so the catalog never delays a page's first paint.
+ * browser is idle, so the catalog never delays a page's first paint. With `enabled` off nothing is
+ * loaded, as when the shortlist shows initiatives only.
  */
-export function useCatalogBundle(example?: Bundle, { idle = false }: { idle?: boolean } = {}) {
+export function useCatalogBundle(example?: Bundle, { idle = false, enabled = true }: { idle?: boolean; enabled?: boolean } = {}) {
   const [bundle, setBundle] = useState<Bundle | undefined>(() => example ?? loadedCatalog());
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(() => !(example ?? loadedCatalog()));
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const known = example ?? (attempt === 0 ? loadedCatalog() : undefined);
+    if (!known && !enabled) return;
     if (known) {
       setBundle(known);
       setLoading(false);
@@ -49,7 +51,7 @@ export function useCatalogBundle(example?: Bundle, { idle = false }: { idle?: bo
       active = false;
       cancel();
     };
-  }, [example, attempt, idle]);
+  }, [example, attempt, idle, enabled]);
   return { bundle, loading, failed, attempt, retry: () => setAttempt((value) => value + 1) };
 }
 

@@ -1,8 +1,8 @@
-import { useId, type ReactNode } from "react";
-import { describePromptTitle } from "../describe/start-new.ts";
+import type { ReactNode } from "react";
+import { describePromptLine } from "../describe/start-new.ts";
 import { ButtonLink } from "./ButtonLink.tsx";
 import { useDescribeDoor } from "./describe-door.ts";
-import { Section } from "./Section.tsx";
+import { StatusLine } from "./StatusLine.tsx";
 
 /**
  * The door to describing an initiative, as a button: Continue for this person's card in progress,
@@ -10,10 +10,10 @@ import { Section } from "./Section.tsx";
  * button holds its exact room, unseen and out of reach, and nobody can press the wrong door. Every
  * page that offers the door uses this, so none has to check for itself.
  */
-export function DescribeDoor({ variant }: { variant: "primary" | "secondary" }) {
+export function DescribeDoor({ variant, size }: { variant: "primary" | "secondary"; size?: "sm" }) {
   const door = useDescribeDoor();
   const button = (
-    <ButtonLink href={door.href} variant={variant}>
+    <ButtonLink href={door.href} variant={variant} size={size}>
       {door.label}
     </ButtonLink>
   );
@@ -28,24 +28,21 @@ export function DescribeDoor({ variant }: { variant: "primary" | "secondary" }) 
 
 /**
  * The one prompt for a list that is not fitted to an initiative yet. Funding and Partners both
- * show it, so the two pages ask for the same thing in the same words. The sentence under the
- * title says what the page still offers without a card.
+ * show it, so the two pages ask for the same thing in the same words. The sentence after the lead
+ * says what the page still offers without a card.
  *
- * Its words are drawn at once, before this device's draft has opened, so a page that leads with
- * them is not kept waiting on storage; its door waits for the draft. Without a card and with one
- * in progress the prompt is the same size, so the title and the door change in place and nothing
- * moves (DL-104).
+ * It is one Status line, the shape a checked card's line takes in the same place, so it no longer
+ * pushes the list down by a section's height (DL-153), and it is still not a Notice: nothing here
+ * warns (DL-109). Its words are drawn at once, before this device's draft has opened, so a page that
+ * leads with them is not kept waiting on storage; its door waits for the draft. Without a card and
+ * with one in progress the prompt is the same size, so the words and the door change in place and
+ * nothing moves (DL-104).
  */
 export function DescribePrompt({ children }: { children: ReactNode }) {
-  const id = useId();
   const door = useDescribeDoor();
-  // A plain section, not a Notice: it is part of the page, and a Notice's surface and toned edge
-  // are kept for what warns or reports (DL-109).
   return (
-    <Section id={id} title={describePromptTitle(door.ready, door.started)} note={children}>
-      <div className="rc-action-bar">
-        <DescribeDoor variant="primary" />
-      </div>
-    </Section>
+    <StatusLine actions={<DescribeDoor variant="primary" size="sm" />}>
+      <strong>{describePromptLine(door.ready, door.started)}</strong> {children}
+    </StatusLine>
   );
 }

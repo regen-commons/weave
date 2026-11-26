@@ -172,7 +172,7 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
  */
 function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h3" | "h4" | "h5" | "h6" }) {
   // The project opens at its Weave address, as on Initiatives (DL-136). One without an address shows no
-  // link: its record's raw data is no page to read (DL-152).
+  // link: its record's raw data is no page to read (DL-154).
   const address = projectAddress(project.id);
   const several = project.fits.length > 1;
   const strength = strongestFit(project.fits.map(({ match }) => fitStrength(match.evidenceKind, match.reciprocal)));

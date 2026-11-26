@@ -28,6 +28,7 @@ const Opportunity = lazyPage(() => import("./pages/Opportunity.tsx").then((page)
 const RecordDetail = lazyPage(() => import("./pages/RecordDetail.tsx").then((page) => page.RecordDetail));
 const TeamWorkspace = lazyPage(() => import("./pages/TeamWorkspace.tsx").then((page) => page.TeamWorkspace));
 const Settings = lazyPage(() => import("./pages/Settings.tsx").then((page) => page.Settings));
+const Shortlist = lazyPage(() => import("./pages/Shortlist.tsx").then((page) => page.Shortlist));
 const YourInitiative = lazyPage(() => import("./pages/YourInitiative.tsx").then((page) => page.YourInitiative));
 const YourInitiatives = lazyPage(() => import("./pages/YourInitiatives.tsx").then((page) => page.YourInitiatives));
 
@@ -46,6 +47,7 @@ function pageFor(route: Route): LazyPage<never> {
     "initiative-detail": RecordDetail,
     "team-workspace": TeamWorkspace,
     settings: Settings,
+    shortlist: Shortlist,
     "your-initiative": YourInitiative,
     "your-initiatives": YourInitiatives,
   };
@@ -131,6 +133,8 @@ function content(route: Route, search: string, fixture?: FixtureContext) {
       return <TeamWorkspace key={route.id} workspaceId={route.id!} />;
     case "settings":
       return <Settings />;
+    case "shortlist":
+      return <Shortlist search={search} />;
     case "your-initiative":
       return <ForThisAccount><YourInitiative fixture={fixture} /></ForThisAccount>;
     case "your-initiatives":
