@@ -19,7 +19,7 @@ const CANDIDATES = ["certified-private-access", "weave-matching", "weave-project
   "weave-project-oauth", "weave-project-workspaces", "weave-team-content", "weave-public-evidence-snapshot",
   "weave-project-discovery", "weave-workspace-invites", "weave-support-publication", "weave-open-ended-sharing",
   "weave-initiative-deletion", "weave-project-index-card-facts", "weave-project-index-work-scope",
-  "weave-project-index-organization-description"];
+  "weave-project-index-organization-description", "weave-initiative-deletion-stale-references"];
 
 before(async () => {
   if (!database) return;
@@ -203,9 +203,12 @@ integration("a card anything else refers to is refused before any row is removed
       await sql`insert into weave_workspace.support_listings(workspace_id, kind, entry_id, rkey, operation_id, actor_id,
         entry_revision, record_value, status) values(${id}, 'need', ${doc.needs[0]!.id}, 'aaaaaaaaaaaaa', ${next()}, ${owner}, 1, '{}', 'published')`;
     }],
-    ["create intent", id => sql`insert into weave_workspace.create_intents(actor_id, request_id, initiative_id, expected_revision,
+    ["prepared project setup", id => sql`insert into weave_workspace.create_intents(actor_id, request_id, initiative_id, expected_revision,
       group_handle, project_rkey, created_at, title, description) values(${owner}, ${next()}, ${id}, 2,
       ${`group${serial}`}, ${`rkey${serial}`}, now(), 'Fixture', '')`],
+    ["project setup waiting on its group", id => sql`insert into weave_workspace.create_intents(actor_id, request_id, initiative_id,
+      expected_revision, group_handle, project_rkey, created_at, title, description, status, group_reconcile_after)
+      values(${owner}, ${next()}, ${id}, 2, ${`pending${serial}`}, ${`rkey${serial}`}, now(), 'Fixture', '', 'group_pending', now())`],
     ["open matching review", id => sql`insert into private.weave_matching_reviews(initiative_id, initiative_revision, entries, expires_at, valid_until)
       values(${id}, 2, '[]', now() + interval '1 day', now() + interval '15 minutes')`],
     ["matching lead", (id, doc) => sql`insert into private.weave_matching_leads(initiative_id, kind, entry_id, candidate_id, disposition)
@@ -215,8 +218,6 @@ integration("a card anything else refers to is refused before any row is removed
     ["query vector", (id, doc) => sql`insert into private.weave_matching_query_vectors(initiative_id, kind, entry_id, revision,
       share_version, model_version, embedding) values(${id}, 'need', ${doc.needs[0]!.id}, 1, 1, private.weave_matching_embedding_model(),
       (array[1::real] || array_fill(0::real, array[255]))::extensions.vector)`],
-    ["shared need", id => sql`update weave.needs set matching_audience = 'weave_users', matching_withdrawn = false where initiative_id = ${id}`],
-    ["shared offer", id => sql`update weave.offers set matching_audience = 'weave_users', matching_withdrawn = false where initiative_id = ${id}`],
     ["another account's receipt", id => sql`insert into private.weave_save_requests(actor_id, request_id, initiative_id, expected_revision, response)
       values(${other}, ${next()}, ${id}, 0, '{}')`],
   ];
@@ -245,6 +246,43 @@ integration("a card anything else refers to is refused before any row is removed
   assert.equal(after["private.weave_matching_requests"]!.rows, before["private.weave_matching_requests"]!.rows - 1);
   assert.deepEqual({ ...after, "private.weave_matching_requests": null }, { ...before, "private.weave_matching_requests": null });
   assert.equal((await sql`select count(*)::int as n from private.weave_matching_requests where command->>0 = ${unrelated.id}`)[0]!.n, 1);
+});
+
+// A personal save can no longer withdraw its own sharing (matching serves project workspaces only),
+// and a finished setup's project lives in its own workspace. Neither may hold the card (QA notes,
+// 26 November 2026).
+integration("a finished or rejected project setup and the card's own sharing go with it", async () => {
+  const finished = await card(owner, "Finished project setup");
+  const group = `did:plc:groupfixture${serial}`, workspace = next(), uri = `at://${group}/org.hypercerts.collection/finished${serial}`;
+  await sql`insert into weave_workspace.project_links(id, project_uri, repository_did, group_did, cid, linked_by)
+    values(${workspace}, ${uri}, ${group}, ${group}, 'bafygroup', ${owner})`;
+  await sql`insert into weave_workspace.create_intents(actor_id, request_id, initiative_id, expected_revision, group_handle,
+    project_rkey, created_at, title, description, status, group_reconcile_after, group_did, registration_did, project_uri, cid, workspace_id)
+    values(${owner}, ${next()}, ${finished.id}, 2, ${`finished${serial}`}, ${`finished${serial}`}, now(), 'Fixture', '', 'linked',
+    now(), ${group}, ${group}, ${uri}, 'bafygroup', ${workspace})`;
+  const rejected = await card(owner, "Rejected project setup");
+  await sql`insert into weave_workspace.create_intents(actor_id, request_id, initiative_id, expected_revision, group_handle,
+    project_rkey, created_at, title, description, status, group_reconcile_after)
+    values(${owner}, ${next()}, ${rejected.id}, 2, ${`rejected${serial}`}, ${`rejected${serial}`}, now(), 'Fixture', '',
+    'group_rejected', now())`;
+  const shared = await card(owner, "Shared for matching");
+  await sql`update weave.needs set matching_audience = 'weave_users', matching_withdrawn = false where initiative_id = ${shared.id}`;
+  await sql`update weave.offers set matching_audience = 'weave_users', matching_withdrawn = false where initiative_id = ${shared.id}`;
+  for (const target of [finished, rejected, shared]) {
+    const before = await snapshot(target.id);
+    assert.equal((await remove(owner, target.id, 2, next())).deleted, true);
+    const after = await snapshot(target.id);
+    const setups = await sql`select count(*)::int as n from weave_workspace.create_intents where initiative_id = ${target.id}`;
+    assert.equal(setups[0]!.n, 0, "the card's setup record goes with it");
+    for (const table of ["weave.needs", "weave.offers"]) {
+      const [row] = await sql.unsafe(`select count(*)::int as n from ${table} where initiative_id = $1`, [target.id]);
+      assert.equal(row!.n, 0, `${table} keeps nothing shared from the card`);
+    }
+    // Only the card's own setup record left create_intents; every other table, the group's workspace included, is unchanged.
+    assert.deepEqual({ ...after, "weave_workspace.create_intents": null }, { ...before, "weave_workspace.create_intents": null });
+  }
+  const [link] = await sql`select count(*)::int as n from weave_workspace.project_links where id = ${workspace}`;
+  assert.equal(link!.n, 1, "the finished setup's project workspace stays");
 });
 
 integration("a retry repeats its result; any other call for a removed card is not found and nothing returns", async () => {
