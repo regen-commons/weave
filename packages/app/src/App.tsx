@@ -11,6 +11,7 @@ import { useDraft } from "./describe/use-draft.ts";
 import { hasDraft } from "./describe/view.ts";
 import { fundingBackHref, legacyFundingHref } from "./funding/catalog.ts";
 import { recoverConsentReturn } from "./initiative/consent-return.ts";
+import { ProjectAccessAfterSignIn } from "./initiative/ProjectConsent.tsx";
 import { headerStatus } from "./initiative/header-status.ts";
 import { forgetLandingHead } from "./landing-head.ts";
 import { lazyPage, type LazyPage } from "./lazy-page.ts";
@@ -250,6 +251,8 @@ export function App() {
   return (
     <DraftProvider fixture={fixture}>
       <AccountProvider fixture={!!fixture}>
+        {/* After a sign-in, goes on to Certified's project permission from the page it came back to (DL-137). */}
+        <ProjectAccessAfterSignIn />
         {import.meta.env.DEV && fixture ? (
           <SocialFixtureProvider key={`${fixture.scenario} ${fixture.projects}`} fixture={fixture}>
             <AccountDoorProvider>

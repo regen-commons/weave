@@ -28,6 +28,7 @@ import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { useInformation } from "../ui/information-context.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
+import { SIGN_IN } from "../data/privacy.ts";
 import { InstallGuide } from "../install/InstallGuide.tsx";
 import { DeviceBackups } from "../data/DeviceBackups.tsx";
 import { SignInReturnNotice } from "../account/SignInReturnNotice.tsx";
@@ -115,6 +116,7 @@ export function Settings() {
                 <SignInButton variant="secondary" />
                 <AboutCertified />
               </div>
+              <p className="rc-meta">{SIGN_IN.projectsNext}</p>
               <SignInReturnNotice />
             </>
           )
@@ -134,6 +136,7 @@ export function Settings() {
                 <div className="rc-action-bar">
                   <SignInButton variant="secondary" />
                 </div>
+                <p className="rc-meta">{SIGN_IN.projectsNext}</p>
                 <SignInReturnNotice />
               </>
             )}
