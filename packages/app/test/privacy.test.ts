@@ -8,7 +8,7 @@ import { CERTIFIED_FACTS, DATA_POLICY, SIGN_IN, STORAGE_SUMMARY } from "../src/d
 import { accountDocument } from "../src/account/document.ts";
 import { CLOUD_SPEECH } from "@weave/api/transcribe-contract";
 import { BROWSER_SPEECH_KEY, CLOUD_SPEECH_KEY } from "../src/describe/speech-consent.ts";
-import { CLOUD_SPEECH_NOTICE, SPEECH_SETTING } from "../src/describe/speech-setup.ts";
+import { CLOUD_SPEECH_NOTICE, speechOptions } from "../src/describe/speech-setup.ts";
 
 const read = (path: string) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), "utf8");
 const summary = new Map(STORAGE_SUMMARY);
@@ -145,7 +145,9 @@ test("what the copy says about talking is what the speech code does", () => {
   const speech = read("src/describe/speech.ts");
   assert.match(speech, /mode === "browser" && !consent\?\.agreed\(\)/u);
   assert.match(speech, /if \(mode === "device"\) session\.processLocally = true/u);
-  assert.match(read("src/pages/Settings.tsx"), /deviceConsent\(\)\.withdraw\(\)/u);
+  // Settings withdraws it by choosing another way of talking: speech-choice.ts withdraws every agreement the choice does not carry.
+  assert.match(read("src/pages/Settings.tsx"), /deviceSpeechChoice\(\)\.choose\(option\.key\)/u);
+  assert.match(read("src/describe/speech-choice.ts"), /else \{ browser\.withdraw\(\); cloud\.withdraw\(\); \}/u);
   // Outside cloud speech, Weave never touches audio: no capture, recording or upload.
   for (const path of ["src/describe/speech.ts", "src/describe/speech-setup.ts", "src/describe/speech-consent.ts", "src/pages/Describe.tsx", "src/pages/AskStep.tsx", "src/ui/TalkItOut.tsx"])
     assert.doesNotMatch(read(path), /getUserMedia|MediaRecorder|AudioContext|AudioWorklet|fetch\(/u, path);
@@ -178,7 +180,7 @@ test("what the copy says about cloud speech is what the recorder and the server 
   assert.equal((server.match(/https?:\/\/[^\s"`]+/gu) ?? []).length, 1, "one outbound address");
   assert.doesNotMatch(server, /console\.|writeFile|appendFile|insert into|\.query\(|supabase/iu);
   // The copy names that provider, says what Weave can vouch for and what only the provider can, and no place.
-  const said = [...CLOUD_SPEECH_NOTICE.body, SPEECH_SETTING.cloudAgreed, policy].join(" ");
+  const said = [...CLOUD_SPEECH_NOTICE.body, speechOptions(null)[2]!.note, policy].join(" ");
   for (const line of [CLOUD_SPEECH_NOTICE.body.join(" "), policy]) {
     assert.match(line, /Cloudflare Workers AI/u);
     assert.match(line, /Weave does not keep the recording/u);
@@ -193,7 +195,7 @@ test("what the copy says about cloud speech is what the recorder and the server 
   assert.doesNotMatch(said, /Europe|EU\b|United States|never leaves/u, "no region is promised");
   assert.match(policy, /Where Weave offers cloud speech there, and only if you agree/u, "it is not offered everywhere");
   // Withdrawing is one press in Settings, and the two agreements are kept apart.
-  assert.match(read("src/pages/Settings.tsx"), /deviceCloudConsent\(\)\.withdraw\(\)/u);
+  assert.match(read("src/describe/speech-choice.ts"), /if \(choice === "browser"\) \{ browser\.agree\(\); cloud\.withdraw\(\);/u);
   assert.notEqual(CLOUD_SPEECH_KEY, BROWSER_SPEECH_KEY);
 });
 

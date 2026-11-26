@@ -43,7 +43,8 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Skip link | `rc-skip-link` | stable | First stop for keyboard users |  | On every page | check-card, code, describe, finish, funding, home, initiatives, intake-finish, matches, matches-empty, needs, offers, opportunity, opportunity-private, saved, settings, signed-out, step-needs, your-initiatives |
 | Visually hidden | `rc-visually-hidden` | stable | Text only for assistive technology |  |  | step-needs |
 
-| Media | `rc-media` | stable | Supplied image, or a placeholder that shows an icon only and is named for assistive technology where it stands for a picture; fixed aspect ratio | `data-size`: thumb, wide | No third-party app images until D30. Under 900 px a list card does not draw the placeholder, nor the loading shape that holds its place (DL-090) | funding, home, initiatives |
+| Media | `rc-media` | stable | Supplied image, or a placeholder that shows an icon only and is named for assistive technology where it stands for a picture; fixed aspect ratio | `data-size`: thumb, wide. `data-content="initials"`: a record's mark drawn from its name, decorative beside its heading (DL-151) | No third-party app images until D30. Under 900 px a list card does not draw the placeholder, nor the loading shape that holds its place (DL-090) | funding, home, initiatives |
+| Record head | `rc-record-head` | candidate | A public record's mark beside who shared it, where, and its focus. Part: `rc-record-head-text` | Media `data-size="thumb"` with `data-content="initials"` until D30 | One byline and one tag list | initiatives |
 
 ## Molecules
 
@@ -101,7 +102,7 @@ Status words are separate from the stage names (Seed, Sprout) used for initiativ
 | Pattern | Class | Status | Job and parts | Variants | Limits | Used in |
 |---|---|---|---|---|---|---|
 | Team slots | `rc-team-slots` | stable | Requirements with counts or candidates. Parts: `rc-team-slot`, `rc-team-candidates`, `rc-team-candidate`, `rc-team-coverage`, `rc-team-line` | Private counts, shared examples, no requirement | Distinct asks and selected initiatives; never eligibility | opportunity, opportunity-private |
-| Ask list | `rc-ask-list` | stable | Needs or offers, with one field to add to the list. Parts: `rc-ask-head`, `rc-ask-count` | Empty, working, overflow, offline, error | Five active cards; say when more were heard | initiatives, needs, offers |
+| Ask list | `rc-ask-list` | stable | Needs or offers, with one field to add to the list. Parts: `rc-ask-head`, `rc-ask-count` | Empty, working, overflow, offline, error. `data-layout="pair"` for read-only needs or offers: two to a row with the kinds of support at each card's foot in room for two rows of tags, one row that swipes sideways below 37.5 rem (DL-150) | Five active cards; say when more were heard | initiatives, needs, offers |
 | Share card | `rc-share-card` | candidate | The gate before partner suggestions: says what opens them and offers that step | Before a project is linked | One next step and one way to browse; on the initiative page the saving and sharing section carries the step, so the card keeps only the way to browse; never invent a production count | intake-finish |
 
 | Pattern | Class | Status | Job and parts | Variants | Limits | Used in |

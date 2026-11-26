@@ -1114,6 +1114,10 @@ Given up: on these browsers a person sees no words until they stop, and must tru
 
 Given up: a person who stays silent for three seconds twice on the first tries of a working service is offered cloud speech next time; Use Browser Speech Again in Settings brings the service back. The device keeps one word about the browser's service (`speech-fallback.ts`), and the data policy says so.
 
+**Revised 25 November 2026**, after the QA notes: on a phone that used Cloudflare, Settings offered Stop Using Browser Speech and did not say which way of talking was in use. Settings now asks the same store Talk It Out asks (`speechSetupStore`, in the language the intake starts in) and opens its Speech group with the way in use here, such as "Talk It Out uses cloud speech here: it sends a recording to Cloudflare Workers AI." Each agreement in force is its own row, Browser speech service and Cloud speech with Cloudflare, with what it allows, whether it is in use here ("Allowed on this device. Not in use here: Talk It Out uses cloud speech.") and its own Stop button. Withdrawing one leaves the other and its row as they were, and the line above says what Talk It Out uses afterwards (`speechSettings` in `speech-setup.ts`).
+
+**Revised again 25 November 2026**, the user's decision after review ("Speech like what is proposed"; choosing counts as agreeing). Three buttons were poor design. Settings now has one radio group, How Talk It Out turns speech into text: On this device, Your browser's speech service, Cloud speech with Cloudflare, and Off. Each option's own line says what choosing it means, and for the two that send audio that line is the notice: choosing the browser's service or cloud speech stores that agreement and withdraws the other; choosing the device or Off withdraws both (`speech-choice.ts`). An option that cannot work here stays in the list, unavailable, with its reason. The intake reads the same choice and falls back to its own order where the choice cannot work; a browser choice that then fails here gives way, so cloud speech is offered. Off hides Talk It Out and says typing works. With no choice made, the first-use notices still ask.
+
 From Krug: say where things go before the press that sends them. From Dirksen: say what is happening while the person waits.
 
 ## DL-139: Funding's first cards come with the page, and a list ranked by fit waits for its ranking
@@ -1222,3 +1226,56 @@ It opens a feedback sheet in place, so a person stays on their page, with the we
 On the first paint and while Weave checks the session, the desktop header keeps the Account button's space. Once the check settles, the header offers the appropriate control. A phone keeps the account menu in You.
 
 Home keeps Start An Initiative as its primary action, with the second action in the same spot. The second action opens Your Initiatives by default. It can open the current draft or resume the last team workspace once Weave confirms the account still has access. The initiative's name and save status are shown on its own page.
+
+## DL-147: Your Initiatives lists this device, Certified projects and private saves, and deletion says only what it knows
+
+**Status:** from the QA notes of 25 November 2026 (items 1 and 2), with the user's brief for the public initiative update. Amends DL-134's two sections and DL-112's deletion copy.
+
+A deleted private save stayed in the list: its copy on this device had the same ID and name, and lost only its Saved privately tag. A card with the same name as an unrelated draft looked undeleted for the same reason. A save that was only shared for matching was refused with "linked to a Certified project", which it never was. The account list itself was right after every reload.
+
+- **Three sections.** On This Device holds the drafts in this browser, with a draft saved privately listed once there under its Saved privately tag. Certified Projects holds projects, team workspaces and drafts linked to one. Private Weave Saves, shown only to someone signed in, holds cards that are only in the account, with More Private Saves, Download Private Saves and Delete A Saved Card. DL-134 turned down a device section because an edited saved card belonged to two places; it now belongs to one, the device, and its tag says it is also saved.
+- **Deleting a card with a copy here asks about the copy first.** "Also remove its copy from this device" is ticked by default. The account deletes the card first; only then does the copy move to the device backups in Settings, where it can be restored. Unticked, the copy stays listed, marked Not saved yet. The message after says where the copy is.
+- **Same-name drafts are named before the press.** A card with no copy here says that a different draft with its name stays on this device, and was never this card.
+- **A refusal names only what Weave verified.** The server's one code (`initiative_referenced`) covers every reference. The app then checks: a Certified project counts only when the account's workspaces list the card as one; sharing for matching and saved partners come from the matching state. Anything unverified reads "Weave still uses this card for something else, such as matching, saved partners, a public listing or a project being set up".
+- **Any draft can leave the list.** Remove A Draft From This Device moves one draft, the tab's or another, to the device backups after a confirmation by name. A saved copy in the account is not changed.
+
+The server's deletion guard is unchanged.
+
+## DL-148: The intake finishes with a public review and one confirmation
+
+**Revised 25 November 2026**, the user's decision after review: "Put the whole draft on Certified and ensure user is aware of potential duplication of an existing project", with Weave creating a personal project from the draft and Ma Earth as a handoff with the details to copy. This replaces the five steps below. Make It Public now shows the card as its public page will read (its mark, name, place, words, and What They Need and What They Can Offer as public Ask cards), says where it goes and who can read it, and has one button. Without a linked project, Weave creates a personal project on Certified from the card in the person's own account; with one, it adds the listings to it. Before creating, it looks for a project the card may already be, among the account's own projects (personal and its groups', where Ma Earth organizations are) and in the public list (which includes Ma Earth's projects), and a match needs "This is a different initiative" ticked or Use This Project. After the press, it goes on by itself, after Certified's sign-in and one permission screen too: create the project at record keys chosen before anything is sent, link the card without reading the project back into it, keep the private copy as its workspace, have each listing reviewed and checked against the preview, then publish. Create It On Ma Earth Instead offers the name, place and description to copy and opens Ma Earth through the existing handoff.
+
+Signing in from the dialog is not the confirmation: the dialog opens again signed in, now also checking the account's own projects, and the person presses Make It Public there. The duplicate warning stays once answered, so the answer can be changed. A card name longer than the 80 characters Certified takes for a project name is shortened on the card first, never cut by Weave. A new project's page in Weave's list of initiatives appears after that list's next daily update, so the done view says so instead of linking to a page that is not there yet; anyone can read the project on Certified at once.
+
+Earlier version:
+
+**Status:** from the QA notes of 25 November 2026 and the user's brief. Amends DL-113's Saving And Sharing rows for a live card.
+
+Review And Publish is the card page's primary action, above Save Privately, which is now secondary and says where it goes and who can read it before it saves (Save Privately In Weave?). Make It Public walks through:
+
+1. **Choose.** Where it goes, who can see it and what Certified keeps come first. Each kept need and offer is an opt-in checkbox; one with no kind of support says to add one.
+2. **Sign in, then choose a project.** The choice is kept in the tab's own storage under the draft's ID, so it survives Certified's screens and reopens the dialog on return. Certified's project permission returns to Your Initiatives, which offers Continue Publishing. A group project is sent to its team workspace.
+3. **Prepare.** The dialog says that Weave first saves the card privately as the project's workspace, so it can publish and withdraw, and that nothing is public yet.
+4. **Review.** The destination (project, repository, address), the project's own fields under From Certified, Not Changed By Weave, and each listing exactly as the server reviewed it under Published By Weave. A review that lapsed or a saved card that changed asks for a new preview.
+5. **One confirmation.** Each reviewed listing is sent once, in order, with the request ID kept since its review; each result is stored as it arrives. Each entry then says Public, read back from the repository; waiting for Certified's permission; sent and waiting; changed outside Weave; or not confirmed. Check Again repeats the same request or checks the server's status, so nothing is published twice.
+
+From Krug: say where things go before the press that sends them.
+
+## DL-149: A public initiative's page shows its own current needs and offers
+
+**Status:** from the user's brief, 25 November 2026. Extends DL-136's record pages.
+
+The page of a public initiative now asks `/api/public-initiative` for that exact project every time it opens, from a link or from the list. It shows every public passage of its description, its focus (kinds of work and of group) as tags, and its publisher's links with their own labels or their addresses. What They Need and What They Can Offer use the public Ask cards, with each listing's kinds, title, description and the day it was listed. Only listings Weave published and read back, still open and not expired, for exactly this project appear; nothing is cached, so a withdrawal is gone the next time the page opens. Banners and other pictures wait for D30. The public Ask heading is What They Can Offer, matching the owner's What You Can Offer.
+
+
+## DL-150: Read-only needs and offers sit two to a row, with their kinds of support at the foot
+
+**Status:** the user's decision, 25 November 2026, after reviewing the first pass ("desktop is fine, though the capitals should be below the text and space for 2 rows in case a need has multiple capitals"; "Swipeable rows" on a phone).
+
+Needs and offers that are read, not edited, use the Ask list's paired layout (`data-layout="pair"`): on the card page, on a public initiative and in the Make It Public preview. Two cards share a row and a height; the title and words come first and the kinds of support sit at the foot in room for two rows of tags, so a card naming one kind lines up with one naming three. The list's own section decides the layout, so a sheet and a page column agree. Below 37.5 rem the list is one row that swipes sideways and rests on a card, with the next showing at the edge, and bounces at either end as preview rows do (DL-090, DL-128); a row that scrolls takes the keyboard's focus. The card page lists needs, then offers, each across the column, where they used to sit in two narrow columns. The intake's editable lists are unchanged.
+
+## DL-151: A public initiative's page has a head and a rail
+
+**Status:** the user's decision, 25 November 2026 ("I like direction one for the initiative view"), with the initials mark until D30.
+
+The page leads with the initiative's mark beside who shared it, where, and its focus as tags (Record head, `rc-record-head`). The mark is its initials (`rc-media` with `data-content="initials"`), a drawing from its name and not a picture, so D30 is untouched. The main column holds its own words, What They Need and What They Can Offer, and a line saying Weave published them to the project's own repository. On a wide page the rail beside it holds Could It Partner With Your Initiative?, the publisher's links by their own labels, Share, Get In Touch and the small print: when it was shared, when Weave last checked it and the record's data on Certified. On a phone the rail follows the main column. Opened as a page, the record takes the page's width; as a sheet it is one column.

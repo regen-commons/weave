@@ -39,7 +39,11 @@ import { DeleteSavedCard } from "../account/DeleteSavedCard.tsx";
 import { SignInButton } from "../account/SignInButton.tsx";
 import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { Icon } from "../ui/Icon.tsx";
-import { deletableCards } from "../account/delete-card.ts";
+import { backUpCopies, deletableCards, type DeviceCopy } from "../account/delete-card.ts";
+import { exportedMessage, privateSavesExport } from "../account/export-saves.ts";
+import { downloadJson } from "../data/download.ts";
+import { RemoveDeviceDraft } from "../data/RemoveDeviceDraft.tsx";
+import { readPlan } from "../initiative/publish-plan.ts";
 import { SIGN_IN } from "../data/privacy.ts";
 import { SignInReturnNotice } from "../account/SignInReturnNotice.tsx";
 import { Tag } from "../ui/Tag.tsx";
@@ -106,6 +110,7 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
   const [forDraft, setForDraft] = useState(false);
   const [, setAnswered] = useState(0);
   const [deleting, setDeleting] = useState(false);
+  const [removing, setRemoving] = useState(false);
   // Signing in goes on to Certified's project permission (DL-137); the page holds its shape meanwhile.
   const continuing = useProjectAccessPending();
   const access = new URLSearchParams(routeSearch()).get("access");
@@ -150,6 +155,16 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
     const own = boundCardId(item, state.identity.id);
     return item.id === draft.id ? (state.saved?.card ?? own) : own;
   };
+  /** This browser's drafts as the removal dialog lists them. Removing one leaves a saved copy in the account alone. */
+  const removableDrafts = () => listed.map((item) => ({ draft: item, savedInAccount: !!savedId(item) }));
+  const removeAction = listed.length > 0 && (
+    <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+      onClick={() => { setMessage(""); setRemoving(true); }}>Remove A Draft From This Device</button>
+  );
+  const removeDialog = (
+    <RemoveDeviceDraft open={removing} drafts={removableDrafts()} onClose={() => setRemoving(false)}
+      onRemoved={(text) => { setRemoving(false); setFailed(false); setMessage(text); refresh(); }} />
+  );
   /** The Certified project this account chose for a draft on this device, if any. */
   const chosenProject = (item: DeviceDraft): string | null =>
     item.id === draft.id && project ? project.uri : chosenProjectUri(choices, state.identity?.id, item.id);
@@ -320,10 +335,11 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
             </div>
           </section>
         )}
-        <div className="rc-action-bar">{startAction("quiet")}</div>
+        <div className="rc-action-bar">{startAction("quiet")}{removeAction}</div>
         {/* Said, not drawn: the card that was pressed is already busy, and a new line would push the page down. */}
         {busy && <p className="rc-visually-hidden" role="status">Opening</p>}
         {note}
+        {removeDialog}
         <PhoneSettings />
       </ListLayout>
     );
@@ -342,16 +358,31 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
     && (record.group || !record.workspaceId || !savedHere.has(record.workspaceId)));
   const total = entries.length + listedWorkspaces.length + records.length;
   // A draft's own saved copy is listed here too: deleting it leaves the device words in place.
+  const deviceCopies: DeviceCopy[] = listed.map((item) => ({ id: item.id, name: cardName(item), cardId: savedId(item) }));
   const removable = service.deleteCard
-    ? deletableCards(state.cards, (state.workspaces ?? []).map(record => record.workspaceId), [...savedHere])
+    ? deletableCards(state.cards, (state.workspaces ?? []).map(record => record.workspaceId), deviceCopies)
     : [];
   const empty = total === 0 && !loading && !social.problem;
+  const waitingPublication = live ? listed.find((item) => {
+    try { return !!readPlan(window.sessionStorage, item.id); } catch { return false; }
+  }) : undefined;
   // A draft linked to a Certified project is listed with the projects; the rest exists only in Weave.
-  const certifiedDrafts = entries.filter((entry) => entry.kind === "draft" && linked(entry.draft)) as Extract<(typeof entries)[number], { kind: "draft" }>[];
-  const weaveEntries = entries.filter((entry) => !(entry.kind === "draft" && linked(entry.draft)));
+  type DraftEntry = Extract<(typeof entries)[number], { kind: "draft" }>;
+  type CardEntry = Extract<(typeof entries)[number], { kind: "card" }>;
+  const certifiedDrafts = entries.filter((entry): entry is DraftEntry => entry.kind === "draft" && linked(entry.draft));
+  // Three destinations (QA notes, 25 November 2026): this device and Certified projects first, then
+  // the private Weave saves, which only someone signed in can open, download or delete.
+  const deviceEntries = entries.filter((entry): entry is DraftEntry => entry.kind === "draft" && !linked(entry.draft));
+  const privateEntries = entries.filter((entry): entry is CardEntry => entry.kind === "card");
   const moreSaves = !!state.hasMoreCards && !!service.moreCards;
   const certified = certifiedDrafts.length > 0 || listedWorkspaces.length > 0 || (!loading && records.length > 0);
   const noProjectYet = total > 0 && records.length === 0 && workspaces.length === 0 && !project && !loading && !social.problem;
+  async function downloadSaves() {
+    if (!state.identity?.id) return;
+    const result = await privateSavesExport(state.identity.id);
+    if (result.cards.length) downloadJson("weave-private-saves.json", result);
+    setMessage(exportedMessage(result));
+  }
   async function openCard(card: SavedCard) {
     if (live) { await service.openCard(card.id, null); go(pathTo("your-initiative")); return; }
     if (import.meta.env.DEV) {
@@ -422,45 +453,33 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
       </Heading>
       {consentNotice}
       {live && <PendingInvite />}
+      {/* Certified's permission screens come back here, so a publication waiting in this tab is offered first. */}
+      {waitingPublication && (
+        <StatusLine actions={
+          <button className="rc-button" data-variant="primary" data-size="sm" type="button" disabled={busy}
+            onClick={() => void run(() => openDraft(waitingPublication))}>Continue Publishing</button>
+        }>
+          {`Publishing ${cardName(waitingPublication)} is waiting where you left it. Nothing is public until you confirm.`}
+        </StatusLine>
+      )}
       {handoff && (
         <StatusLine actions={<ProjectAction variant="primary" />}>
           {`Back from ${PROJECT_EDITORS[handoff.editor].name}? Link the project you published.`}
         </StatusLine>
       )}
-      {/* What exists only in Weave: drafts in this browser and private saves (DL-134). */}
-      {(weaveEntries.length > 0 || moreSaves || removable.length > 0) && (
-        <Section id="initiatives-weave" title="Drafts And Private Saves">
-          {weaveEntries.length > 0 && (
-            <CardGrid>
-              {weaveEntries.map((entry) =>
-                entry.kind === "draft" ? draftCard(entry.draft, entry.saved) : (
-                  <li key={entry.card.id}>
-                    <Card>
-                      <h3 className="rc-card-title">
-                        <button type="button" disabled={busy} onClick={() => void run(() => openCard(entry.card))}>
-                          {entry.card.name}
-                        </button>
-                      </h3>
-                      {kindTags(["private"])}
-                      <p className="rc-card-meta">Saved on {fullDate(entry.card.savedOn)}.</p>
-                    </Card>
-                  </li>
-                ),
-              )}
-            </CardGrid>
-          )}
-          {(moreSaves || removable.length > 0) && <div className="rc-action-bar">
-            {moreSaves && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-              onClick={() => void run(async () => { await service.moreCards?.(); })}>More Private Saves</button>}
-            {removable.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-              onClick={() => { setMessage(""); setDeleting(true); }}>Delete A Saved Card</button>}
-          </div>}
+      {/* What is only in this browser (DL-134). Nobody else can see it until it is published or saved. */}
+      {deviceEntries.length > 0 && (
+        <Section id="initiatives-device" title="On This Device"
+          note="Kept only in this browser. Nobody else can see these until you publish one to a Certified project.">
+          <CardGrid>{deviceEntries.map((entry) => draftCard(entry.draft, entry.saved))}</CardGrid>
+          <div className="rc-action-bar">{removeAction}</div>
         </Section>
       )}
       {/* Everything that is a Certified project, or a draft linked to one. A failed read is not an
           empty list, so it says so with its retry, and what was read stays. */}
       {(certified || loading || social.problem || noProjectYet) && (
-        <Section id="initiatives-certified" title="On Certified">
+        <Section id="initiatives-certified" title="Certified Projects"
+          note="Public on Certified, where each project's name, description and place are edited. What you publish from Weave adds needs and offers that anyone can read.">
           {certified && (
             <CardGrid>
               {certifiedDrafts.map((entry) => draftCard(entry.draft, entry.saved))}
@@ -510,6 +529,37 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
           {noProjectYet && <p className="rc-meta">You have no project on Certified yet.</p>}
         </Section>
       )}
+      {/* Saved in the Weave account before. Opened, downloaded or deleted here; never moved or published. */}
+      {(privateEntries.length > 0 || moreSaves || removable.length > 0) && (
+        <Section id="initiatives-private" title="Private Weave Saves"
+          note="Copies saved in your Weave account. Only you can see them, when signed in. Nothing here is public or shared for matching.">
+          {privateEntries.length > 0 && (
+            <CardGrid>
+              {privateEntries.map((entry) => (
+                <li key={entry.card.id}>
+                  <Card>
+                    <h3 className="rc-card-title">
+                      <button type="button" disabled={busy} onClick={() => void run(() => openCard(entry.card))}>
+                        {entry.card.name}
+                      </button>
+                    </h3>
+                    {kindTags(["private"])}
+                    <p className="rc-card-meta">Saved on {fullDate(entry.card.savedOn)}.</p>
+                  </Card>
+                </li>
+              ))}
+            </CardGrid>
+          )}
+          <div className="rc-action-bar">
+            {moreSaves && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+              onClick={() => void run(async () => { await service.moreCards?.(); })}>More Private Saves</button>}
+            {live && state.cards.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+              onClick={() => void run(downloadSaves)}>Download Private Saves</button>}
+            {removable.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+              onClick={() => { setMessage(""); setDeleting(true); }}>Delete A Saved Card</button>}
+          </div>
+        </Section>
+      )}
       {!!state.setupRequests?.length && <Section id="setup-requests" title="Workspace Requests">
         <ul className="rc-ask-summary">{state.setupRequests.map(request => <li key={request.requestId}><strong>{request.name}</strong>
           <p className="rc-meta">Approval sets up the team's workspace. The requester still needs an explicit access grant.</p>
@@ -532,6 +582,8 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
       <div className="rc-action-bar">
         {/* An empty list already offers to start one, so the page offers it once. */}
         {!empty && startAction("quiet")}
+        {/* Drafts linked to a project are on this device too; with no other drafts the removal is offered here. */}
+        {deviceEntries.length === 0 && removeAction}
         {/* A phone has the Settings section below in its place. */}
         <ButtonLink href={pathTo("settings")} variant="quiet" from="wide">
           Settings
@@ -565,10 +617,16 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
       {note}
       {service.deleteCard && (
         <DeleteSavedCard open={deleting} cards={removable} onClose={() => setDeleting(false)}
-          onDelete={async (card, requestId) => { const result = await service.deleteCard!(card, requestId); refresh(); return result; }}
+          onDelete={async (card, requestId, removeCopies) => {
+            const result = await service.deleteCard!(card, requestId);
+            refresh();
+            // Only once the account confirmed: the copies on this device go to the backups, as chosen before the press.
+            return removeCopies ? backUpCopies(controller, result, card.copies) : result;
+          }}
           onReload={async () => { await (social.reload?.() ?? service.checkAgain()); refresh(); }}
           onDeleted={(text) => { setDeleting(false); setFailed(false); setMessage(text); refresh(); }} />
       )}
+      {removeDialog}
       <TaskDialog title="Your Project" open={!!choosing} onClose={() => setChoosing(null)}>
         {choosing && (
           <ProjectStep

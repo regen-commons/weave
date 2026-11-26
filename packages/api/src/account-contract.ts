@@ -67,7 +67,8 @@ function list(value: unknown, max: number, length: number, values?: string[]): s
 function nullable(value: unknown, max: number): string | null {
   return value === null ? null : text(value, max);
 }
-const CAPITALS = [
+/** The forms of capital a need or offer can name, in their fixed order. */
+export const CAPITALS = [
   "living",
   "material",
   "intellectual",

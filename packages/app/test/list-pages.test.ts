@@ -138,7 +138,7 @@ test("Your Initiatives holds its own cards' shape while it loads, under the head
   assert.doesNotMatch(page, /CardGridSkeleton kind="funding"/u, "a funding card is twice the height of a card on this page");
   assert.equal(page.split('<CardGridSkeleton kind="own" count={2} />').length - 1, 2, "while checking the account, and while reading projects");
   // The heading is there before its cards: the section is drawn as soon as its projects are being read.
-  assert.match(page, /\{\(certified \|\| loading \|\| social\.problem \|\| noProjectYet\) && \(\s*<Section id="initiatives-certified" title="On Certified">/u);
+  assert.match(page, /\{\(certified \|\| loading \|\| social\.problem \|\| noProjectYet\) && \(\s*<Section id="initiatives-certified" title="Certified Projects"/u);
   assert.match(page, /\{loading && \(\s*<div aria-busy="true">/u, "and the cards' shape is under it while they load");
 });
 

@@ -142,7 +142,7 @@ async function openWorkspace(page: Page, project: Project, counterpart: Project,
     }
   });
   await page.goto("/your-initiatives");
-  const workspace = page.getByRole("region", { name: "On Certified" }).getByRole("button", { name: project.name, exact: true });
+  const workspace = page.getByRole("region", { name: "Certified Projects" }).getByRole("button", { name: project.name, exact: true });
   await workspace.focus();
   await page.keyboard.press("Enter");
   return page.getByRole("region", { name: "Partners For You" });

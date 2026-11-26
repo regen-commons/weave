@@ -9,7 +9,7 @@ import { parseTeamDocument, type AccountDocument, type JsonObject, type SavedIni
 import { createProjectHandler } from "../../api/src/project-http.ts";
 import { sessionCookies } from "../../api/src/account-http.ts";
 import { AccountError } from "../../api/src/account-provider.ts";
-import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureInitiative } from "./account-fixture.ts";
+import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureInitiative, fixtureReferences } from "./account-fixture.ts";
 import accountExample from "../../api/src/test-data/account.json" with { type: "json" };
 
 const DAY = 86_400_000;
@@ -98,7 +98,10 @@ const personalUri = `at://${personalDid}/org.hypercerts.collection/water-notes`;
  * or Certified often does. Linking it suggests both in pencil, which is how the 23 November 2026 release
  * blocker arose: the person saw them on the card while matching, which compares kept entries, had none.
  */
-const gardenUri = `at://${personalDid}/org.hypercerts.collection/garden-commons`;
+// A timestamp record key, as Certified gives one, so the project has a public address (/initiatives/<did>-<key>).
+const gardenUri = `at://${personalDid}/org.hypercerts.collection/3mfixturegard`;
+/** The one fixture project with a public address, which the public list and its page show in development. */
+export const FIXTURE_PUBLIC_PROJECT_URI = gardenUri;
 const memberGroup = "did:plc:cccccccccccccccccccccccc";
 const memberUri = `at://${memberGroup}/org.hypercerts.collection/seed-library`;
 const project = (uri: string, title: string, group?: string, source: Record<string, unknown> = {}) => ({ uri, cid: "bafyfixture", repoDid: uri.split("/")[2],
@@ -115,6 +118,36 @@ const fixtureProjects = [
     place: { status: "named", name: "Upper valley (fixture)" },
   }),
 ];
+/**
+ * Personal projects made from a draft by `create_personal_project`, as project-commands.ts answers it: one
+ * per record key, the same answer for a retry of the same draft, a conflict for anything else at that key.
+ * Each lives in a repository named after its fixture account. Nothing reaches Certified.
+ */
+type CreatedProject = ReturnType<typeof project> & { readonly place?: { readonly status: "named"; readonly name: string } };
+const createdProjects = new Map<string, { owner: string; project: CreatedProject }>();
+/** The created projects Weave's public list has picked up, as the daily refresh would. */
+let listedCreated = new Set<string>();
+/** Development control: the daily public-list refresh, which picks up the projects created since the last one. */
+export function refreshFixturePublicList() { listedCreated = new Set(createdProjects.keys()); }
+/** The created projects in the public list, for the public fixture's list and pages. */
+export function fixtureListedProjects(): CreatedProject[] {
+  return [...createdProjects.values()].filter(({ project }) => listedCreated.has(project.uri)).map(({ project }) => project);
+}
+const ownProjects = (owner: string) => [...createdProjects.values()].filter((item) => item.owner === owner).map((item) => item.project);
+/** A did:plc for a fixture account's own repository: its ID's hex digits written as base-32 letters. */
+const accountRepository = (owner: string) => `did:plc:${[...owner.replaceAll("-", "")].slice(0, 24).map((digit) => "abcdefghijklmnop"[parseInt(digit, 16)]).join("")}`;
+function createPersonalProject(owner: string, command: { projectRkey: string; title: string; description: string; place?: { rkey: string; name: string } }) {
+  if (publishPermission === "missing") throw new AccountError(403, "project_consent_required");
+  const uri = `at://${accountRepository(owner)}/org.hypercerts.collection/${command.projectRkey}`;
+  const place = command.place?.name ?? null;
+  const existing = createdProjects.get(uri);
+  if (existing && (existing.owner !== owner || existing.project.title !== command.title
+    || existing.project.description !== command.description || (existing.project.place?.name ?? null) !== place))
+    throw new AccountError(409, "project_conflict");
+  if (!existing) createdProjects.set(uri, { owner, project: { ...project(uri, command.title), description: command.description,
+    cid: fixtureCid(), createdAt: new Date().toISOString(), ...(place ? { place: { status: "named", name: place } as const } : {}) } });
+  return { status: "created", projectUri: uri, cid: createdProjects.get(uri)!.project.cid };
+}
 const externalGroup = "did:plc:ffffffffffffffffffffffff";
 const externalProject = project(`at://${externalGroup}/org.hypercerts.collection/editor-return`, "Editor return project (fixture)", externalGroup);
 let externalPublished = false;
@@ -136,6 +169,11 @@ const requested = new Set<string>();
  * same personal project, so each keeps its own link, as each person's own project would have one.
  */
 const soloLinks = new Map<string, string>();
+// Deletion refuses a card that a project link, a shared entry or a saved partner still refers to, as the database does.
+fixtureReferences((id) => [...soloLinks.values()].includes(id)
+  || [...(cards.get(id)?.entries.values() ?? [])].some((row) => row.sharing === "shared")
+  || !!privateLeads.get(id)?.size
+  || [...supportRows.values()].some((row) => row.workspaceId === id));
 const teamSaves = new Map<string, SavedInitiative>();
 const saveRequests = new Map<string, { input: string; saved: SavedInitiative }>();
 export function fixtureTeam(token: string, id: string) {
@@ -166,6 +204,90 @@ const teamDocument = parseTeamDocument({
   })),
 });
 
+type SupportCommand = Extract<Parameters<Parameters<typeof createProjectHandler>[0]["execute"]>[2], { action: `support_${string}` }>;
+type SupportRow = { workspaceId: string; kind: "need" | "offer"; entryId: string; rkey: string; operationId: string;
+  status: "publish_pending" | "published" | "withdrawal_pending" | "withdrawn" | "conflict"; record: JsonObject; cid: string | null;
+  attempted: boolean; problem: string | null; repository: string };
+/**
+ * Public support listings for a personal fixture project, as weave-support-publication.sql and
+ * support-publication.ts answer: a review of the saved entry at its revision, one publication per
+ * request ID, read back before it counts as published, and withdrawal. The "repository" is this map:
+ * nothing reaches Certified. `/__fixture` can hold publication back for Certified's permission.
+ */
+const supportRows = new Map<string, SupportRow>();
+const supportReviews = new Map<string, { actor: string; workspaceId: string; kind: "need" | "offer"; entryId: string; record: JsonObject; until: number }>();
+const supportRequests = new Map<string, { input: string; row: SupportRow }>();
+let publishPermission: "granted" | "missing" = "granted";
+/** Development control: whether Certified's permission to publish is in place for the fixture accounts. */
+export function setFixturePublishPermission(value: "granted" | "missing") { publishPermission = value; }
+const base32 = "abcdefghijklmnopqrstuvwxyz234567";
+const fixtureCid = () => `bafyrei${Array.from(crypto.getRandomValues(new Uint8Array(52)), (byte) => base32[byte % 32]).join("")}`;
+const fixtureTid = () => `3m${Array.from(crypto.getRandomValues(new Uint8Array(11)), (byte) => base32[byte % 32]).join("")}`;
+const supportKey = (workspaceId: string, kind: string, entryId: string) => `${workspaceId}/${kind}/${entryId}`;
+const supportResult = ({ workspaceId: _w, repository: _r, ...row }: SupportRow) => row;
+/** The published listings of one project, as a public reader finds them in its repository. */
+export function fixturePublicListings(projectUri: string): { uri: string; cid: string; record: JsonObject }[] {
+  return [...supportRows.values()].filter((row) => row.status === "published" && row.cid && row.record.projectUri === projectUri
+    && (typeof row.record.expiresAt !== "string" || Date.parse(row.record.expiresAt) > Date.now()))
+    .map((row) => ({ uri: `at://${row.repository}/com.regencommons.weave.supportListing/${row.rkey}`, cid: row.cid!, record: structuredClone(row.record) }));
+}
+function supportCommand(token: string, actor: string, command: SupportCommand) {
+  const link = [...soloLinks].find(([key, id]) => key.startsWith(`${actor} `) && id === command.workspaceId);
+  if (!link) { fixtureTeam(token, command.workspaceId); throw new AccountError(503, "support_group_lifecycle_unverified"); }
+  const projectUri = link[0].slice(actor.length + 1), repository = projectUri.split("/")[2]!;
+  const rows = () => [...supportRows.values()].filter((row) => row.workspaceId === command.workspaceId);
+  if (command.action === "support_state") return { workspaceId: command.workspaceId, listings: rows().map(supportResult), nextCursor: null };
+  if (command.action === "support_review") {
+    const { saved } = fixtureInitiative(token, command.workspaceId);
+    if (saved.revision !== command.expectedRevision) throw new AccountError(409, "support_conflict");
+    const entry = reconcile(actor, saved).entries.get(entryKey(command));
+    const capitals = entry?.value.capitalForms as string[] | undefined;
+    if (!entry || entry.revision !== command.expectedEntryRevision || entry.status !== "open" || !capitals?.length)
+      throw new AccountError(409, "support_conflict");
+    const earlier = supportRows.get(supportKey(command.workspaceId, command.kind, command.entryId));
+    if (earlier && earlier.status !== "withdrawn") throw new AccountError(409, "support_conflict");
+    const now = new Date().toISOString();
+    // As the SQL review: an end date must be in the future, and an open-ended listing leaves it out.
+    if (command.expiresAt && Date.parse(command.expiresAt) <= Date.now()) throw new AccountError(400, "invalid_support_command");
+    const record: JsonObject = { $type: "com.regencommons.weave.supportListing", projectUri, kind: command.kind,
+      ...(command.expiresAt ? { expiresAt: command.expiresAt } : {}),
+      title: String(entry.value.title), ...(typeof entry.value.description === "string" && entry.value.description ? { description: entry.value.description } : {}),
+      capitalForms: [...capitals], status: "open", createdAt: now };
+    const reviewId = crypto.randomUUID(), until = Date.now() + 10 * 60_000;
+    supportReviews.set(reviewId, { actor, workspaceId: command.workspaceId, kind: command.kind, entryId: command.entryId, record, until });
+    return { reviewId, audience: "public-atproto", destination: repository, record, expectedRevision: saved.revision,
+      expectedEntryRevision: entry.revision, reviewExpiresAt: new Date(until).toISOString() };
+  }
+  if (command.action === "support_publish") {
+    const input = JSON.stringify(command), previous = supportRequests.get(`${actor}/${command.requestId}`);
+    if (previous) { if (previous.input !== input) throw new AccountError(409, "support_conflict"); return supportResult(previous.row); }
+    const review = supportReviews.get(command.reviewId);
+    if (!review || review.actor !== actor || review.workspaceId !== command.workspaceId || review.until <= Date.now())
+      throw new AccountError(409, "support_conflict");
+    supportReviews.delete(command.reviewId);
+    const granted = publishPermission === "granted";
+    const row: SupportRow = { workspaceId: command.workspaceId, kind: review.kind, entryId: review.entryId, rkey: fixtureTid(),
+      operationId: crypto.randomUUID(), status: granted ? "published" : "publish_pending", record: review.record,
+      cid: granted ? fixtureCid() : null, attempted: granted, problem: granted ? null : "authorization_required", repository };
+    supportRows.set(supportKey(command.workspaceId, review.kind, review.entryId), row);
+    supportRequests.set(`${actor}/${command.requestId}`, { input, row });
+    return supportResult(row);
+  }
+  const row = supportRows.get(supportKey(command.workspaceId, command.kind, command.entryId));
+  if (!row) throw new AccountError(404, "not_found");
+  if (command.action === "support_reconcile") {
+    if (row.status === "publish_pending" && publishPermission === "granted")
+      Object.assign(row, { status: "published", cid: fixtureCid(), attempted: true, problem: null });
+    if (row.status === "withdrawal_pending") Object.assign(row, { status: "withdrawn", problem: null });
+    return supportResult(row);
+  }
+  if (command.action === "support_withdraw") {
+    Object.assign(row, { status: "withdrawn", problem: null });
+    return supportResult(row);
+  }
+  throw new AccountError(400, "invalid_project_command");
+}
+
 export const projectEvidenceFixture = (origin: string) => createProjectHandler({
   origin,
   async resolveActor(request) {
@@ -173,6 +295,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
   },
   async execute(request, actor, command) {
     if (actor.userId === FIXTURE_UNAVAILABLE) throw new AccountError(503, "project_workspace_unavailable");
+    if (command.action === "create_personal_project") return createPersonalProject(actor.userId, command);
     if (actor.userId === FIXTURE_PROJECT_STARTER) {
       if (command.action === "list_project_groups") return { groups: externalPublished ? [{ groupDid: externalGroup, role: "owner", displayName: "Editor return group (fixture)" }] : [] };
       if (command.action === "list_projects") return { projects: externalPublished && command.target.kind === "group" && command.target.groupDid === externalGroup ? [externalProject] : [] };
@@ -189,7 +312,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
       { groupDid, role: actor.userId === FIXTURE_TEAM_ADMIN ? "owner" : "member", handle: "watershed.certified.one", displayName: "Watershed team" },
       { groupDid: memberGroup, role: "member", handle: "seed-library.certified.one", displayName: "Valley seed keepers" },
     ] };
-    if (command.action === "list_projects") return { projects: fixtureProjects.filter(p =>
+    if (command.action === "list_projects") return { projects: [...fixtureProjects, ...ownProjects(actor.userId)].filter(p =>
       command.target.kind === "personal" ? !p.groupDid : p.groupDid === command.target.groupDid),
       ...(command.target.kind === "group" ? { certifiedRole: command.target.groupDid === groupDid && actor.userId === FIXTURE_TEAM_ADMIN ? "owner" : "member" } : {}) };
     // As the workspace candidate's link_result: a personal link opens only while its owner's card exists.
@@ -203,7 +326,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
     if (command.action === "list_workspaces") return { workspaces: [
       ...(teamRoles.has(actor.userId) ? [{ workspaceId: FIXTURE_TEAM_ID,
         projectUri: groupUri, kind: "group", accessRole: teamRoles.get(actor.userId), project: fixtureProjects[0] }] : []),
-      ...fixtureProjects.flatMap((project) => {
+      ...[...fixtureProjects, ...ownProjects(actor.userId)].flatMap((project) => {
         const link = soloLink(project.uri);
         return link?.status === "linked" ? [{ workspaceId: link.workspaceId, projectUri: project.uri, kind: "personal", accessRole: "admin", project }] : [];
       }),
@@ -217,7 +340,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
     // A personal project links to the person's saved card at its current revision, keeping the card's ID.
     // A project already linked returns that canonical link, as the workspace candidate does.
     if (command.action === "link") {
-      const project = fixtureProjects.find(({ uri }) => uri === command.projectUri);
+      const project = [...fixtureProjects, ...ownProjects(actor.userId)].find(({ uri }) => uri === command.projectUri);
       if (!project) throw new AccountError(404, "project_not_found");
       if (project.groupDid) throw new AccountError(400, "invalid_project_command");
       const existing = soloLink(project.uri);
@@ -254,12 +377,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
       }
       return { status: "granted" };
     }
-    if (command.action === "support_state") {
-      // A personal project's card is the person's own; a team's needs the team's access.
-      const ownPersonal = [...soloLinks].some(([link, id]) => link.startsWith(`${actor.userId} `) && id === command.workspaceId);
-      if (!ownPersonal) fixtureTeam(sessionCookies(false).token(request) ?? "", command.workspaceId);
-      return { workspaceId: command.workspaceId, listings: [], nextCursor: null };
-    }
+    if (command.action.startsWith("support_")) return supportCommand(token, actor.userId, command as SupportCommand);
     if (command.action !== "public_evidence" && command.action !== "team_load" && command.action !== "team_save")
       throw new AccountError(503, "project_workspace_unavailable");
     const now = new Date().toISOString();

@@ -69,6 +69,11 @@ export function apiRoutes(): Plugin {
             return { POST: name === "matching" ? fixture.matchingFixture
               : (request: Request) => fixture.projectEvidenceFixture(new URL(request.url).origin)(request) };
           }
+          // The public list and one initiative's page over the fixture's own project and published listings.
+          if (["public-projects", "public-initiative"].includes(name) && process.env.WEAVE_ACCOUNT_FIXTURE === "1") {
+            const fixture = await server.ssrLoadModule("/dev/public-fixture.ts");
+            return { GET: name === "public-projects" ? fixture.publicProjectsFixture : fixture.publicInitiativeFixture };
+          }
           if (["account", "sign-in"].includes(name) && process.env.WEAVE_ACCOUNT_FIXTURE === "1") {
             const fixture = await server.ssrLoadModule("/dev/account-fixture.ts");
             return name === "account" ? fixture.accountFixture : {

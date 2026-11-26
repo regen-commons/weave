@@ -110,7 +110,8 @@ export interface SocialService {
   signOut(): Promise<void>;
   save(name: string, place?: "private" | "workspace", key?: string | null): Promise<void>;
   /** Selects an authorized project. The live adapter stores its reviewed public fields on the device; team Save stays separate. */
-  linkProject(uri: string, signal?: AbortSignal): Promise<ProjectLink>;
+  /** `keepCard`: link a project made from this very card, so its details and page are not read back into it. */
+  linkProject(uri: string, signal?: AbortSignal, options?: { keepCard?: boolean }): Promise<ProjectLink>;
   /** Opens a project's team workspace that already exists and reads what the team saved there. */
   openWorkspace(uri: string, key: string | null): Promise<ProjectLink>;
   /** Loads a private save onto this device. Loading saves nothing new and links nothing. */

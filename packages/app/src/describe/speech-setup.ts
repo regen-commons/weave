@@ -2,6 +2,7 @@ import { CLOUD_SPEECH } from "@weave/api/transcribe-contract";
 import { speechConstructor, speechStatus, wait, type SpeechConstructor, type SpeechMode, type SpeechProblem, type Wait } from "./speech.ts";
 import { cloudSpeechAvailable } from "./speech-cloud.ts";
 import { deviceSpeechRecord, isBrave, type BrowserSpeechRecord } from "./speech-fallback.ts";
+import { deviceSpeechChoice, type SpeechChoice, type SpeechChoiceStore } from "./speech-choice.ts";
 export type { Wait } from "./speech.ts";
 
 /**
@@ -23,6 +24,8 @@ export type SpeechSetupState =
   | "checking"
   /** The browser has no usable speech recognition here and cloud speech is unavailable. */
   | "none"
+  /** The person chose Off in Settings: no talking, typing only (25 November 2026). */
+  | "off"
   /**
    * The browser cannot turn speech into text itself, the page can record and cloud speech is on:
    * no speech recognition at all, or a speech service that cannot work here (`speech-fallback.ts`).
@@ -43,7 +46,7 @@ export type SpeechSetupState =
   | "ready";
 
 /** Talking can be offered here; where it cannot, the page asks for writing. */
-export const talksHere = (state: SpeechSetupState): boolean => state !== "none";
+export const talksHere = (state: SpeechSetupState): boolean => state !== "none" && state !== "off";
 
 /** Which recognizer Talk It Out would use in this state, or null where it cannot be offered. */
 export const speechMode = (state: SpeechSetupState): SpeechMode | null =>
@@ -92,6 +95,10 @@ export const SLOW_SETUP_MS = 2 * 60 * 1000;
 export interface SpeechSetupStore {
   /** Where speech stands for one language: "checking" until the browser first answers. */
   state(language: string): SpeechSetupState;
+  /** What each way of talking can do here for one language, whatever was chosen; null until the browser answers. */
+  availability(language: string): SpeechAvailability | null;
+  /** Asks about every way of talking for one language, cloud speech included, as Settings does to offer them. */
+  inspect(language: string): void;
   subscribe(listener: () => void): () => void;
   /** Asks the browser again, as a page opens or the language changes. A setup under way is left to finish. */
   check(language: string): void;
@@ -113,6 +120,21 @@ export function touchPrimary(media: ((query: string) => { matches: boolean }) | 
   }
 }
 
+/** What each way of talking can do here, for Settings to offer only what works (25 November 2026). */
+export interface SpeechAvailability {
+  /** Speech on this device: ready, can be set up after a tap, or not offered by this browser. */
+  readonly device: "ready" | "offer" | "none";
+  /** The browser's own speech service: present, missing, or Brave's, which has no service behind it. */
+  readonly browser: "present" | "none" | "brave";
+  /** The browser's service failed here before it ever gave words (`speech-fallback.ts`). */
+  readonly browserFailed: boolean;
+  /**
+   * Cloud speech: the page can record and the server has it on. Null where nobody asked: Talk It Out asks
+   * the server only where it needs to, and Settings asks to see every option (`inspect`).
+   */
+  readonly cloud: boolean | null;
+}
+
 export function speechSetupStore({
   speech = speechConstructor(),
   slowAfter = SLOW_SETUP_MS,
@@ -121,6 +143,7 @@ export function speechSetupStore({
   cloud = cloudSpeechAvailable,
   record = deviceSpeechRecord(),
   brave = isBrave,
+  choice = deviceSpeechChoice(),
 }: {
   /** null: a browser with no speech recognition at all. */
   speech?: SpeechConstructor | null;
@@ -138,8 +161,14 @@ export function speechSetupStore({
   record?: BrowserSpeechRecord;
   /** Whether this is Brave, whose recognizer has no speech service behind it. */
   brave?: () => Promise<boolean>;
+  /** The way of talking the person chose in Settings, if any (`speech-choice.ts`). */
+  choice?: Pick<SpeechChoiceStore, "chosen" | "clear" | "subscribe">;
 } = {}): SpeechSetupStore {
   const states = new Map<string, SpeechSetupState>();
+  const available = new Map<string, SpeechAvailability>();
+  const availabilityChanged = new Set<string>();
+  /** Languages Settings asked to see every option for, so cloud speech is asked about too. */
+  const inspected = new Set<string>();
   const asking = new Set<string>();
   const listeners = new Set<() => void>();
   const state = (language: string): SpeechSetupState => states.get(language) ?? "checking";
@@ -161,25 +190,56 @@ export function speechSetupStore({
     asking.add(language);
     void speechSupport(language, speech)
       .then(async (support): Promise<SpeechSetupState> => {
+        const isBrave = support !== "none" && (await brave().catch(() => false));
+        const chosen = choice.chosen();
+        // The server is asked about cloud speech only where Talk It Out may need it, or Settings shows every option.
+        const needsCloud = inspected.has(language) || chosen === "cloud" || support === "none" || isBrave
+          || (record.state() === "failed" && support === "browser");
+        const cloudOn = needsCloud ? await offerCloud() : null;
+        const here: SpeechAvailability = {
+          device: support === "ready" || support === "offer" ? support : "none",
+          browser: support === "none" ? "none" : isBrave ? "brave" : "present",
+          browserFailed: record.state() === "failed",
+          cloud: cloudOn,
+        };
+        if (JSON.stringify(available.get(language)) !== JSON.stringify(here)) { available.set(language, here); availabilityChanged.add(language); }
+        // A choice made in Settings comes first, where it can work here; otherwise Talk It Out's own order.
+        if (chosen === "off") return "off";
+        if (chosen === "device" && here.device !== "none") return here.device;
+        if (chosen === "browser" && here.browser === "present") return "browser";
+        if (chosen === "cloud" && here.cloud) return "cloud";
         if (support === "ready" || support === "offer") return support;
         // Brave has no browser speech service. If cloud speech is unavailable, typing still works.
-        if (support === "none" || (await brave().catch(() => false))) return (await offerCloud()) ? "cloud" : "none";
-        if (record.state() === "failed" && (await offerCloud())) return "cloud";
+        if (support === "none" || isBrave) return cloudOn ? "cloud" : "none";
+        if (here.browserFailed && cloudOn) return "cloud";
         return "browser";
       })
       .then((support) => {
         asking.delete(language);
         if (again.delete(language)) return check(language);
         if (!underWay(language)) publish(language, support);
+        // Settings reads what each way of talking can do, which can change while the state stays the same.
+        if (availabilityChanged.delete(language)) for (const listener of listeners) listener();
       });
   };
   // A failure noted, here or in another tab, or forgotten, changes what Talk It Out offers. A
   // language still waiting for its first answer is asked again too, so no answer from before stands.
   record.subscribe(() => {
+    // Chosen in Settings and then failed here: the choice gives way, so cloud speech is offered instead.
+    if (record.state() === "failed" && choice.chosen() === "browser") choice.clear();
+    for (const language of new Set([...states.keys(), ...asking])) check(language);
+  });
+  choice.subscribe(() => {
     for (const language of new Set([...states.keys(), ...asking])) check(language);
   });
   return {
     state,
+    availability: (language) => available.get(language) ?? null,
+    inspect(language) {
+      if (inspected.has(language)) return;
+      inspected.add(language);
+      check(language);
+    },
     touch,
     subscribe(listener) {
       listeners.add(listener);
@@ -221,6 +281,8 @@ export interface TalkControls {
 
 /** Said in one plain line where the browser cannot turn speech into text. The typed path is the same box. */
 export const NO_SPEECH = "This browser cannot turn speech into text here. You can type instead.";
+/** Said in Talk It Out's place where the person turned talking off in Settings. */
+export const SPEECH_OFF = "Talking is off in Settings. You can type in the box.";
 /** Under Set Up Speech until it is pressed: the box works whatever the setup does. */
 export const TYPE_INSTEAD = "You can also type in the box below.";
 /**
@@ -277,27 +339,52 @@ export const CLOUD_SPEECH_NOTICE = {
   decline: "Not Now",
 } as const;
 
-/** What Settings says about each agreement, and the one action that withdraws it. */
-export const SPEECH_SETTING = {
-  agreed:
-    "Where speech on this device is not available, your browser's speech service turns your voice into text. Weave does not receive the audio.",
-  notAgreed:
-    "Talking uses speech on this device where your browser offers it. Anywhere else, Weave asks before your voice leaves this device.",
-  withdraw: "Stop Using Browser Speech",
-  cloudAgreed: `Where this browser cannot turn speech into text, Weave sends your recording to ${CLOUD_SPEECH.provider} to turn it into text. Weave does not keep it.`,
-  withdrawCloud: "Stop Using Cloud Speech",
-  /** A failure this device noted put cloud speech in the place of the browser's own speech service. */
-  failed: "Your browser's speech service did not answer on this device, so Talk It Out offers cloud speech instead where Weave has it on.",
-  useBrowserAgain: "Use Browser Speech Again",
-} as const;
+/** One way of talking as Settings offers it: one radio option, with its notice as its own line. */
+export interface SpeechOption {
+  readonly key: SpeechChoice;
+  readonly label: string;
+  /** What choosing it means. For the browser's service and cloud speech this line is the notice: choosing is agreeing. */
+  readonly note: string;
+  /** Why it cannot be chosen here, or null where it can. */
+  readonly unavailable: string | null;
+}
 
 /**
- * The one line Settings says about speech: each agreement in force, or that Weave asks first.
- * It is one status line, so withdrawing an agreement is heard as the line it leaves behind.
+ * The four ways of talking Settings offers as one choice (the user's decision of 25 November 2026),
+ * replacing a Stop button per agreement. An option that cannot work here stays in the list with its
+ * reason, so nothing disappears without a word. The cloud option's line carries what its first-use
+ * notice says (`CLOUD_SPEECH_NOTICE`), so choosing it is an informed agreement.
  */
-export const speechSettingLine = (browser: boolean, cloud: boolean, failed = false): string =>
-  [browser && SPEECH_SETTING.agreed, cloud && SPEECH_SETTING.cloudAgreed, failed && SPEECH_SETTING.failed].filter(Boolean).join(" ") ||
-  SPEECH_SETTING.notAgreed;
+export function speechOptions(here: SpeechAvailability | null): SpeechOption[] {
+  const checking = "Checking what this browser can do.";
+  return [
+    { key: "device", label: "On this device",
+      note: here?.device === "offer"
+        ? "Your browser sets up speech for your language the first time you talk. Your voice never leaves this device."
+        : "Your browser turns speech into text on this device. Your voice never leaves it.",
+      unavailable: !here ? checking : here.device === "none" ? "Not available in this browser." : null },
+    { key: "browser", label: "Your browser's speech service",
+      note: `Your browser sends your voice to its own speech service, which turns it into text as you talk. Weave does not receive the audio.${
+        here?.browserFailed ? " It did not answer on this device before; choose it to try again." : ""}`,
+      unavailable: !here ? checking : here.browser === "none" ? "This browser has no speech recognition."
+        : here.browser === "brave" ? "This browser has no speech service behind its recognizer." : null },
+    { key: "cloud", label: `Cloud speech with ${CLOUD_SPEECH.company}`,
+      note: `Weave records what you say and, when you stop, sends the recording (${CLOUD_SPEECH.maxSeconds / 60} minutes at most) to ${CLOUD_SPEECH.provider}, which turns it into text with the ${CLOUD_SPEECH.model} model. Weave does not keep the recording. ${CLOUD_SPEECH.company} says it does not keep it or use it to train models. It may be processed outside your country.`,
+      unavailable: !here || here.cloud === null ? checking : here.cloud ? null : "Not available here right now." },
+    { key: "off", label: "Off", note: "Talk It Out is hidden and you type instead. Nothing is recorded or sent.", unavailable: null },
+  ];
+}
+
+/**
+ * The option shown as chosen: the way Talk It Out uses now, which is the person's own choice wherever it
+ * works here, since the intake reads the same store. Null while the browser has not answered.
+ */
+export function chosenSpeech(state: SpeechSetupState): SpeechChoice | null {
+  if (state === "checking") return null;
+  if (state === "off" || state === "none") return "off";
+  const mode = speechMode(state);
+  return mode === "browser" ? "browser" : mode === "cloud" ? "cloud" : "device";
+}
 
 /**
  * What Settings says about the recordings this device has sent, from the device's own record
@@ -414,6 +501,8 @@ export function talkControls(
       return SILENT;
     case "none":
       return { ...SILENT, note: touch ? KEYBOARD_MIC : NO_SPEECH };
+    case "off":
+      return { ...SILENT, note: SPEECH_OFF };
     // The button says what it does, and what the setup does waits for the press. The line's room is
     // kept, so nothing moves as speech is found on load or when the setup starts, and until the
     // press it holds a line that is true whatever the setup does (DL-127).

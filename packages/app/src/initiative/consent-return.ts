@@ -3,14 +3,14 @@ import { accountRequest } from "../account/client.ts";
 import { matchRoute, pathTo, teamWorkspacePath } from "../routes.ts";
 import { isPagePath } from "./consent-chain.ts";
 
-export type ProjectConsentAction = "membership" | "create-project" | "workspace-members" | "add-member" | "publish-support" | "withdraw-support";
+export type ProjectConsentAction = "membership" | "create-project" | "workspace-members" | "add-member" | "publish-support" | "withdraw-support" | "publish-initiative";
 /** `returnTo` is the page a consent that followed a sign-in began on, when that was not Your Initiatives. */
 export type ConsentTask = { kind: "directory"; action: ProjectConsentAction; returnTo?: string } | { kind: "team"; workspaceId: string };
 type Outcome = "ready" | "denied" | "failed";
 export type ConsentReturn = ConsentTask & { result: Outcome };
 const pending = "weave-certified-project-return";
 const legacy = ["weave-project-actions-return", "weave-team-membership-return"];
-const actions: readonly string[] = ["membership", "create-project", "workspace-members", "add-member", "publish-support", "withdraw-support"];
+const actions: readonly string[] = ["membership", "create-project", "workspace-members", "add-member", "publish-support", "withdraw-support", "publish-initiative"];
 
 /** The newest explicit task owns the callback. Older task receipts cannot race it. */
 export function beginConsentReturn(storage: Storage, task: ConsentTask) {

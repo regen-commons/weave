@@ -17,6 +17,7 @@ test("each shared endpoint keeps the methods its own function exported", () => {
     matching: ["POST"],
     mcp: ["GET", "POST", "DELETE"],
     projects: ["POST"],
+    "public-initiative": ["GET"],
     "public-projects": ["GET"],
     "record-image": ["GET", "HEAD"],
     "record-page": ["GET", "HEAD"],

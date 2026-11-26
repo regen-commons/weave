@@ -2,7 +2,8 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { deviceCloudSpeechLog, type CloudSpeechLog, type CloudSpeechUse } from "./speech-cloud-log.ts";
 import { deviceCloudConsent, deviceConsent, type SpeechConsent } from "./speech-consent.ts";
 import { deviceSpeechRecord, type BrowserSpeechRecord, type BrowserSpeechRecordState } from "./speech-fallback.ts";
-import { speechSetupStore, type SpeechSetupState, type SpeechSetupStore } from "./speech-setup.ts";
+import { speechSetupStore, type SpeechAvailability, type SpeechSetupState, type SpeechSetupStore } from "./speech-setup.ts";
+import { deviceSpeechChoice, type SpeechChoice, type SpeechChoiceStore } from "./speech-choice.ts";
 
 let device: SpeechSetupStore | undefined;
 /** This browser's speech: one store for the whole visit, so a setup under way follows the person. */
@@ -47,6 +48,16 @@ export function useCloudSpeechAgreement(consent: SpeechConsent = deviceCloudCons
 /** The device's record of whether the browser's own speech service works here, kept current across tabs. */
 export function useBrowserSpeechRecord(record: BrowserSpeechRecord = deviceSpeechRecord()): BrowserSpeechRecordState {
   return useSyncExternalStore(record.subscribe, record.state);
+}
+
+/** The way of talking chosen in Settings, kept current across tabs. */
+export function useSpeechChoice(choice: SpeechChoiceStore = deviceSpeechChoice()): SpeechChoice | null {
+  return useSyncExternalStore(choice.subscribe, choice.chosen);
+}
+
+/** What each way of talking can do here for one language, as the intake found it. */
+export function useSpeechAvailability(language: string, store: SpeechSetupStore = deviceSpeech()): SpeechAvailability | null {
+  return useSyncExternalStore(store.subscribe, () => store.availability(language));
 }
 
 /** The device's record of the recordings it has sent for cloud speech, kept current across tabs. */

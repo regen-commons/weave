@@ -29,9 +29,8 @@ import {
   speechMode,
   speechNotStarted,
   speechProblem,
-  speechSettingLine,
+  speechOptions,
   speechSetupStore,
-  SPEECH_SETTING,
   talkControls,
   talksHere,
 } from "../src/describe/speech-setup.ts";
@@ -561,7 +560,7 @@ test("Talk It Out says where the recording goes before, during and after, and as
   // The notice is plain sentences, names the provider and offers a way out.
   assert.equal(CLOUD_SPEECH_NOTICE.title, "Send Your Recording To Be Turned Into Text?");
   assert.deepEqual([CLOUD_SPEECH_NOTICE.agree, CLOUD_SPEECH_NOTICE.decline], ["Agree And Record", "Not Now"]);
-  for (const line of [...CLOUD_SPEECH_NOTICE.body, CLOUD_SPEECH_NOTE, SPEECH_SETTING.cloudAgreed, speechNotStarted("cloud")]) {
+  for (const line of [...CLOUD_SPEECH_NOTICE.body, CLOUD_SPEECH_NOTE, speechOptions(null)[2]!.note, speechNotStarted("cloud")]) {
     assert.match(line, /^[A-Z][^]*\.$/u, line);
     assert.doesNotMatch(line, /[—→·]/u, line);
   }
@@ -605,13 +604,7 @@ test("the two agreements are kept apart, and Settings says which are in force", 
   assert.deepEqual([browser.agreed(), cloud.agreed()], [true, false]);
   assert.deepEqual([...values.keys()], [BROWSER_SPEECH_KEY]);
 
-  assert.equal(speechSettingLine(false, false), SPEECH_SETTING.notAgreed);
-  assert.match(SPEECH_SETTING.notAgreed, /Weave asks before your voice leaves this device\.$/u);
-  assert.equal(speechSettingLine(true, false), SPEECH_SETTING.agreed);
-  assert.equal(speechSettingLine(false, true), SPEECH_SETTING.cloudAgreed);
-  assert.equal(speechSettingLine(true, true), `${SPEECH_SETTING.agreed} ${SPEECH_SETTING.cloudAgreed}`);
-  assert.match(SPEECH_SETTING.cloudAgreed, /Cloudflare Workers AI[^]*Weave does not keep it\.$/u);
-  assert.equal(SPEECH_SETTING.withdrawCloud, "Stop Using Cloud Speech");
+  // Settings no longer lists agreements: choosing an option there is the agreement (speech-choice.ts).
 });
 
 test("the device notes each recording sent, with its time and length and nothing of what was said", async () => {

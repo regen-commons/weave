@@ -1,7 +1,6 @@
 import { useId } from "react";
-import { CAPITALS } from "../capitals.ts";
 import type { PublicAsk } from "../listing.ts";
-import { Tag } from "./Tag.tsx";
+import { AskCards } from "./AskCards.tsx";
 import { useSectionTag } from "./section-level.ts";
 
 /** Read-only Ask cards: supplied shared records carry no editing or commitment action. */
@@ -12,29 +11,15 @@ export function PublicAsks({ kind, asks }: { kind: "needs" | "offers"; asks: rea
   return (
     <section className="rc-card-list" aria-labelledby={id}>
       <Heading className="rc-heading" data-size="section" id={id}>
-        {kind === "needs" ? "What They Need" : "What They Offer"}
+        {kind === "needs" ? "What They Need" : "What They Can Offer"}
       </Heading>
       {!asks.length ? (
         <p className="rc-meta">Nothing listed yet.</p>
       ) : (
-        <ul className="rc-ask-list">
-          {asks.map((ask, index) => (
-            <li key={`${index}-${ask.title}`}>
-              <article className="rc-card rc-ask-card" data-kind={kind === "needs" ? "need" : "offer"}>
-                <ul className="rc-tag-list" aria-label="Kinds of support">
-                  {CAPITALS.filter((capital) => ask.capitals.includes(capital.key)).map((capital) => (
-                    <li key={capital.key}>
-                      <Tag capital={capital} />
-                    </li>
-                  ))}
-                </ul>
-                <AskHeading className="rc-ask-title">{ask.title}</AskHeading>
-                <p>{ask.description}</p>
-                <p className="rc-ask-terms">{ask.terms}</p>
-              </article>
-            </li>
-          ))}
-        </ul>
+        <AskCards kind={kind === "needs" ? "need" : "offer"} label={kind === "needs" ? "What they need" : "What they can offer"}
+          Heading={AskHeading}
+          items={asks.map((ask, index) => ({ key: `${index}-${ask.title}`, title: ask.title, description: ask.description,
+            terms: ask.terms, capitals: ask.capitals }))} />
       )}
     </section>
   );
