@@ -4,6 +4,7 @@ import { AccountFailure, accountRequest } from "../account/client.ts";
 import { useAccount } from "../account/context.tsx";
 import { confirmRefusal, RefusalRetries } from "../account/session-end.ts";
 import { continueToCertified } from "../account/sign-in.ts";
+import { expectProjectAccess, forgetProjectAccess } from "../initiative/consent-chain.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { useSocial } from "../social/context.tsx";
 import { saveBlocker } from "../account/document.ts";
@@ -74,11 +75,14 @@ function WorkspaceSignIn({ workspaceId, available }: { workspaceId: string; avai
   const [status, setStatus] = useState<"idle" | "starting" | "failed">("idle");
   async function signIn() {
     setStatus("starting");
+    // Like every sign-in but one to save, it goes on to project access from this page (DL-137).
+    expectProjectAccess(() => window.sessionStorage, teamWorkspacePath(workspaceId));
     try {
       await continueToCertified(controller, teamWorkspacePath(workspaceId),
         (returnTo) => accountRequest("", { returnTo }, "/api/sign-in"),
         (target) => window.location.assign(target));
     } catch {
+      forgetProjectAccess(() => window.sessionStorage);
       setStatus("failed");
     }
   }

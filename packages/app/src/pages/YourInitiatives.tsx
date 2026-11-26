@@ -13,7 +13,7 @@ import { navigate, routeSearch } from "../router.tsx";
 import { fixtureHref, pathTo } from "../routes.ts";
 import { useSocial } from "../social/context.tsx";
 import { PendingInvite } from "../initiative/WorkspaceAccess.tsx";
-import { ConsentButton, useProjectAccessAfterSignIn } from "../initiative/ProjectConsent.tsx";
+import { ConsentButton, useProjectAccessPending } from "../initiative/ProjectConsent.tsx";
 import { teamWorkspacePath } from "../routes.ts";
 import type { CertifiedRecord, SavedCard } from "../social/fixture.ts";
 import { projectLine } from "../social/words.ts";
@@ -50,13 +50,6 @@ import { Tag } from "../ui/Tag.tsx";
 import { ThemeChoice } from "../ui/ThemeSwitch.tsx";
 import { SettingsSection } from "../ui/SettingsSection.tsx";
 import { InstallGuide } from "../install/InstallGuide.tsx";
-
-/** Said before the press, so the second Certified screen is expected. */
-const PROJECT_ACCESS_NEXT =
-  "Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in.";
-/** The same, where the page has just said the initiatives are only in this browser. */
-const PROJECT_ACCESS_WITH_SIGN_IN =
-  "Signing in says who you are, and Certified then asks to let Weave read your projects for as long as you stay signed in. Nothing of yours is saved or shared until you choose it.";
 
 /**
  * A phone's Settings on the You tab, in every state of the page, signed out included. The tab is a
@@ -118,8 +111,8 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
   const [, setAnswered] = useState(0);
   const [deleting, setDeleting] = useState(false);
   const [removing, setRemoving] = useState(false);
-  // Signing in from this page goes on to Certified's project permission (the user's choice, 22 November 2026).
-  const continuing = useProjectAccessAfterSignIn();
+  // Signing in goes on to Certified's project permission (DL-137); the page holds its shape meanwhile.
+  const continuing = useProjectAccessPending();
   const access = new URLSearchParams(routeSearch()).get("access");
   const consentNotice = access === "failed" ? <p role="status">Certified access could not be confirmed. Try again.</p>
     : access === "denied" ? <p role="status">Certified access was declined.</p> : null;
@@ -296,10 +289,10 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
           <p className="rc-prose">Sign in with Certified to open your projects and what you saved in Weave.</p>
           {live && <PendingInvite />}
           <div className="rc-action-bar">
-            <SignInButton thenProjects={live} />
+            <SignInButton />
             {startAction("secondary")}
           </div>
-          {live && <p className="rc-meta">{PROJECT_ACCESS_NEXT}</p>}
+          {live && <p className="rc-meta">{SIGN_IN.projectsNext}</p>}
           <AboutCertified />
           <SignInReturnNotice />
           {note}
@@ -332,10 +325,10 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
               </h2>
               <p>
                 {listed.length === 1 ? "Your initiative is" : "Your initiatives are"} kept in this browser only.{" "}
-                {live ? PROJECT_ACCESS_WITH_SIGN_IN : SIGN_IN.effect}
+                {live ? SIGN_IN.withProjects : SIGN_IN.effect}
               </p>
               <div className="rc-action-bar">
-                <SignInButton thenProjects={live} />
+                <SignInButton />
                 <AboutCertified />
               </div>
               <SignInReturnNotice />

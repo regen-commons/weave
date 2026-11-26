@@ -90,7 +90,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     body: [
       "Each of these is its own choice, and each shows what leaves before you confirm.",
       "A team workspace can be read by the teammates who are given access to it. Sharing for matching shows the needs and offers you pick, with your initiative's name, description, places and themes, to other signed-in people whose own shared entries fit. Publishing on Certified creates a public record that anyone, and other apps, can read.",
-      "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in on Your Initiatives goes on to that question, and the page says so first. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in.",
+      "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in goes on to that question, except a sign-in to save a card. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in.",
       "Weave also uses that permission to check that you still belong to a group whenever you open or change its team workspace, its sharing, its invitations or who has access. If Certified says you have left the group, Weave stops your access to that workspace.",
       "Weave stores that permission encrypted on its server and can use it for up to 30 days. Signing out ends it: Weave can no longer use it and deletes its stored copy. If that deletion fails, the copy stays encrypted and unusable until it expires.",
       "Two things ask Certified again, for up to one hour each time: reading who else belongs to your group, and changing Certified itself, such as creating a project, adding a member, or publishing or withdrawing a listing.",
@@ -162,6 +162,11 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
 export const SIGN_IN = {
   offer: "Sign in with Certified to save your work and open it on another device. In Weave, only you can open what you save.",
   effect: "Signing in only says who you are. Nothing is saved, loaded or shared until you choose it.",
+  /** Said before a sign-in that goes on to project access (DL-137). */
+  projectsNext: "Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in.",
+  /** The same, where the page has just said the initiatives are only in this browser. */
+  withProjects:
+    "Signing in says who you are, and Certified then asks to let Weave read your projects for as long as you stay signed in. Nothing of yours is saved or shared until you choose it.",
   saved:
     "Saving keeps your checked card, needs, offers and kept funding details. Conversations, files, unfinished edits and assistant records stay on this device.",
   session: "You stay signed in on this browser for up to 30 days. If you do not open Weave for 14 days, you are signed out sooner.",

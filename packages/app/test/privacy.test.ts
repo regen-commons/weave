@@ -72,11 +72,18 @@ test("the copy never says sign-in sends an email to Regen Commons, or that shari
   assert.match(read("../api/src/account.ts"), /onSignOut: forgetProjectGrants/u);
   assert.match(grants, /async forget\(request: Request/u);
   assert.match(policy, /such as creating a project, adding a member, or publishing or withdrawing a listing/u);
-  // Where the second question comes without a second press, the policy and the page both say so first,
-  // and the button that leaves for Certified is the one on that page.
-  assert.match(policy, /Signing in on Your Initiatives goes on to that question, and the page says so first/u);
-  assert.match(read("src/account/SignInButton.tsx"), /thenProjects \|\| window\.location\.pathname === pathTo\("your-initiatives"\)/u);
-  assert.match(read("src/pages/YourInitiatives.tsx"), /Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in/u);
+  // Every sign-in but one to save goes on to that question (DL-137). The policy says so, and the pages
+  // with room for a line say it before the press, in one shared sentence.
+  assert.match(policy, /Signing in goes on to that question, except a sign-in to save a card/u);
+  assert.match(SIGN_IN.projectsNext, /Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in/u);
+  assert.match(SIGN_IN.withProjects, /Certified then asks to let Weave read your projects for as long as you stay signed in/u);
+  for (const file of ["src/pages/YourInitiatives.tsx", "src/pages/Settings.tsx"]) assert.match(read(file), /SIGN_IN\.projectsNext/u, file);
+  assert.match(read("src/account/SignInButton.tsx"), /expectProjectAccess\(tab, window\.location\.pathname\)/u);
+  // A sign-in to save returns to its card and says only that signing in identifies the person.
+  const door = read("src/account/AccountSection.tsx");
+  assert.match(door, /if \(forSaving\) forgetProjectAccess/u);
+  assert.match(door, /forSaving \? SIGN_IN\.effect : SIGN_IN\.withProjects/u);
+  assert.match(read("src/account/door.tsx"), /forSaving=\{intent === "keep"\}/u);
   assert.match(read("src/describe/cloud.ts"), /throw/u);
   assert.match(policy, /The assistant sends no words to a cloud model/u);
 });

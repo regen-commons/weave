@@ -1,5 +1,5 @@
 import { busyProps } from "./busy.ts";
-import { forgetProjectAccess } from "../initiative/consent-chain.ts";
+import { expectProjectAccess, forgetProjectAccess } from "../initiative/consent-chain.ts";
 import { SignOutAction } from "./SignOutAction.tsx";
 import { useEffect, useId, useState } from "react";
 import { parseSummaries, type InitiativeSummary } from "@weave/api/account-contract";
@@ -27,6 +27,7 @@ export function AccountSection({
   onBeginCard,
   onNotNow,
   onSignInStart,
+  forSaving = false,
 }: {
   compact?: boolean;
   autoFocus?: boolean;
@@ -42,6 +43,11 @@ export function AccountSection({
   onNotNow?: () => void;
   /** Told as the person leaves for Certified from here, so the place they left can be reopened. */
   onSignInStart?: () => void;
+  /**
+   * The person is signing in to save a card, so the sign-in returns to that card and asks nothing more.
+   * Any other sign-in goes on to project access (DL-137).
+   */
+  forSaving?: boolean;
 }) {
   const id = useId();
   const Title = compact ? "h3" : "h2";
@@ -157,8 +163,9 @@ export function AccountSection({
             event.preventDefault();
             const email = new FormData(event.currentTarget).get("email")?.toString().trim();
             onSignInStart?.();
-            // This sign-in says nothing about project access, so none follows it (DL-137).
-            forgetProjectAccess(() => window.sessionStorage);
+            // A sign-in to save returns to its card; any other goes on to project access (DL-137).
+            if (forSaving) forgetProjectAccess(() => window.sessionStorage);
+            else expectProjectAccess(() => window.sessionStorage, window.location.pathname);
             start("sign-in", () => continueToCertified(controller, window.location.pathname,
               (returnTo) => accountRequest("", { returnTo, ...(email ? { email, emailRedirectConsent: true } : {}) }, "/api/sign-in"),
               (target) => window.location.assign(target)));
@@ -176,7 +183,7 @@ export function AccountSection({
               )}
             </div>
             <p className="rc-meta">
-              {SIGN_IN.effect}
+              {forSaving ? SIGN_IN.effect : SIGN_IN.withProjects}
             </p>
             <div className="rc-action-bar">
               <AboutCertified />
