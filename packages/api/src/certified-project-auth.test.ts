@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { NodeOAuthClient, type NodeOAuthClientOptions, type NodeSavedSession } from "@atproto/oauth-client-node";
 import postgres from "postgres";
-import { certifiedProjectOAuthPaths as paths, createCertifiedProjectAuth, grantLifetime, projectOAuthStore, type ProjectOAuthStore } from "./certified-project-auth.ts";
+import { certifiedProjectOAuthPaths as paths, consentPrompt, createCertifiedProjectAuth, grantLifetime, projectOAuthStore, type ProjectOAuthStore } from "./certified-project-auth.ts";
 import { createCipher } from "./certified/crypto.ts";
 import { record } from "./account-contract.ts";
 import { projectSdkFixture, sdkMembership } from "../test-fixtures/project-sdk.ts";
@@ -71,6 +71,7 @@ async function fixture(transactionalLocks = false, readying: Readying = {}) {
     exchangeCount: 0,
     actorsResolved: 0,
     scope: "",
+    prompts: [] as (string | undefined)[],
     onRestore: null as ((options: NodeOAuthClientOptions) => Promise<void>) | null,
     calls: [] as { path: string; init?: RequestInit }[],
   };
@@ -106,7 +107,7 @@ async function fixture(transactionalLocks = false, readying: Readying = {}) {
         async authorize(input, params) {
           readying.order?.push("authorize");
           assert.equal(input, issuer);
-          assert.equal(params?.prompt, "consent");
+          fake.prompts.push(params?.prompt);
           fake.scope = params?.scope ?? "";
           await options.stateStore.set(sdkState, { appState: params?.state, iss: issuer } as never);
           const url = new URL("https://auth.certified.one/oauth/authorize");
@@ -402,6 +403,30 @@ test("a removed tester cannot start or complete an outstanding Certified authori
   f.fake.allowed = true;
   assert.equal(projectStatus(await f.auth.callback(f.oauth(pending))), "failed");
   assert.equal(f.fake.exchangeCount, 0);
+});
+
+test("only the read-only grant lets Certified skip its screen; every grant that can write asks each time", async () => {
+  const f = await fixture();
+  const writes = ["workspace-members", "create-project", "add-member", "publish-support", "withdraw-support"] as const;
+  for (const action of ["membership", ...writes]) await f.start(action);
+  assert.deepEqual(f.fake.prompts, [undefined, ...writes.map(() => "consent")]);
+  assert.equal(consentPrompt("membership"), undefined);
+  for (const action of [...writes, "finish", "unknown"]) assert.equal(consentPrompt(action), "consent");
+});
+
+test("a read approved without a screen still activates only for the signed-in DID and the exact read scope", async () => {
+  for (const mode of ["wrong-did", "broad", "write"] as const) {
+    const f = await fixture();
+    const pending = binding(await f.start("membership"));
+    if (mode === "wrong-did") f.fake.issuedDid = otherDid;
+    if (mode === "broad") f.fake.issuedScope = f.fake.scope + " transition:generic";
+    if (mode === "write") f.fake.issuedScope = requested(membership, register, create);
+    assert.equal(projectStatus(await f.auth.callback(f.oauth(pending))), "failed");
+    await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership]), /project_consent_required/);
+  }
+  const f = await fixture();
+  assert.equal((record(await (await f.approve("membership")).json())).granted, "membership");
+  await f.auth.assertGrant(f.cmd({}), did, [membership]);
 });
 
 test("denial, wrong DID, partial and broadened grants never activate project OAuth", async () => {

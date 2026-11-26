@@ -4,8 +4,9 @@
  * from the first to the second, and the button says so before the press (the user's choice,
  * 22 November 2026, DL-137). This is the note that carries that intent across the trip to Certified.
  *
- * It is kept for the tab only, names nobody and grants nothing. Certified still asks, and a no there
- * leaves the person signed in with no project access, as before.
+ * It is kept for the tab only, names nobody and grants nothing. Certified still decides: it asks, or
+ * approves a read the person already allowed (DL-137), and a no there leaves the person signed in with
+ * no project access, as before.
  */
 const KEY = "weave-sign-in-then-projects";
 /** Long enough for a sign-in at Certified; a note older than this is not acted on. */

@@ -1072,6 +1072,15 @@ Given up: a card with no record key of that shape has no page and opens its publ
 
 The trip is carried by a note kept for the tab (`weave-sign-in-then-projects`), which names nobody, is read once and is not acted on after ten minutes, after a sign-in that did not finish, or on a return to any other page. A sign-in pressed anywhere else clears it. The trip happens at most once for a page load: if it cannot start within 20 seconds, or its start fails, the page shows the Allow button as before. Proof class: fixture for the start and its fallback. The trip through Certified's own screen has not been run against Certified.
 
+**Revised 25 November 2026**, the user's choice ("Diagnose, then C"), after a report from production that Your Initiatives asked for project access again after a sign-in. One Certified screen for both permissions was weighed and set aside for now: the sign-in's tokens belong to the identity bridge's client and keys, and the read permission is bound to a Weave session that exists only after Certified's screen, so it would mean merging the two clients.
+
+- **Certified may skip the screen for a read it already allowed.** Weave no longer forces Certified's screen for the read-only permission. The AT Protocol OAuth spec lets Certified approve a confidential client without a screen when the person already approved the same permission for it, so a later sign-in that goes on to project access may come straight back. The first time, Certified still shows both screens. Whether Certified skips the screen has not been checked against Certified.
+- **Writing still asks each time.** Creating a project, adding a member, publishing and withdrawing still make Certified show its screen on every request, and still end within the hour.
+- **The checks do not change.** A read approved without a screen must still come from Certified's issuer, for the signed-in person, with exactly the read permission, and finish through the same one-use receipt for that session.
+- **The copy stays.** Your Initiatives still says Certified will ask to let Weave read your projects. Change it only after a hosted check shows Certified skipping the screen.
+
+Proof class: fixture. A hosted check with a disposable Certified account, signing in twice from Your Initiatives, is still needed.
+
 ## DL-138: Where a browser cannot turn speech into text, a recording can be sent, after the person agrees
 
 **Status:** user decision, 23 November 2026 ("Yes, build it"), from a proposal with the providers compared. Extends DL-110 and DL-115. The decision and what is not built are in [open decisions](../../docs/platform/open-decisions.md#cloud-speech-23-november-2026).

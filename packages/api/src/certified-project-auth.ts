@@ -46,6 +46,14 @@ const grantTtl = 3600;
  */
 const readGrantTtl = SESSION_CAP_SECONDS;
 const readOnlyAction = "membership";
+/**
+ * Every grant that can write makes Certified show its screen, each time. The read-only grant leaves that
+ * to Certified, which may approve it without a screen when the person already allowed this same read for
+ * this client (the user's choice, 25 November 2026, DL-137). The scope and DID checks still apply.
+ */
+export function consentPrompt(action: string): "consent" | undefined {
+  return action === readOnlyAction ? undefined : "consent";
+}
 const cookieName = "__Host-weave_project_consent";
 const nonce = /^[A-Za-z0-9_-]{43}$/u;
 const randomId = () => randomBytes(32).toString("base64url");
@@ -353,8 +361,9 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       get: async () => undefined,
       del: async () => {},
     });
+    const prompt = consentPrompt(action);
     const target = await timing.time("par", () => client.authorize(CERTIFIED_ISSUER, {
-      state: JSON.stringify(input), scope: scopes(grantMethods[action]), prompt: "consent",
+      state: JSON.stringify(input), scope: scopes(grantMethods[action]), ...(prompt ? { prompt } : {}),
     }));
     const endpoint = target.origin + target.pathname;
     if (![CERTIFIED_ISSUER + "/oauth/authorize", "https://auth.certified.one/oauth/authorize"].includes(endpoint) ||

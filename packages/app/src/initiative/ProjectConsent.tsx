@@ -50,7 +50,7 @@ const trip = new ProjectAccessTrip(
 /**
  * After a sign-in that said project access comes next, goes on to Certified's permission for it
  * without another press (DL-137). True while that is under way, so the page holds its loading shape
- * and does not show the Allow button for the moment before it leaves. Certified still asks, and its
+ * and does not show the Allow button for the moment before it leaves. Certified still decides, and its
  * answer comes back through the same receipt as a pressed Allow. The trip happens at most once for a
  * page load; if it cannot start, the page shows what it always did, with the button.
  */
