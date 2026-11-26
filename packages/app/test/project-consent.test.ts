@@ -111,3 +111,41 @@ test("a reviewed return waits for promotion before handing off to the directory 
   assert.equal(await directory, "/your-initiatives?access=ready");
   assert.deepEqual(actions, ["finish", "finish"]);
 });
+
+test("a consent that followed a sign-in elsewhere comes back to that page once granted or declined", async t => {
+  const current = storage();
+  let granted = "membership";
+  t.mock.method(globalThis, "fetch", async (path: Parameters<typeof globalThis.fetch>[0], init?: RequestInit) => {
+    assert.equal(path, "/api/certified-project-consent");
+    const { action } = JSON.parse(String(init?.body));
+    return Response.json(action === "finish" ? { granted } : { authorizeUrl });
+  });
+  await startProjectConsent("membership", current, undefined, "/funding");
+  assert.equal(await recoverConsentReturn("ready", () => current), "/funding", "back where the person signed in");
+  await startProjectConsent("membership", current, undefined, "/settings");
+  assert.equal(await recoverConsentReturn("denied", () => current), "/settings", "a no goes back there too");
+  // One that could not be confirmed goes where the page says so and offers Allow again.
+  await startProjectConsent("membership", current, undefined, "/funding");
+  assert.equal(await recoverConsentReturn("failed", () => current), "/your-initiatives?access=failed");
+  granted = "create-project";
+  await startProjectConsent("membership", current, undefined, "/funding");
+  assert.equal(await recoverConsentReturn("ready", () => current), "/your-initiatives?access=failed", "a receipt for another action");
+  granted = "membership";
+  // Your Initiatives, or anything that is not a page of Weave's, is not kept: the return goes to Your Initiatives.
+  for (const returnTo of ["/your-initiatives", "//elsewhere.test", "https://elsewhere.test/", "/no-such-page", "/funding?x=1"]) {
+    await startProjectConsent("membership", current, undefined, returnTo);
+    assert.equal(JSON.parse(current.getItem(current.key(0)!)!).returnTo, undefined, returnTo);
+    assert.equal(await recoverConsentReturn("ready", () => current), "/your-initiatives?access=ready", returnTo);
+  }
+});
+
+test("a stored return page that was changed to leave Weave activates nothing", async t => {
+  t.mock.method(globalThis, "fetch", async () => assert.fail("an altered task cannot activate a receipt"));
+  const current = storage();
+  for (const returnTo of ["//elsewhere.test", "https://elsewhere.test/", "/no-such-page", 7]) {
+    beginConsentReturn(current, { kind: "directory", action: "membership" });
+    const key = current.key(0)!;
+    current.setItem(key, JSON.stringify({ ...JSON.parse(current.getItem(key)!), returnTo }));
+    assert.equal(await recoverConsentReturn("ready", () => current), "/your-initiatives?access=failed", String(returnTo));
+  }
+});

@@ -1,24 +1,31 @@
 /**
  * Sign-in and project access are two permissions at Certified, held by two clients, so they cannot
- * be one Certified screen. Where a person signs in to reach their projects, Weave goes straight on
- * from the first to the second, and the button says so before the press (the user's choice,
- * 22 November 2026, DL-137). This is the note that carries that intent across the trip to Certified.
+ * be one Certified screen. Weave goes straight on from the first to the second after every sign-in
+ * but one that began at Save, which returns to its card instead (the user's choice, 25 November 2026,
+ * DL-137; until then only Your Initiatives did). This is the note that carries that intent across the
+ * trip to Certified.
  *
- * It is kept for the tab only, names nobody and grants nothing. Certified still asks, and a no there
- * leaves the person signed in with no project access, as before.
+ * It is kept for the tab only, names nobody and grants nothing: it holds when it stops counting and
+ * the page the sign-in left from. Certified still decides: it asks, or approves a read the person
+ * already allowed, and a no there leaves the person signed in with no project access, as before.
  */
 const KEY = "weave-sign-in-then-projects";
 /** Long enough for a sign-in at Certified; a note older than this is not acted on. */
 const KEPT_MS = 10 * 60_000;
+/** A page's own path: one leading slash, no query, fragment, space or backslash. */
+const PAGE = /^\/(?!\/)[^?#\s\\]{0,200}$/u;
+export const isPagePath = (value: unknown): value is string => typeof value === "string" && PAGE.test(value);
 
 type Kept = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
-/** The person pressed a Sign In that said project access comes next. */
-export function expectProjectAccess(storage: () => Kept, now: () => number = Date.now): void {
-  try { storage().setItem(KEY, String(now() + KEPT_MS)); } catch { /* Without it the person presses Allow themselves. */ }
+/** The person pressed a Sign In on `page`, and project access comes next. */
+export function expectProjectAccess(storage: () => Kept, page: string, now: () => number = Date.now): void {
+  if (!isPagePath(page)) return forgetProjectAccess(storage);
+  try { storage().setItem(KEY, JSON.stringify({ until: now() + KEPT_MS, page })); }
+  catch { /* Without it the person presses Allow themselves. */ }
 }
 
-/** The sign-in did not start, so nothing follows it. */
+/** The sign-in did not start, or began at Save, so nothing follows it. */
 export function forgetProjectAccess(storage: () => Kept): void {
   try { storage().removeItem(KEY); } catch { /* Nothing was kept. */ }
 }
@@ -26,19 +33,23 @@ export function forgetProjectAccess(storage: () => Kept): void {
 /**
  * Whether this page load is the return from such a sign-in, and it finished. The note is used once:
  * reading it removes it, so a reload or a later sign-in never repeats the trip. A sign-in that was
- * cancelled, failed or expired removes it too, and so does a return to any page but the one that
- * said project access comes next (`onProjectsPage`), which is how a sign-in started elsewhere reads.
+ * cancelled, failed or expired removes it too, and so does a return to any page but the one it left
+ * from (`here`).
  */
-export function takeProjectAccess(storage: () => Kept, signInResult: string | null, onProjectsPage: boolean, now: () => number = Date.now): boolean {
-  let until: number;
+export function takeProjectAccess(storage: () => Kept, signInResult: string | null, here: string, now: () => number = Date.now): boolean {
+  let note: unknown;
   try {
     const kept = storage();
-    until = Number(kept.getItem(KEY));
+    const raw = kept.getItem(KEY);
     kept.removeItem(KEY);
+    note = raw === null ? null : JSON.parse(raw);
   } catch {
     return false;
   }
-  return onProjectsPage && signInResult === "signed-in" && Number.isSafeInteger(until) && until > now() && until <= now() + KEPT_MS;
+  if (typeof note !== "object" || note === null) return false;
+  const { until, page } = note as { until?: unknown; page?: unknown };
+  return signInResult === "signed-in" && isPagePath(page) && page === here &&
+    typeof until === "number" && Number.isSafeInteger(until) && until > now() && until <= now() + KEPT_MS;
 }
 
 /**
@@ -84,14 +95,18 @@ export class ProjectAccessTrip {
   private deadline: unknown = null;
   private go: (address: string) => void;
   private timers: TripTimers;
+  private stillHere: () => boolean;
   constructor(
     wanted: boolean,
     go: (address: string) => void,
     timers: TripTimers = { set: (run, ms) => setTimeout(run, ms), clear: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>) },
+    /** Whether the person is still on the page the sign-in returned to. */
+    stillHere: () => boolean = () => true,
   ) {
     this.phase = wanted ? "wanted" : "over";
     this.go = go;
     this.timers = timers;
+    this.stillHere = stillHere;
   }
   /** True while the page should hold its loading shape for the trip. */
   pending = (): boolean => this.phase !== "over";
@@ -114,7 +129,7 @@ export class ProjectAccessTrip {
     this.phase = "under-way";
     start().then(
       (address) => {
-        if (this.pages === 0) return this.end();
+        if (this.pages === 0 || !this.stillHere()) return this.end();
         this.phase = "leaving";
         if (this.deadline !== null) this.timers.clear(this.deadline);
         this.deadline = this.timers.set(() => this.end(), TRIP_LIMIT_MS);

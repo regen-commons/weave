@@ -32,7 +32,6 @@ export function SignInButton({
   size,
   ref,
   onProblem,
-  thenProjects = false,
   children = "Sign In With Certified",
 }: {
   variant?: "primary" | "secondary";
@@ -40,12 +39,6 @@ export function SignInButton({
   ref?: Ref<HTMLButtonElement>;
   /** Takes the failure in place of the line under the button. */
   onProblem?: (message: string) => void;
-  /**
-   * The person is signing in to reach their Certified projects, and the page has said that Certified
-   * will ask for project access next. A finished sign-in then goes on to that permission by itself
-   * (`initiative/consent-chain.ts`). Without it, signing in only identifies the person (DL-032).
-   */
-  thenProjects?: boolean;
   children?: ReactNode;
 }) {
   const { state, expectsAccount } = useAccount();
@@ -59,10 +52,11 @@ export function SignInButton({
   useEffect(() => {
     if (!offered) return;
     warmSignIn();
-    // A sign-in that goes on to project access (one asking for projects, or any from Your Initiatives)
-    // starts that function now too. The account fixture answers it with a stand-in error, so not there.
-    if (!state?.fixture && (thenProjects || window.location.pathname === pathTo("your-initiatives"))) warmProjectConsent();
-  }, [offered, thenProjects, state?.fixture]);
+    // Every sign-in goes on to project access, but that function is readied only where projects are the
+    // point, so a signed-out visit to any other page wakes no second function. The account fixture
+    // answers it with a stand-in error, so not there.
+    if (!state?.fixture && window.location.pathname === pathTo("your-initiatives")) warmProjectConsent();
+  }, [offered, state?.fixture]);
   const warm = offered ? warmSignInOnIntent : undefined;
   async function signIn() {
     if (busy) return;
@@ -71,11 +65,9 @@ export function SignInButton({
     setBusy(true);
     setProblem("");
     const tab = () => window.sessionStorage;
-    // Your Initiatives says what follows before any Sign In on it is pressed, the header's included.
-    // A sign-in from anywhere else clears an earlier note, so it can never be followed by project access.
-    const chained = thenProjects || window.location.pathname === pathTo("your-initiatives");
-    if (chained) expectProjectAccess(tab);
-    else forgetProjectAccess(tab);
+    // Every Sign In goes on to project access from the page it comes back to (the user's choice,
+    // 25 November 2026, DL-137). Only a sign-in that began at Save does not, and that is the door's.
+    expectProjectAccess(tab, window.location.pathname);
     try {
       await continueToCertified(
         controller,

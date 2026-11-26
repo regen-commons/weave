@@ -708,13 +708,26 @@ membership through this read grant. They used to stop after an hour until the pe
 they now keep working for the session. Whoever holds a person's Weave session can therefore use those
 commands for as long as it lasts, as they already can save, load and delete that person's private cards.
 
-Signing in from Your Initiatives goes on to the `membership` consent without another press. The app
-keeps a note for the tab before leaving, reads it once on the callback's return to that page, waits
+Every sign-in except one that began at Save goes on to the `membership` consent without another
+press (the user's choice, 25 November 2026, DL-137; until then only Your Initiatives did). The app
+keeps a note for the tab before leaving, holding its limit and the page the sign-in left from. It
+reads the note once as its code loads on the callback's return, acts on it only on that page, waits
 for the session check and the device store, and then starts consent exactly as the Allow button does
-(`initiative/consent-chain.ts`). The trip is made at most once for a page load and is dropped if it
-cannot start within 20 seconds or the person has left the page. Certified still shows its consent
-screen, and the receipt is finished the same way. A sign-in from anywhere else leaves no note and
-clears an earlier one.
+(`initiative/consent-chain.ts`, mounted once in `App.tsx`). The trip is made at most once for a page
+load and is dropped if it cannot start within 20 seconds or the person has gone to another page. The
+receipt is finished the same way. The consent task records that page (`returnTo`, a known Weave route
+other than Your Initiatives), so a granted or declined consent returns there; one that could not be
+confirmed goes to Your Initiatives with its notice. A sign-in from Save leaves no note and clears an
+earlier one, so it returns to its Save dialog. This means everyone who signs in is asked for the read
+grant, and Weave stores it for each session that allows it.
+
+The `membership` request does not send `prompt=consent` (`consentPrompt` in `certified-project-auth.ts`;
+the user's choice, 25 November 2026, DL-137). The AT Protocol OAuth spec lets an authorization server
+approve a confidential client without a screen when the person already approved the same scopes for
+it, so Certified may skip its screen on a later sign-in. Whether Certified does is unverified. Every
+action that can write still sends `prompt=consent`, so Certified shows its screen each time. A read
+approved without a screen passes the same checks as any other: the issuer, the signed-in DID and the
+exact requested scope, then the browser-bound, session-bound receipt.
 
 The app finishes the one-use, session-bound project receipt before mounting its
 project loaders. React effect replay shares the same finish request. A missing,
