@@ -13,6 +13,7 @@ import { Fit } from "../ui/Fit.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { Link } from "../router.tsx";
 import { ShareMenu } from "../ui/ShareMenu.tsx";
+import { InitiativeShortlistButton, SHORTLIST_FULL } from "../shortlist/ShortlistButton.tsx";
 import { entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
 import { MatchDetails, PartialFitDetails } from "./NetworkResults.tsx";
 import { missingLine, projectAddress, projectFit, projectPassages, rememberedProject, requestPublicProject } from "./public-project.ts";
@@ -138,6 +139,7 @@ function ProjectBody({ card, Section }: { card: PublicProjectCard; Section: Sect
   const line = sharedByLine(card);
   const path = projectAddress(card.uri);
   const [detail, retry] = useInitiativeDetail(card.uri);
+  const [shortlistFull, setShortlistFull] = useState(false);
   const found = detail.status === "found" ? detail.initiative : null;
   // The fuller description, once the initiative's own answer is here; the list's opening words until then.
   const passages = found?.project.description.length ? found.project.description : projectPassages(card);
@@ -189,7 +191,14 @@ function ProjectBody({ card, Section }: { card: PublicProjectCard; Section: Sect
           </div>
         </section>
       )}
-      {path && <ShareMenu share={initiativeShare({ name: card.name, path })} />}
+      {/* Keeping and sending share a row (DL-153). */}
+      {path && (
+        <ShareMenu
+          share={initiativeShare({ name: card.name, path })}
+          before={<InitiativeShortlistButton project={card} place="button" onChange={(change) => setShortlistFull(change === "full")} />}
+          note={shortlistFull ? SHORTLIST_FULL : ""}
+        />
+      )}
       <section className="rc-stack">
         <Section className="rc-heading" data-size="section">
           Get In Touch

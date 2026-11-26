@@ -81,6 +81,12 @@ The tests check that generated files are current, the linter is clean, website v
 
 ### Unreleased, preview design review
 
+- Add the shortlist (DL-152, DL-153). Card gains one part, `rc-card-toggle`, an outlined Icon
+  button in its top corner; Icon button gains `aria-pressed`. Record list is stable on its second
+  use, the shortlist's rows beside Your Initiatives. Status line gains `data-until="wide"`, and a
+  wide Step layout whose panel is empty gives its column the whole width. Filter bar's count line
+  runs on as one sentence with an `after` part. The prompt to describe an initiative becomes a
+  Status line. The example pages for Funding, Initiatives and Your Initiatives follow.
 - Modify Icon button and remove the candidate Account button (DL-116). The header's Account
   button is now an outlined Icon button, the same drawing as the theme switch beside it and
   Sign in in its place: one line, one corner, one height. An outlined Icon button draws its

@@ -6,6 +6,7 @@ import { useAccount } from "../account/context.tsx";
 import { useDraft } from "../describe/use-draft.ts";
 import { revise } from "../describe/contracts.ts";
 import { deviceExport } from "../data/export.ts";
+import { useFundShortlist, useInitiativeShortlist } from "../shortlist/use-shortlist.ts";
 import { blobDataUrl, downloadJson } from "../data/download.ts";
 import { applyTheme, THEME_CHOICES, type Theme } from "../theme.ts";
 import { deviceSpeech, useCloudSpeechUses, useSpeechAvailability, useSpeechSetup } from "../describe/use-speech.ts";
@@ -49,6 +50,8 @@ export function Settings() {
   const [failed, setFailed] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { draft, controller, ready } = useDraft();
+  const fundShortlist = useFundShortlist();
+  const initiativeShortlist = useInitiativeShortlist();
   const account = useAccount();
   const example = useSocialFixture();
   const status = useCardStatus();
@@ -226,7 +229,7 @@ export function Settings() {
       </SettingsSection>
       <SettingsSection title="Your Data" note="A copy of what this device holds.">
         <p>
-          Download this device's draft, unfinished words, files, assistant records and backups. Cards
+          Download this device's draft, unfinished words, files, assistant records, backups and shortlist. Cards
           saved in your account are not included. Keep the file private.
         </p>
         <div className="rc-action-bar">
@@ -243,6 +246,7 @@ export function Settings() {
                   await controller.backups(),
                   theme,
                   blobDataUrl,
+                  { funds: fundShortlist.items, initiatives: initiativeShortlist.items },
                 );
                 downloadJson("weave-device-data.json", data);
                 setMessage(

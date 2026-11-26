@@ -25,7 +25,11 @@ export function loadsUnasked({ more, busy, keyboardInList }: {
 
 const count = (value: number) => new Intl.NumberFormat("en-GB").format(value);
 
-/** The line at a list's end that says how much of it is on the page. */
+/**
+ * The line at a list's end that says how much of it is on the page. `things` is a plural that ends
+ * in "s", as every list's does, so a list of one, such as a short shortlist, names its one thing.
+ */
 export function shownLine(shown: number, total: number, things: string): string {
+  if (total === 1 && shown >= 1) return `Showing the only ${things.replace(/s$/u, "")}.`;
   return shown >= total ? `Showing all ${count(total)} ${things}.` : `Showing ${count(shown)} of ${count(total)} ${things}.`;
 }

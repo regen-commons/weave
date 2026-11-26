@@ -664,10 +664,11 @@ test("a fixed-row card keeps set lines for every part, so its height does not de
   assert.match(molecules, /\.rc-card\[data-rows="fixed"\] > \.rc-tag-list \{[^}]*grid-template-rows: repeat\(2, var\(--tag-height\)\);[^}]*block-size: calc\(2 \* var\(--tag-height\) \+ var\(--space-1\)\); overflow: hidden;/);
 });
 
-test("the count line and the list end keep set room, and no section is a band (DL-108, DL-109)", () => {
+test("the count line and the list end keep set room, and no section is a band (DL-108, DL-109, DL-153)", () => {
   const organisms = stripComments(read("packages/design-system/css/organisms.css"));
-  assert.ok(organisms.includes(".rc-filter-bar > .rc-meta > :not(.rc-visually-hidden) { min-block-size: 1lh; }"));
-  assert.match(organisms, /@container \(width < 37\.5rem\) \{\s*\.rc-filter-bar > \.rc-meta > \[data-part="note"\] \{ min-block-size: 2lh; \}\s*\}/);
+  // The count line runs on as one sentence, in a line's room on a wide screen and two on a phone.
+  assert.ok(organisms.includes(".rc-filter-bar > .rc-meta { min-block-size: 1lh; }"));
+  assert.match(organisms, /@container \(width < 37\.5rem\) \{\s*\.rc-filter-bar > \.rc-meta \{ min-block-size: 2lh; \}\s*\}/);
   assert.match(organisms, /@container \(width < 37\.5rem\) \{\s*\.rc-list-end \{[^}]*grid-template-rows: minmax\(var\(--control-height\), auto\) var\(--control-height\);/);
   for (const file of CSS_FILES) assert.doesNotMatch(read(file), /data-band/, file);
 });

@@ -270,6 +270,14 @@
 /* A button whose menu is open keeps the pressed look for as long as the menu is, as the Account button does. */
 .rc-icon-button[aria-expanded="true"] { background: var(--surface-tint); color: var(--on-surface); }
 .rc-icon-button[data-variant="secondary"][aria-expanded="true"] { border-color: var(--on-surface); }
+/* A toggle that is on (`aria-pressed="true"`) takes the action colour, and its glyph changes too,
+   as the shortlist's outline becomes a filled bookmark (DL-152), so colour is never the only sign. */
+.rc-icon-button[aria-pressed="true"] { color: var(--action); }
+.rc-icon-button[data-variant="secondary"][aria-pressed="true"] { border-color: var(--action); }
+@media (hover: hover) {
+  .rc-icon-button[aria-pressed="true"]:hover:not(:disabled) { color: var(--action-hover); }
+  .rc-icon-button[data-variant="secondary"][aria-pressed="true"]:hover:not(:disabled) { border-color: var(--action-hover); }
+}
 /* As a link, it marks the page it leads to once the person is there, as Settings does in the app header. */
 .rc-icon-button[aria-current="page"] { background: var(--surface-tint); color: var(--on-surface); }
 
