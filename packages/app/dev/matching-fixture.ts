@@ -9,7 +9,7 @@ import { parseTeamDocument, type AccountDocument, type JsonObject, type SavedIni
 import { createProjectHandler } from "../../api/src/project-http.ts";
 import { sessionCookies } from "../../api/src/account-http.ts";
 import { AccountError } from "../../api/src/account-provider.ts";
-import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureInitiative, fixtureReferences } from "./account-fixture.ts";
+import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureDeleted, fixtureInitiative, fixtureReferences } from "./account-fixture.ts";
 import accountExample from "../../api/src/test-data/account.json" with { type: "json" };
 
 const DAY = 86_400_000;
@@ -173,6 +173,9 @@ const soloLinks = new Map<string, string>();
 // Its sharing for matching and its saved partners go with it (weave-initiative-deletion-stale-references.sql).
 fixtureReferences((id) => [...soloLinks.values()].includes(id)
   || [...supportRows.values()].some((row) => row.workspaceId === id));
+// A deleted card's entries leave matching and its own partners go with it; other people's partners naming
+// it stay theirs and read as unavailable.
+fixtureDeleted((id) => { cards.delete(id); privateLeads.delete(id); });
 const teamSaves = new Map<string, SavedInitiative>();
 const saveRequests = new Map<string, { input: string; saved: SavedInitiative }>();
 export function fixtureTeam(token: string, id: string) {

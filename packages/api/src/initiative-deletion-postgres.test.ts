@@ -135,7 +135,8 @@ integration("the inventory of foreign keys and triggers on initiatives, needs an
     from pg_constraint c where c.contype = 'f'
       and c.confrelid in ('weave.initiatives'::regclass, 'weave.needs'::regclass, 'weave.offers'::regclass)
     order by 1, 3`;
-  // A new reference must be added to private.weave_delete_initiative and to this list together.
+  // A new reference must be added to private.weave_delete_initiative and to this list together. The function
+  // is now the one in weave-initiative-deletion-stale-references.sql, whose header says how each is handled.
   assert.deepEqual(keys.map(k => `${k.source}(${k.columns}) -> ${k.target} ${k.on_delete}`).sort(), [
     "private.weave_matching_leads(initiative_id) -> weave.initiatives c",
     "private.weave_matching_query_vectors(initiative_id) -> weave.initiatives c",
@@ -254,7 +255,7 @@ integration("a card anything else refers to is refused before any row is removed
 });
 
 // A personal save can no longer reach matching (it serves project workspaces only), so it cannot withdraw
-// its sharing or clear its partners and query vectors first. A finished setup's project lives in its own
+// its sharing or clear its saved and dismissed partners and query vectors first. A finished setup's project lives in its own
 // workspace. None of these may hold the card (QA notes, 26 November 2026).
 integration("a finished or refused setup and the card's own sharing, partners and query vectors go with it", async () => {
   const finished = await card(owner, "Finished project setup");
@@ -289,6 +290,11 @@ integration("a finished or refused setup and the card's own sharing, partners an
     return (row!.result as { leads: { candidateId: string; evidenceStatus: string }[] }).leads;
   });
 
+  // A personal card is never in matching (weave_matching_current needs a project link), so their partner
+  // already reads as unavailable. Deleting the card must keep their row and change nothing they see.
+  const unavailable = [{ candidateId: candidate, evidenceStatus: "unavailable" }];
+  const seen = async () => (await theirLeads()).map(({ candidateId, evidenceStatus }) => ({ candidateId, evidenceStatus }));
+  assert.deepEqual(await seen(), unavailable);
   for (const target of [finished, refused, shared, partnered, embedded]) {
     const before = await snapshot(target.id);
     assert.equal((await remove(owner, target.id, 2, next())).deleted, true);
@@ -302,9 +308,7 @@ integration("a finished or refused setup and the card's own sharing, partners an
   }
   const [link] = await sql`select count(*)::int as n from weave_workspace.project_links where id = ${workspace}`;
   assert.equal(link!.n, 1, "the finished setup's project workspace stays");
-  // As after a withdrawal, the other account keeps its saved partner, which now reads as unavailable.
-  assert.deepEqual((await theirLeads()).map(({ candidateId, evidenceStatus }) => ({ candidateId, evidenceStatus })),
-    [{ candidateId: candidate, evidenceStatus: "unavailable" }]);
+  assert.deepEqual(await seen(), unavailable, "the other account keeps its saved partner, and sees it as before");
 });
 
 integration("a retry repeats its result; any other call for a removed card is not found and nothing returns", async () => {
@@ -355,6 +359,38 @@ integration("a first save waiting on a concurrent deletion fails once the deleti
   const again = await card(), request = next();
   const results = await Promise.all([remove(owner, again.id, 2, request), remove(owner, again.id, 2, request)]);
   assert.deepEqual(results[0], results[1]);
+});
+
+integration("a project setup that starts while the card is being deleted fails and leaves no setup behind", async () => {
+  const target = await card(owner, "Setup racing a deletion");
+  let release = () => {}, started = () => {};
+  const gate = new Promise<void>(resolve => { release = resolve; }), deleted = new Promise<void>(resolve => { started = resolve; });
+  const deletion = sql.begin(async (tx) => {
+    await tx`set local role authenticated`;
+    await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: owner, session_id: session(owner),
+      role: "authenticated", exp: Math.floor(Date.now() / 1000) + 600 })}, true)`;
+    await tx`select weave.delete_initiative(${target.id}, 2, ${next()})`;
+    started();
+    await gate;
+  });
+  await deleted;
+  const begin = sql`select weave_workspace.creation(${owner}, ${did(owner)}, 'begin_create', ${sql.json({
+    requestId: next(), initiativeId: target.id, expectedRevision: 2, groupHandle: `race${serial}.certified.test`,
+    projectRkey: `race${serial}`, createdAt: new Date().toISOString(), publicProfile: { title: "Race fixture", description: "" },
+  })}) as result`;
+  begin.catch(() => {});
+  for (let attempt = 0; ; attempt++) {
+    const [row] = await sql`select count(*)::int as n from pg_stat_activity
+      where wait_event_type = 'Lock' and query like '%weave_workspace.creation%'`;
+    if (row!.n > 0) break;
+    assert.ok(attempt < 100, "starting the setup waits for the deletion's lock on the card");
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+  release();
+  await deletion;
+  await rejects(begin, "PT404", "not_found");
+  assert.equal((await sql`select count(*)::int as n from weave_workspace.create_intents where initiative_id = ${target.id}`)[0]!.n, 0);
+  assert.equal((await sql`select count(*)::int as n from private.weave_deleted_initiatives where id = ${target.id}`)[0]!.n, 1);
 });
 
 integration("a signed-in account cannot change initiatives or read removal records directly", async () => {

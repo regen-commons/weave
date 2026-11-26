@@ -184,7 +184,7 @@ export function cardReferences(
 function referencedMessage(references: CardReferences | null): string {
   if (references?.project)
     return `This card cannot be deleted yet because it is the saved copy of your Certified project ${references.project}. Nothing was removed.`;
-  return "Weave still uses this card for something else, such as a project still being set up, so it cannot be deleted yet. Nothing was removed.";
+  return "Weave still uses this card for something else, such as a project being set up, so it cannot be deleted yet. Nothing was removed.";
 }
 
 /** Why a deletion did not happen. Nothing was removed in any of these cases. */

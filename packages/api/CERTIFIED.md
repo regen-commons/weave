@@ -895,12 +895,12 @@ Apply `supabase/candidates/weave-initiative-deletion.sql` last, after
 matching vectors and support publication. Then apply
 `weave-initiative-deletion-stale-references.sql`, which replaces the command. The command
 checks the owner, the exact ID and the revision before it removes anything. It then
-removes the card, its needs and offers (any still shared for matching stop being shared,
-as after a withdrawal), that owner's saved partners, query vectors, save and matching
-receipts, any expired matching review, and a project setup that finished or was marked
-`group_rejected`, and keeps a tombstone so the ID never returns. A setup is marked
-`group_rejected` after a refused registration, a timeout or a server error, so a group may
-exist on Certified; its record is the only row tying that group to the card. A first save of a removed ID
+removes the card, its needs and offers (any still shared for matching stop being shared),
+that owner's saved and dismissed partners, query vectors, save and matching receipts, any
+expired matching review, and a project setup that finished or was marked `group_rejected`,
+and keeps a tombstone so the ID never returns. A setup is marked `group_rejected` after a
+refused registration, a timeout or a server error, so a group may exist on Certified under
+the setup's handle; deleting the card removes that record of the handle. A first save of a removed ID
 fails with `initiative_deleted`, and the app then saves the words as a new card; an
 old revision is not found. These cases are refused, with the stable code:
 
