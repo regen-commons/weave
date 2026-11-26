@@ -52,9 +52,11 @@ test("a card is the app's card: its link, who and where, its words and its two d
   const bare = listCardHtml(card(2, { publisher: undefined, place: undefined }));
   assert.match(bare, /<p class="rc-card-meta"><\/p>/u, "an empty line that keeps its room, with no title");
   assert.match(listCardHtml(card(3, { publisher: undefined })), /<span class="rc-visually-hidden">Place: <\/span>Upper valley/u);
-  // A project the index gave no Weave address opens its public record, in a new tab, as the app's link does.
+  // A project the index gave no Weave address shows its name alone, as the app's card does: its record's
+  // raw data is no page to read (DL-152).
   const away = listCardHtml(card(4, { uri: "at://did:web:example.org/org.hypercerts.collection/x" }));
-  assert.match(away, /<a href="https:\/\/api\.hypercerts\.dev\/[^"]*" target="_blank" rel="noopener noreferrer">Watershed circle 4<span class="rc-visually-hidden"> \(opens in a new tab\)<\/span><\/a>/u);
+  assert.match(away, /<h2 class="rc-card-title">Watershed circle 4<\/h2>/u);
+  assert.doesNotMatch(away, /api\.hypercerts\.dev/u, "no link to the raw record");
 });
 
 test("a project's own words are never markup, in the cards or in the JSON", () => {

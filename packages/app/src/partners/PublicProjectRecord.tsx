@@ -15,7 +15,7 @@ import { Link } from "../router.tsx";
 import { ShareMenu } from "../ui/ShareMenu.tsx";
 import { entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
 import { MatchDetails, PartialFitDetails } from "./NetworkResults.tsx";
-import { missingLine, projectAddress, projectFit, projectPassages, rememberedProject, requestPublicProject } from "./public-project.ts";
+import { contactLine, missingLine, projectAddress, projectFit, projectPassages, rememberedProject, requestPublicProject } from "./public-project.ts";
 import { sharedByLine, type PublicProjectCard } from "./public-projects.ts";
 import { MatchingDate } from "./SharingReview.tsx";
 import { recordFirstView } from "../record-first-view.ts";
@@ -194,12 +194,23 @@ function ProjectBody({ card, Section }: { card: PublicProjectCard; Section: Sect
         <Section className="rc-heading" data-size="section">
           Get In Touch
         </Section>
-        <p>Weave makes no introductions yet. The record on Certified may say how to reach them.</p>
+        <p>{contactLine(found ? found.project.publisherLinks.length > 0 : null)}</p>
       </section>
       <p className="rc-meta">
-        Shared on Certified on <MatchingDate value={card.sharedAt} />. Weave last checked it on <MatchingDate value={card.checkedAt} />.{" "}
-        <Link href={card.sourceUrl}>See the record's data on Certified</Link>
+        Shared on Certified on <MatchingDate value={card.sharedAt} />. Weave last checked it on <MatchingDate value={card.checkedAt} />.
       </p>
+      {/* The record's raw data is for people checking or building on it, so it waits behind its own line
+          instead of standing as a way to learn about the initiative (DL-152). */}
+      <details className="rc-stack">
+        <summary>Where this comes from</summary>
+        <p className="rc-meta">
+          {card.publisher ? `${card.publisher} published` : "Its publisher published"} this initiative as a public record on Certified,
+          in the open Hypercerts format. Weave reads it from there and shows it here.
+        </p>
+        <p className="rc-meta">
+          <Link href={card.sourceUrl}>Open the raw record (JSON)</Link>
+        </p>
+      </details>
     </>
   );
   return (

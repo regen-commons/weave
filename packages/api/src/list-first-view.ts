@@ -48,16 +48,16 @@ const sharedByLine = (card: PublicProjectCard): string =>
   [card.publisher && `Shared by ${card.publisher}.`, card.place && `Place: ${card.place}.`].filter(Boolean).join(" ");
 
 /**
- * One card, as the app draws it: its name linked to its Weave address (or to its public record, in a
- * new tab, where it has none), who shared it and where, its own words, when it was checked and shared.
+ * One card, as the app draws it: its name linked to its Weave address (or alone, where it has none:
+ * its record's raw data is no page to read), who shared it and where, its own words, when it was checked
+ * and shared.
  * Every word from the project is escaped; nothing from it is markup.
  */
 export function listCardHtml(card: PublicProjectCard): string {
   const slug = projectSlug(card.uri);
   const link = slug
     ? `<a href="${escapeHtml(`/initiatives/${slug}`)}">${escapeHtml(card.name)}</a>`
-    : `<a href="${escapeHtml(card.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(card.name)}` +
-      `<span class="rc-visually-hidden"> (opens in a new tab)</span></a>`;
+    : escapeHtml(card.name);
   const line = sharedByLine(card);
   const publisher = card.publisher ? `<span class="rc-visually-hidden">Shared by </span>${escapeHtml(card.publisher)}` : "";
   const place = card.place

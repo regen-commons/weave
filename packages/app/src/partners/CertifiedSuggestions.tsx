@@ -171,10 +171,9 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
  * fits and which way, then the project's own words once and why each fits on request.
  */
 function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h3" | "h4" | "h5" | "h6" }) {
-  // The project opens at its Weave address, as on Initiatives (DL-136). Only one without an address
-  // falls back to its public record's data.
+  // The project opens at its Weave address, as on Initiatives (DL-136). One without an address shows no
+  // link: its record's raw data is no page to read (DL-152).
   const address = projectAddress(project.id);
-  const sources = address ? [] : [...new Set(project.passages.flatMap(({ sourceUrl }) => (sourceUrl ? [sourceUrl] : [])))];
   const several = project.fits.length > 1;
   const strength = strongestFit(project.fits.map(({ match }) => fitStrength(match.evidenceKind, match.reciprocal)));
   const onlyPartial = project.fits.every(({ match }) => match.partial);
@@ -215,15 +214,6 @@ function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h
           <ButtonLink href={address} variant="secondary">
             Open Initiative<span className="rc-visually-hidden">: {project.name}</span>
           </ButtonLink>
-        </div>
-      )}
-      {sources.length > 0 && (
-        <div className="rc-action-bar">
-          {sources.map((url, index) => (
-            <ButtonLink key={url} href={url} variant="secondary">
-              {sources.length > 1 ? `View Source ${index + 1}` : "View Source"}
-            </ButtonLink>
-          ))}
         </div>
       )}
     </Card>
