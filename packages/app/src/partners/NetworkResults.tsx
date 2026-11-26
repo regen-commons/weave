@@ -7,6 +7,7 @@ import { Fit } from "../ui/Fit.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { Tag } from "../ui/Tag.tsx";
 import type { CertifiedPartnerResults } from "./CertifiedSuggestions.tsx";
+import { projectAddress } from "./public-project.ts";
 import { MatchingDate } from "./SharingReview.tsx";
 import {
   FIT_BASIS, PREVIEW_FITS, entryLine, fitLead, fitLines, fitStrength, groupFits, topicsLine, unknownLine,
@@ -191,6 +192,19 @@ export function SourceLink({ href, name }: { href: string; name: string }) {
   );
 }
 
+/**
+ * Opens a public Certified project at its Weave address, in place, as the Initiatives list does (DL-154).
+ * Its record's raw data is never the way in: a project with no Weave address shows no link.
+ */
+export function InitiativeLink({ uri, name }: { uri: string; name: string }) {
+  const address = projectAddress(uri);
+  return address ? (
+    <Link className="rc-button" data-variant="quiet" data-size="sm" href={address}>
+      Open Initiative<span className="rc-visually-hidden">: {name}</span>
+    </Link>
+  ) : null;
+}
+
 function LeadButton({ label, name, variant = "quiet", onClick, disabled }: {
   label: string;
   /** Whose result the button acts on, so buttons with the same label can be told apart. */
@@ -278,7 +292,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
             <MatchingDate value={evidence.fetchedAt} />.
           </>
         )}
-        actions={(evidence.type === "public" || !compact) && (
+        actions={((evidence.type === "public" && projectAddress(evidence.projectUri)) || !compact) && (
           <>
             {!compact && !readOnly && (
               <LeadButton label={lead ? "Remove From Saved" : "Save"} name={name}
@@ -287,7 +301,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                   ? onRemove(entry, match.candidateId)
                   : onChange(entry, match.candidateId, "saved")} />
             )}
-            {evidence.type === "public" && <SourceLink href={evidence.sourceUrl} name={name} />}
+            {evidence.type === "public" && <InitiativeLink uri={evidence.projectUri} name={name} />}
             {!compact && !readOnly && (
               <LeadButton label="Hide" name={name} disabled={disabled || readOnly}
                 onClick={() => onChange(entry, match.candidateId, "dismissed")} />
@@ -391,7 +405,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                   <div className="rc-action-bar">
                     {!readOnly && <LeadButton label="Remove From Saved" name={name} disabled={disabled}
                       onClick={() => onRemove(lead, lead.candidateId)} />}
-                    {match?.evidence.type === "public" && <SourceLink href={match.evidence.sourceUrl} name={name} />}
+                    {match?.evidence.type === "public" && <InitiativeLink uri={match.evidence.projectUri} name={name} />}
                   </div>
                 </li>
               );

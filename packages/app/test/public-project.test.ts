@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PublicProjectCard, PublicProjectPage } from "@weave/api/public-projects-contract";
 import {
-  missingLine, projectAddress, projectFit, projectPassages, projectSlug, projectUriOf, publicProjectPath, rememberedProject, rememberProject,
+  contactLine, missingLine, projectAddress, projectFit, projectPassages, projectSlug, projectUriOf, publicProjectPath, rememberedProject, rememberProject,
   requestPublicProject,
 } from "../src/partners/public-project.ts";
 import { matchRoute } from "../src/routes.ts";
@@ -58,6 +58,14 @@ test("a project opened from a link is read from the list by its address, and onl
   await assert.rejects(requestPublicProject(URI, signal, answer(page([]), 503)), /public_projects_unavailable/);
   assert.match(missingLine("missing"), /may have withdrawn it, or Weave may not have read it yet/);
   assert.doesNotMatch(missingLine("off"), /withdrawn/, "a list that is off never reads as a withdrawal");
+});
+
+test("Get In Touch points to the publisher's own links, never to the record's raw data", () => {
+  assert.equal(contactLine(null), "Weave makes no introductions yet.", "nothing is promised before the initiative answers");
+  assert.match(contactLine(true), /Their own links may say how to reach them\.$/u);
+  assert.match(contactLine(false), /has shared no links to reach it\.$/u);
+  for (const line of [contactLine(null), contactLine(true), contactLine(false)])
+    assert.doesNotMatch(line, /record|Certified/u, line);
 });
 
 test("a card opened from a list shows at once, and the tab keeps only a few pages of them", () => {

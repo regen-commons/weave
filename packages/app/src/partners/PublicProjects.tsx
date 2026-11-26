@@ -30,8 +30,8 @@ const day = (iso: string) => fullDate(new Date(iso).toISOString().slice(0, 10));
  * shared and where it comes from. The card opens the project at its Weave address from its name, so it
  * has the one target every card in a list has: over the list inside the app, and as its own page from a
  * link (22 November 2026). The card is kept in memory as it opens, so the project shows at once. A
- * project with no Weave address (none the index listed that day) opens its public record instead, and
- * has no shortlist bookmark, since the shortlist keeps Weave addresses only (DL-153).
+ * project with no Weave address shows its name alone, since its record's raw data is no page to read
+ * (DL-154), and has no shortlist bookmark, since the shortlist keeps Weave addresses only (DL-153).
  */
 export function PublicProjectCard({ project, level, onShortlist }: {
   project: Project;
@@ -45,8 +45,7 @@ export function PublicProjectCard({ project, level, onShortlist }: {
   return (
     <Card kind="initiative" rows="fixed">
       <Title className="rc-card-title">
-        {address ? <Link href={address} onClick={() => rememberProject(project)}>{project.name}</Link>
-          : <Link href={project.sourceUrl}>{project.name}</Link>}
+        {address ? <Link href={address} onClick={() => rememberProject(project)}>{project.name}</Link> : project.name}
       </Title>
       <InitiativeShortlistButton project={project} place="card" onChange={onShortlist} />
       {/* Who shared it and where keep one line on every card, so cards are one height (DL-108). It is
