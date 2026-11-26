@@ -6,7 +6,9 @@ import { backUpCopies, CardReferenced, cardReferences, deletableCards, deleteFai
   forgetSavedCard, namesakesLine } from "../src/account/delete-card.ts";
 import { privateSavesExport, exportedMessage } from "../src/account/export-saves.ts";
 import { backUpDraft, backUpWarning, NOT_BACKED_UP } from "../src/describe/device-removal.ts";
+import { parseMatchingSearch } from "@weave/api/matching-contract";
 import { matchingFixture } from "../dev/matching-fixture.ts";
+import { EMPTY_ASK } from "../src/intake/contracts.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
 import { loadedDraft, saveCommand } from "../src/account/document.ts";
 import { DraftController } from "../src/describe/controller.ts";
@@ -73,7 +75,7 @@ test("a refused, unconfirmed or mismatched deletion changes nothing on the devic
   for (const [reply, code, words] of [
     [new AccountFailure("save_conflict"), "save_conflict", "This card changed somewhere else. Reload to see the latest version."],
     [new AccountFailure("initiative_referenced"), "initiative_referenced",
-      "Weave still uses this card for something else, such as matching, saved partners, a public listing or a project being set up, so it cannot be deleted yet. Nothing was removed."],
+      "Weave still uses this card for something else, such as a project being set up, so it cannot be deleted yet. Nothing was removed."],
     [new AccountFailure("not_found"), "not_found", "This card is no longer saved in your account. Reload to see your saved cards."],
     [new AccountFailure("connection_failed"), "connection_failed", "The connection failed before Weave could confirm the deletion. Try again."],
     [{ deleted: { id: saved.id, deleted: true, revision: 3, removed: [], kept: 0 } }, "account_unavailable", null],
@@ -314,17 +316,24 @@ function fixtureRequest(token: string, origin = "http://localhost:5175") {
   };
 }
 
-test("a refusal names only the references Weave verified: sharing for matching is never called a Certified link", async () => {
+test("a card shared for matching is deleted with its sharing, and a refusal names a Certified project only when the account lists it", async () => {
   const token = fixtureSession(owner), request = fixtureRequest(token);
   const shared = crypto.randomUUID(), plain = crypto.randomUUID();
-  for (const id of [shared, plain])
-    await request("", { action: "save", accountId: owner, id, expectedRevision: 0, requestId: crypto.randomUUID(), document });
-  // Share every entry of one card for matching, as Share For Matching does.
-  const state = await request("", { action: "state", initiativeId: shared }, "/api/matching");
-  const entries = (state.entries as { kind: string; entryId: string; revision: number; shareVersion: number }[])
-    .map(({ kind, entryId, revision, shareVersion }) => ({ kind, entryId, revision, shareVersion }));
-  const preview = await request("", { action: "preview", initiativeId: shared, initiativeRevision: state.initiativeRevision, entries }, "/api/matching");
-  await request("", { action: "share", initiativeId: shared, reviewId: preview.reviewId, requestId: crypto.randomUUID() }, "/api/matching");
+  // The shared card offers what another account needs, so that account can find it in its partner search.
+  const ask = (title: string) => ({ id: crypto.randomUUID(), value: { ...EMPTY_ASK, title, capitalForms: ["intellectual" as const] } });
+  const offer = ask("GPS mapping training");
+  const offering = { ...document, needs: [], offers: [offer] }, needing = { ...document, needs: [ask("GPS watershed mapping")], offers: [] };
+  for (const [id, doc] of [[shared, offering], [plain, document]] as const)
+    await request("", { action: "save", accountId: owner, id, expectedRevision: 0, requestId: crypto.randomUUID(), document: doc });
+  // Share every entry of a card for matching, as Share For Matching does.
+  const shareAll = async (send: typeof request, initiativeId: string) => {
+    const state = await send("", { action: "state", initiativeId }, "/api/matching");
+    const entries = (state.entries as { kind: string; entryId: string; revision: number; shareVersion: number }[])
+      .map(({ kind, entryId, revision, shareVersion }) => ({ kind, entryId, revision, shareVersion }));
+    const preview = await send("", { action: "preview", initiativeId, initiativeRevision: state.initiativeRevision, entries }, "/api/matching");
+    await send("", { action: "share", initiativeId, reviewId: preview.reviewId, requestId: crypto.randomUUID() }, "/api/matching");
+  };
+  await shareAll(request, shared);
 
   const draft = revise(newDraft(), { composer: "Unrelated words" });
   const repository = new MemoryDraftRepository(draft), controller = new DraftController(repository);
@@ -334,22 +343,25 @@ test("a refusal names only the references Weave verified: sharing for matching i
   const service = createLiveSocialService({ account, controller, request, refreshAccount: async () => ({ ...account, items: await items() }),
     openWorkspace: () => {}, signIn: async () => {}, signedOut: () => {} });
   const revision = (id: string) => service.snapshot().cards.find((card) => card.id === id)!.revision!;
-  await assert.rejects(service.deleteCard!({ id: shared, revision: revision(shared) }, crypto.randomUUID()), (error) => {
-    assert.ok(error instanceof CardReferenced);
-    assert.deepEqual(error.references, { project: null, shared: true, partners: false });
-    assert.equal(deleteFailure(error),
-      "This card cannot be deleted yet because some of its needs or offers are shared for matching. Nothing was removed. Stop sharing it or remove its partners in Partners For You first.");
-    assert.doesNotMatch(deleteFailure(error), /Certified/u, "never linked, so Certified is not named");
-    return true;
-  });
-  assert.ok((await items()).some((item) => item.id === shared), "nothing was removed");
-  // A card that is a listed project's workspace names that project; a check that fails names nothing it did not see.
-  assert.deepEqual(await cardReferences(plain, [{ workspaceId: plain, name: "Water notes (fixture)" }], request),
-    { project: "Water notes (fixture)", shared: false, partners: false });
-  assert.equal(deleteFailure(new CardReferenced({ project: "Water notes (fixture)", shared: false, partners: false })),
+  // Someone else searching for partners can find the shared card until it is deleted.
+  const searcher = crypto.randomUUID(), theirs = crypto.randomUUID(), theirRequest = fixtureRequest(fixtureSession(searcher));
+  await theirRequest("", { action: "save", accountId: searcher, id: theirs, expectedRevision: 0, requestId: crypto.randomUUID(), document: needing });
+  await shareAll(theirRequest, theirs);
+  const found = async () => parseMatchingSearch(await theirRequest("", { action: "search", initiativeId: theirs }, "/api/matching"))
+    .results.some(({ evidence }) => evidence.type === "shared" && evidence.entryId === offer.id);
+  assert.ok(await found(), "the shared card is a candidate before it is deleted");
+  // Its sharing goes with it: a personal save cannot reach matching to withdraw it first (QA notes, 26 November 2026).
+  assert.equal((await service.deleteCard!({ id: shared, revision: revision(shared) }, crypto.randomUUID())).deleted.id, shared);
+  assert.ok(!(await items()).some((item) => item.id === shared), "the shared card is gone");
+  assert.ok(!(await found()), "and no longer a candidate for anyone");
+  // A card that is a listed project's workspace names that project; otherwise nothing is named that Weave did not check.
+  assert.deepEqual(cardReferences(plain, [{ workspaceId: plain, name: "Water notes (fixture)" }]), { project: "Water notes (fixture)" });
+  assert.equal(deleteFailure(new CardReferenced({ project: "Water notes (fixture)" })),
     "This card cannot be deleted yet because it is the saved copy of your Certified project Water notes (fixture). Nothing was removed.");
-  assert.deepEqual(await cardReferences(plain, [], async () => { throw new AccountFailure("connection_failed"); }),
-    { project: null, shared: false, partners: false });
+  assert.deepEqual(cardReferences(plain, []), { project: null });
+  const generic = deleteFailure(new CardReferenced({ project: null }));
+  assert.equal(generic, "Weave still uses this card for something else, such as a project being set up, so it cannot be deleted yet. Nothing was removed.");
+  assert.doesNotMatch(generic, /shared for matching|Partners For You|Certified/u, "no reason Weave did not check, and no way forward it cannot offer");
   // The plain card has no reference and is deleted.
   assert.equal((await service.deleteCard!({ id: plain, revision: revision(plain) }, crypto.randomUUID())).deleted.id, plain);
 });

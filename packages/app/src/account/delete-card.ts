@@ -1,5 +1,4 @@
 import { parseDeleted, type DeletedInitiative } from "@weave/api/account-contract";
-import { parseMatchingLeads, parseMatchingState } from "@weave/api/matching-contract";
 import type { DraftController } from "../describe/controller.ts";
 import { revise, type DeviceDraft } from "../describe/contracts.ts";
 import { backUpDraft } from "../describe/device-removal.ts";
@@ -151,16 +150,13 @@ export function namesakesLine(name: string, namesakes: number): string {
 
 /**
  * What Weave could verify still refers to a card the account refused to delete (initiative_referenced).
- * The server gives one code for every reference (weave-initiative-deletion.sql), so each reason here is
- * checked on its own and named only when the check found it.
+ * The server gives one code for every reference (weave-initiative-deletion-stale-references.sql), so a
+ * reason is named only when Weave checked it. Sharing for matching, saved partners and query vectors no
+ * longer hold a personal card: they go with it.
  */
 export interface CardReferences {
   /** The Certified project whose workspace this card is, from the account's own list of workspaces. */
   readonly project: string | null;
-  /** Some of its needs or offers are shared for matching now. */
-  readonly shared: boolean;
-  /** It has saved partners. */
-  readonly partners: boolean;
 }
 
 /** A refusal with what Weave could verify about it. */
@@ -174,42 +170,21 @@ export class CardReferenced extends AccountFailure {
 
 /**
  * Checks what refers to a card the account would not delete. A Certified link counts only when the
- * account's workspaces list the card as a project's workspace. Matching state and saved partners are
- * read from the matching endpoint. A check that fails finds nothing, so the message never names a
- * reason Weave did not see.
+ * account's workspaces list the card as a project's workspace, so the message never names a project
+ * Weave did not see.
  */
-export async function cardReferences(
+export function cardReferences(
   id: string,
   workspaces: readonly { readonly workspaceId?: string | undefined; readonly name: string }[],
-  request = accountRequest,
-  signal?: AbortSignal,
-): Promise<CardReferences> {
-  const project = workspaces.find((workspace) => workspace.workspaceId === id)?.name ?? null;
-  const [state, leads] = await Promise.allSettled([
-    request("", { action: "state", initiativeId: id }, "/api/matching", signal).then(parseMatchingState),
-    request("", { action: "leads", initiativeId: id }, "/api/matching", signal).then(parseMatchingLeads),
-  ]);
-  return {
-    project,
-    shared: state.status === "fulfilled" && state.value.initiativeId === id && state.value.entries.some((entry) => entry.sharing === "shared"),
-    partners: leads.status === "fulfilled" && leads.value.initiativeId === id && leads.value.leads.length > 0,
-  };
+): CardReferences {
+  return { project: workspaces.find((workspace) => workspace.workspaceId === id)?.name ?? null };
 }
-
-const joined = (items: readonly string[]) =>
-  items.length <= 1 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
 
 /** Why a card the account still uses could not be deleted, naming only what was verified. */
 function referencedMessage(references: CardReferences | null): string {
-  const reasons = [
-    ...(references?.project ? [`it is the saved copy of your Certified project ${references.project}`] : []),
-    ...(references?.shared ? ["some of its needs or offers are shared for matching"] : []),
-    ...(references?.partners ? ["it has saved partners"] : []),
-  ];
-  if (!reasons.length)
-    return "Weave still uses this card for something else, such as matching, saved partners, a public listing or a project being set up, so it cannot be deleted yet. Nothing was removed.";
-  const next = references?.shared || references?.partners ? " Stop sharing it or remove its partners in Partners For You first." : "";
-  return `This card cannot be deleted yet because ${joined(reasons)}. Nothing was removed.${next}`;
+  if (references?.project)
+    return `This card cannot be deleted yet because it is the saved copy of your Certified project ${references.project}. Nothing was removed.`;
+  return "Weave still uses this card for something else, such as a project being set up, so it cannot be deleted yet. Nothing was removed.";
 }
 
 /** Why a deletion did not happen. Nothing was removed in any of these cases. */

@@ -25,7 +25,8 @@ const projectCid = `bafyrei${"p".repeat(52)}`;
 const listingCid = (letter: string) => `b${letter.repeat(58)}`;
 const listingUri = (repository: string, rkey: string) => `at://${repository}/com.regencommons.weave.supportListing/${rkey}`;
 const candidate = (name: string) => readFile(new URL(`../../../supabase/candidates/${name}.sql`, import.meta.url), "utf8");
-// The production order of the website migrations, as the deletion suite applies them, then this candidate.
+// The production order of the website migrations, then this candidate. It leaves out the later
+// deletion candidate (weave-initiative-deletion-stale-references), which listings do not depend on.
 const CANDIDATES = ["certified-private-access", "weave-matching", "weave-project-index", "weave-matching-vectors",
   "weave-project-oauth", "weave-project-workspaces", "weave-team-content", "weave-public-evidence-snapshot",
   "weave-project-discovery", "weave-workspace-invites", "weave-support-publication", "weave-open-ended-sharing",

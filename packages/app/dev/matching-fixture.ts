@@ -9,7 +9,7 @@ import { parseTeamDocument, type AccountDocument, type JsonObject, type SavedIni
 import { createProjectHandler } from "../../api/src/project-http.ts";
 import { sessionCookies } from "../../api/src/account-http.ts";
 import { AccountError } from "../../api/src/account-provider.ts";
-import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureInitiative, fixtureReferences } from "./account-fixture.ts";
+import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureDeleted, fixtureInitiative, fixtureReferences } from "./account-fixture.ts";
 import accountExample from "../../api/src/test-data/account.json" with { type: "json" };
 
 const DAY = 86_400_000;
@@ -169,11 +169,13 @@ const requested = new Set<string>();
  * same personal project, so each keeps its own link, as each person's own project would have one.
  */
 const soloLinks = new Map<string, string>();
-// Deletion refuses a card that a project link, a shared entry or a saved partner still refers to, as the database does.
+// Deletion refuses a card that a project link or a support listing still refers to, as the database does.
+// Its sharing for matching and its saved partners go with it (weave-initiative-deletion-stale-references.sql).
 fixtureReferences((id) => [...soloLinks.values()].includes(id)
-  || [...(cards.get(id)?.entries.values() ?? [])].some((row) => row.sharing === "shared")
-  || !!privateLeads.get(id)?.size
   || [...supportRows.values()].some((row) => row.workspaceId === id));
+// A deleted card's entries leave matching and its own partners go with it; other people's partners naming
+// it stay theirs and read as unavailable.
+fixtureDeleted((id) => { cards.delete(id); privateLeads.delete(id); });
 const teamSaves = new Map<string, SavedInitiative>();
 const saveRequests = new Map<string, { input: string; saved: SavedInitiative }>();
 export function fixtureTeam(token: string, id: string) {
