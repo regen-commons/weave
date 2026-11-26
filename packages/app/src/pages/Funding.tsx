@@ -45,6 +45,11 @@ import { DescribePrompt } from "../ui/DescribePrompt.tsx";
 import { SuggestFund } from "../funding/SuggestFund.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { FUNDING_COMMONS } from "../links.ts";
+import { firstAddOfVisit } from "../shortlist/use-shortlist.ts";
+import { SHORTLIST_FULL, type ShortlistChange } from "../shortlist/ShortlistButton.tsx";
+import { ShortlistCount } from "../shortlist/ShortlistCount.tsx";
+import { ExportMenu } from "../export/ExportMenu.tsx";
+import { fundingCsv, fundingDocument, fundingExport, fundingFileName } from "../funding/export.ts";
 import { teamWorkspacePath } from "../routes.ts";
 /** How many cards the list holds at first, and how many each further batch adds. */
 const BATCH = 24;
@@ -136,6 +141,10 @@ export function Funding({ fixture, search }: { fixture?: FixtureContext; search:
     compareWith(id);
   }
   const [filters, setFilters] = useState<Filters>(() => readFundingFilters(search));
+  // What the list's own actions could not do, the shortlist's and Export's, said once above the cards.
+  const [listProblem, setListProblem] = useState("");
+  // Whether this page has said where the first bookmark of the visit went (DL-153).
+  const [told, setTold] = useState(false);
   const [limit, setLimit] = useState(BATCH),
     [retried, setRetried] = useState(false);
   const state = fixture?.state;
@@ -192,12 +201,23 @@ export function Funding({ fixture, search }: { fixture?: FixtureContext; search:
   // until its ranking is ready, and the list then moves once, into its fit order.
   const first = useMemo(() => (example ? [] : firstPage(FIRST_FUNDS, new Date())), [example]);
   const early = (loading || awaitingFit) && !failed && isFirstView(visibleFilters) && first.length ? first : null;
+  function shortlistChanged(change: ShortlistChange) {
+    setListProblem(change === "full" ? SHORTLIST_FULL : "");
+    if (change === "added" && firstAddOfVisit()) setTold(true);
+  }
+  const exportData = () =>
+    fundingExport(selected, results, {
+      shortlist: false,
+      initiative: catalog.results ? comparing?.name || "your initiative" : null,
+      catalogCheckedOn: researchDate,
+    });
   const card = (entry: Entry, index: number) => (
     <li key={entry.id} {...added.item(index)}>
       <OpportunityCard
         entry={entry}
         search={listSearch}
         result={results.get(entry.id)}
+        onShortlist={shortlistChanged}
         teamLine={
           import.meta.env.DEV && example
             ? `${teamFixture(null).length} partner asks, ${teamFixture(null).filter((ask) => ask.candidates.length).length} that people on the list could fill`
@@ -223,9 +243,7 @@ export function Funding({ fixture, search }: { fixture?: FixtureContext; search:
         ? `Checked on ${fullDate(researchDate)}.`
         : "Source check date unknown.";
   const prompt = (
-    <DescribePrompt>
-      Until then, fit is not shown or sorted on. Check eligibility with the funder before applying.
-    </DescribePrompt>
+    <DescribePrompt>Until then, the list is not sorted by fit.</DescribePrompt>
   );
   // The room the line above takes for a checked card, unseen: its words, about as long, and its two
   // actions. Nothing in it is this person's, and nothing in it can be pressed.
@@ -254,7 +272,6 @@ export function Funding({ fixture, search }: { fixture?: FixtureContext; search:
       <Heading level={1} size="page">
         Funding
       </Heading>
-      <p className="rc-prose">Find support for your next chapter.</p>
       {(state === "offline" || !navigator.onLine) && (
         <p className="rc-notice" data-tone="info">
           You are offline. Showing the catalog bundled with this app; the funder's page needs a connection.
@@ -311,9 +328,26 @@ export function Funding({ fixture, search }: { fixture?: FixtureContext; search:
             total={entries.length}
             summary={summary}
             note={note}
+            after={<ShortlistCount kind="funds" told={told} />}
             loading={loading}
             reserve="Checked on 00 November 0000."
             onClear={() => setFilters(emptyFundingFilters)}
+            actions={
+              <ExportMenu
+                count={selected.length}
+                what={selected.length === entries.length ? `all ${entries.length} funds` : `the ${selected.length} ${selected.length === 1 ? "fund" : "funds"} shown`}
+                waiting={loading || awaitingFit}
+                onProblem={setListProblem}
+                csv={async () => {
+                  const data = exportData();
+                  return { name: fundingFileName(data, "csv"), text: fundingCsv(data) };
+                }}
+                pdf={async () => {
+                  const data = exportData();
+                  return { name: fundingFileName(data, "pdf"), document: fundingDocument(data) };
+                }}
+              />
+            }
           />
           {/* Which initiative the fit is for, said right above the cards it orders, with its details for
               funding under its name. The menu changes to another initiative at once, and the details
@@ -368,6 +402,11 @@ export function Funding({ fixture, search }: { fixture?: FixtureContext; search:
           {changeProblem && (
             <p className="rc-notice" data-tone="warning" role="alert">
               {changeProblem}
+            </p>
+          )}
+          {listProblem && (
+            <p className="rc-notice" data-tone="warning" role="alert">
+              {listProblem}
             </p>
           )}
           {/* The prompt depends on the card, not on the catalog, so it is there from the first paint.

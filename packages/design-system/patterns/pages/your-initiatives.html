@@ -54,12 +54,20 @@
       <div class="rc-page-body">
 <canvas class="rc-mycelium" data-extent="page" aria-hidden="true"></canvas>
 <main class="rc-main" id="main">
+      <div class="rc-step-layout" data-main="wide">
+      <div class="rc-step-main">
         <div class="rc-list-layout">
           <h1 class="rc-heading" data-size="page">Your Initiatives</h1>
-          <section class="rc-section" aria-labelledby="initiatives-weave">
+          <!-- On a phone the shortlist is one line under the heading; a wide page has the panel beside (DL-153). -->
+          <div class="rc-status-line" data-until="wide">
+            <p class="rc-save-status" role="status" tabindex="-1"><span>Shortlist: 2 funds, 1 initiative.</span></p>
+            <div class="rc-action-bar"><a class="rc-button" data-variant="secondary" data-size="sm" href="#shortlist">Open Shortlist</a></div>
+          </div>
+          <section class="rc-section" aria-labelledby="initiatives-device">
             <div class="rc-section-head">
-              <h2 class="rc-heading" data-size="section" id="initiatives-weave">Drafts And Private Saves</h2>
+              <h2 class="rc-heading" data-size="section" id="initiatives-device">On This Device</h2>
             </div>
+            <p class="rc-section-note">Kept only in this browser. Nobody else can see these until you publish one to a Certified project.</p>
             <ul class="rc-card-grid">
               <li>
                 <article class="rc-card" data-layout="listing">
@@ -72,19 +80,14 @@
                   </div>
                 </article>
               </li>
-              <li>
-                <article class="rc-card" data-layout="listing">
-                  <h3 class="rc-card-title"><button type="button">Valley pruning days</button></h3>
-                  <div class="rc-tag-list"><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#lock" /></svg>Saved privately</span></div>
-                  <p class="rc-card-meta">Saved on 28 October 2026.</p>
-                </article>
-              </li>
             </ul>
+            <div class="rc-action-bar"><button class="rc-button" data-variant="quiet" type="button">Remove A Draft From This Device</button></div>
           </section>
           <section class="rc-section" aria-labelledby="initiatives-certified">
             <div class="rc-section-head">
-              <h2 class="rc-heading" data-size="section" id="initiatives-certified">On Certified</h2>
+              <h2 class="rc-heading" data-size="section" id="initiatives-certified">Certified Projects</h2>
             </div>
+            <p class="rc-section-note">Public on Certified, where each project's name, description and place are edited. What you publish from Weave adds needs and offers that anyone can read.</p>
             <ul class="rc-card-grid">
               <li>
                 <article class="rc-card" data-layout="listing">
@@ -108,6 +111,25 @@
                 </article>
               </li>
             </ul>
+          </section>
+          <section class="rc-section" aria-labelledby="initiatives-private">
+            <div class="rc-section-head">
+              <h2 class="rc-heading" data-size="section" id="initiatives-private">Private Weave Saves</h2>
+            </div>
+            <p class="rc-section-note">Copies saved in your Weave account. Only you can see them, when signed in. Nothing here is public or shared for matching.</p>
+            <ul class="rc-card-grid">
+              <li>
+                <article class="rc-card" data-layout="listing">
+                  <h3 class="rc-card-title"><button type="button">Valley pruning days</button></h3>
+                  <div class="rc-tag-list"><span class="rc-tag"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#lock" /></svg>Saved privately</span></div>
+                  <p class="rc-card-meta">Saved on 28 October 2026.</p>
+                </article>
+              </li>
+            </ul>
+            <div class="rc-action-bar">
+              <button class="rc-button" data-variant="quiet" type="button">Download Private Saves</button>
+              <button class="rc-button" data-variant="quiet" type="button">Delete A Saved Card</button>
+            </div>
           </section>
           <p class="rc-meta">Opening another initiative backs up the card on this device first.</p>
           <div class="rc-action-bar">
@@ -152,6 +174,48 @@
             <button class="rc-button" data-variant="quiet" data-size="sm" type="button">Sign out</button>
           </div>
         </div>
+      </div>
+      <aside class="rc-step-aside" data-from="wide">
+        <section class="rc-section" aria-labelledby="shortlist" id="shortlist-panel">
+          <div class="rc-section-head">
+            <h2 class="rc-heading" data-size="section" id="shortlist">Shortlist</h2>
+          </div>
+          <div class="rc-action-bar">
+            <fieldset>
+              <legend class="rc-visually-hidden">Show on your shortlist</legend>
+              <div class="rc-chip-group">
+                <label class="rc-chip"><input class="rc-check" type="radio" name="shortlist-kind" checked />Funds (2)</label>
+                <label class="rc-chip"><input class="rc-check" type="radio" name="shortlist-kind" />Initiatives (1)</label>
+              </div>
+            </fieldset>
+            <button class="rc-button" data-variant="secondary" data-size="sm" type="button"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#download" /></svg>Export</button>
+          </div>
+          <ul class="rc-record-list">
+            <li class="rc-record-row" data-layout="actions">
+              <div class="rc-record-text">
+                <h3 class="rc-record-title"><a href="opportunity.html">Orchard learning circle fund</a></h3>
+                <p class="rc-meta">Commons Seed Trust</p>
+                <p class="rc-meta"><span class="rc-tag" data-emphasis="strong" data-tone="warning"><svg class="rc-icon" data-size="sm" aria-hidden="true"><use href="../../brand/icons.svg#clock" /></svg>Closes in 4 days.</span></p>
+              </div>
+              <div class="rc-action-bar">
+                <button class="rc-icon-button" data-variant="secondary" data-size="sm" type="button" aria-pressed="true" aria-label="Add to shortlist: Orchard learning circle fund"><svg class="rc-icon" aria-hidden="true"><use href="../../brand/icons.svg#bookmarked" /></svg></button>
+              </div>
+            </li>
+            <li class="rc-record-row" data-layout="actions">
+              <div class="rc-record-text">
+                <h3 class="rc-record-title">Watershed small grants, 2025 round</h3>
+                <p class="rc-meta">River Network Fund</p>
+                <p class="rc-meta">No longer in the catalog.</p>
+              </div>
+              <div class="rc-action-bar">
+                <button class="rc-button" data-variant="quiet" data-size="sm" type="button" aria-label="Remove Watershed small grants, 2025 round from your shortlist">Remove</button>
+              </div>
+            </li>
+          </ul>
+          <p class="rc-meta">Kept in this browser only.</p>
+        </section>
+      </aside>
+      </div>
       </main>
 </div>
       <footer class="rc-footer" data-from="wide">

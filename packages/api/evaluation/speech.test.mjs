@@ -71,7 +71,7 @@ test("the runner sends each clip as the app does, scores it, and keeps synthetic
       return { text: said };
     },
   };
-  const { POST } = createTranscribeHandlers({ provider });
+  const { POST } = createTranscribeHandlers({ provider, quota: async () => ({ allowed: true }) });
   const audio = {
     "en-needs-1": "We need seedlings and a water pump.",
     "pt-needs-1": "Precisamos de mudas e uma estufa",

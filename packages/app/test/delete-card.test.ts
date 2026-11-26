@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parseDocument, record } from "@weave/api/account-contract";
-import { deletableCards, deleteFailure, deleteSavedCard, deletedMessage, draftsBoundTo, forgetSavedCard } from "../src/account/delete-card.ts";
+import { backUpCopies, CardReferenced, cardReferences, deletableCards, deleteFailure, deleteSavedCard, deletedMessage, draftsBoundTo,
+  forgetSavedCard, namesakesLine } from "../src/account/delete-card.ts";
+import { privateSavesExport, exportedMessage } from "../src/account/export-saves.ts";
+import { backUpDraft, backUpWarning, NOT_BACKED_UP } from "../src/describe/device-removal.ts";
+import { parseMatchingSearch } from "@weave/api/matching-contract";
+import { matchingFixture } from "../dev/matching-fixture.ts";
+import { EMPTY_ASK } from "../src/intake/contracts.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
 import { loadedDraft, saveCommand } from "../src/account/document.ts";
 import { DraftController } from "../src/describe/controller.ts";
@@ -22,7 +28,7 @@ async function device(change: Parameters<typeof revise>[1] = {}) {
   await controller.initialize();
   return { repository, controller, draft };
 }
-const deleted = (id = saved.id, revision = 3, kept = 2) => ({ deleted: { id, deleted: true, revision, removed: [id], kept } });
+const deleted = (id = saved.id, revision = 3, kept = 2) => ({ deleted: { id, deleted: true as const, revision, removed: [id], kept } });
 
 test("forgetting a removed card releases every binding to it and retires a draft ID that was the card's", async () => {
   const { draft } = await device();
@@ -58,7 +64,7 @@ test("deleting sends the exact ID, listed revision and request, then unbinds the
   assert.equal(stored.composer, "Synthetic device words");
   assert.equal(stored.id, saved.id, "the draft keeps its ID and retires it");
   assert.equal(deletedMessage("Seed library", result),
-    "Removed Seed library from your account. 2 saved cards kept. The card on this device keeps its words. Save it again to keep a new copy.");
+    "Removed Seed library from your account. 2 saved cards kept. Its copy on this device keeps its words and stays in Your Initiatives, marked Not saved yet.");
   assert.equal(deletedMessage("Seed library", { deleted: { ...result.deleted, kept: 1 }, device: "unrelated" }),
     "Removed Seed library from your account. 1 saved card kept.");
   assert.equal(deletedMessage("Seed library", { deleted: { ...result.deleted, kept: 0 }, device: "unrelated" }),
@@ -69,7 +75,7 @@ test("a refused, unconfirmed or mismatched deletion changes nothing on the devic
   for (const [reply, code, words] of [
     [new AccountFailure("save_conflict"), "save_conflict", "This card changed somewhere else. Reload to see the latest version."],
     [new AccountFailure("initiative_referenced"), "initiative_referenced",
-      "This card is linked to a Certified project, shared for matching or has saved partners, so it cannot be deleted here yet. Nothing was removed."],
+      "Weave still uses this card for something else, such as a project being set up, so it cannot be deleted yet. Nothing was removed."],
     [new AccountFailure("not_found"), "not_found", "This card is no longer saved in your account. Reload to see your saved cards."],
     [new AccountFailure("connection_failed"), "connection_failed", "The connection failed before Weave could confirm the deletion. Try again."],
     [{ deleted: { id: saved.id, deleted: true, revision: 3, removed: [], kept: 0 } }, "account_unavailable", null],
@@ -99,13 +105,21 @@ test("a deletion whose device update cannot be stored says so instead of claimin
   assert.match(deletedMessage("Seed library", result), /could not store the change\. Copy your words before reloading\.$/u);
 });
 
-test("only listed private saves with a revision are offered, and the device's own copy is marked", () => {
+test("only listed private saves with a revision are offered, with their copies on this device and the drafts that share their name", () => {
   const cards = [{ id: "a", name: "Kept", savedOn: "2026-11-01", revision: 2 }, { id: "b", name: "Team", savedOn: "2026-11-02", revision: 1 },
     { id: "c", name: "Example", savedOn: "2026-11-03" }, { id: "d", name: "Device", savedOn: "2026-11-04", revision: 5 }];
-  assert.deepEqual(deletableCards(cards, ["b", undefined], "d"), [
-    { id: "a", name: "Kept", revision: 2, savedOn: "2026-11-01", onDevice: false },
-    { id: "d", name: "Device", revision: 5, savedOn: "2026-11-04", onDevice: true },
+  // A device copy of d, and an unrelated draft that happens to be called "kept" too.
+  const device = [{ id: "draft-d", name: "Device", cardId: "d" }, { id: "draft-x", name: " kept ", cardId: null }];
+  assert.deepEqual(deletableCards(cards, ["b", undefined], device), [
+    { id: "a", name: "Kept", revision: 2, savedOn: "2026-11-01", copies: [], namesakes: 1 },
+    { id: "d", name: "Device", revision: 5, savedOn: "2026-11-04", copies: ["draft-d"], namesakes: 0 },
   ]);
+  assert.equal(namesakesLine("Kept", 0), "");
+  assert.equal(namesakesLine("Kept", 1), " A different draft named Kept is on this device and stays in Your Initiatives. It was never this saved card.");
+  assert.equal(namesakesLine("Kept", 2), " 2 different drafts named Kept are on this device and stay in Your Initiatives. They were never this saved card.");
+  const result = { deleted: { id: "a", deleted: true as const, revision: 2, removed: ["a"], kept: 1 }, device: "unrelated" as const };
+  assert.equal(deletedMessage("Kept", result, 1),
+    "Removed Kept from your account. 1 saved card kept. A different draft named Kept is on this device and stays in Your Initiatives. It was never this saved card.");
 });
 
 test("the live adapter deletes through the account handlers, retries with one request and never brings the card back", async () => {
@@ -234,9 +248,9 @@ test("deleting a saved card releases every draft on this device that points at i
   assert.deepEqual(repository.drafts.get(elsewhere.id)!.account, elsewhere.account);
   // The dialog marks every card that a draft here stands for, by ID.
   const listed = [{ id: saved.id, name: "A", savedOn: "2026-11-15", revision: 3 }, { id: other, name: "B", savedOn: "2026-11-15", revision: 1 }];
-  assert.deepEqual(deletableCards(listed, [], [saved.id, other]).map((card) => card.onDevice), [true, true]);
-  assert.deepEqual(deletableCards(listed, [], saved.id).map((card) => card.onDevice), [true, false]);
-  assert.deepEqual(deletableCards(listed, [], null).map((card) => card.onDevice), [false, false]);
+  assert.deepEqual(deletableCards(listed, [], [{ id: "x", name: "A", cardId: saved.id }, { id: "y", name: "B", cardId: other }]).map((card) => card.copies), [["x"], ["y"]]);
+  assert.deepEqual(deletableCards(listed, [], [{ id: "x", name: "A", cardId: saved.id }]).map((card) => card.copies), [["x"], []]);
+  assert.deepEqual(deletableCards(listed, [], []).map((card) => card.copies), [[], []]);
 });
 
 test("a save refused because its card was deleted releases the device draft for a new save", async () => {
@@ -251,4 +265,122 @@ test("a save refused because its card was deleted releases the device draft for 
   assert.deepEqual(after.account.retired, [saved.id]);
   assert.notEqual(saveCommand(after, owner).command.id, saved.id);
   assert.equal(after.composer, "Synthetic device words");
+});
+
+test("a deleted card's copies on this device move to the backups when chosen, the tab's own and another, and the list no longer shows them", async () => {
+  const bound = revise(loadedDraft(saved, owner), { composer: "A copy not open in this tab" });
+  const current = revise(loadedDraft({ ...saved, id: other }, owner), { composer: "The tab's own copy" });
+  const unrelated = revise(newDraft(), { composer: "An unrelated draft" });
+  const repository = new MemoryDraftRepository(current, [bound, unrelated]), controller = new DraftController(repository);
+  await controller.initialize();
+  // The account confirmed the deletion of both cards; the drafts are released first, as the live adapter does.
+  for (const id of [saved.id, other]) await deleteSavedCard(controller, { id, revision: 3 }, crypto.randomUUID(), async () => deleted(id));
+  const result = await backUpCopies(controller, { deleted: deleted().deleted, device: "unbound" }, [bound.id, current.id]);
+  assert.equal(result.device, "backed_up");
+  assert.deepEqual(controller.getSnapshot().drafts.map((draft) => draft.id).filter((id) => id !== controller.getSnapshot().draft.id), [unrelated.id],
+    "only the unrelated draft is left in the list");
+  assert.notEqual(controller.getSnapshot().draft.id, current.id, "the tab moved to a blank draft");
+  const backups = await controller.backups();
+  assert.deepEqual(backups.map((backup) => backup.draft.composer).sort(), ["A copy not open in this tab", "The tab's own copy"], "both are restorable");
+  assert.equal(deletedMessage("Seed library", result),
+    "Removed Seed library from your account. 2 saved cards kept. Its copy on this device is now a device backup. Restore it or delete it for good in Settings, under Device Backups.");
+  assert.equal((await backUpCopies(controller, result, [])).device, "backed_up", "no copies leaves the result as it was");
+});
+
+test("a copy that cannot be moved stays listed, and the message says so instead of claiming it left", async () => {
+  const pendingCopy = revise(loadedDraft(saved, owner), { composer: "Waiting for a save" });
+  const waiting = revise(pendingCopy, { id: crypto.randomUUID(), account: { saved: null, pending: { ...pendingCopy.account.saved!, requestId: crypto.randomUUID() } } });
+  const repository = new MemoryDraftRepository(newDraft(), [waiting]), controller = new DraftController(repository);
+  await controller.initialize();
+  assert.equal(await backUpDraft(controller, waiting.id), false, "a draft waiting for a save's answer is never moved");
+  const result = await backUpCopies(controller, { deleted: deleted().deleted, device: "unbound" }, [waiting.id]);
+  assert.equal(result.device, "backup_failed");
+  assert.match(deletedMessage("Seed library", result), /could not be moved to the backups, so it stays in Your Initiatives, marked Not saved yet\.$/u);
+  assert.match(NOT_BACKED_UP, /Nothing was removed\./u);
+  assert.equal(backUpWarning(waiting, true),
+    "This moves Synthetic river circle from Your Initiatives to the device backups in Settings, where you can restore it or delete it for good. Its saved copy in your account is not changed.");
+});
+
+/** The dev account and matching handlers behind one request function, as the app's live adapter calls them. */
+function fixtureRequest(token: string, origin = "http://localhost:5175") {
+  return async (path = "", body?: unknown, endpoint = "/api/account", signal?: AbortSignal) => {
+    signal?.throwIfAborted();
+    const handler = endpoint === "/api/matching" ? { POST: matchingFixture } : accountFixture;
+    const method = body ? "POST" : "GET";
+    const response = await (handler as Record<string, (request: Request) => Promise<Response>>)[method]!(new Request(`${origin}${endpoint}${path}`, {
+      method, headers: { origin, "content-type": "application/json", cookie: `weave_local_account=${token}` },
+      ...(body ? { body: JSON.stringify(body) } : {}) }));
+    const result = record(await response.json());
+    if (!response.ok) throw new AccountFailure(String(result.error));
+    return result;
+  };
+}
+
+test("a card shared for matching is deleted with its sharing, and a refusal names a Certified project only when the account lists it", async () => {
+  const token = fixtureSession(owner), request = fixtureRequest(token);
+  const shared = crypto.randomUUID(), plain = crypto.randomUUID();
+  // The shared card offers what another account needs, so that account can find it in its partner search.
+  const ask = (title: string) => ({ id: crypto.randomUUID(), value: { ...EMPTY_ASK, title, capitalForms: ["intellectual" as const] } });
+  const offer = ask("GPS mapping training");
+  const offering = { ...document, needs: [], offers: [offer] }, needing = { ...document, needs: [ask("GPS watershed mapping")], offers: [] };
+  for (const [id, doc] of [[shared, offering], [plain, document]] as const)
+    await request("", { action: "save", accountId: owner, id, expectedRevision: 0, requestId: crypto.randomUUID(), document: doc });
+  // Share every entry of a card for matching, as Share For Matching does.
+  const shareAll = async (send: typeof request, initiativeId: string) => {
+    const state = await send("", { action: "state", initiativeId }, "/api/matching");
+    const entries = (state.entries as { kind: string; entryId: string; revision: number; shareVersion: number }[])
+      .map(({ kind, entryId, revision, shareVersion }) => ({ kind, entryId, revision, shareVersion }));
+    const preview = await send("", { action: "preview", initiativeId, initiativeRevision: state.initiativeRevision, entries }, "/api/matching");
+    await send("", { action: "share", initiativeId, reviewId: preview.reviewId, requestId: crypto.randomUUID() }, "/api/matching");
+  };
+  await shareAll(request, shared);
+
+  const draft = revise(newDraft(), { composer: "Unrelated words" });
+  const repository = new MemoryDraftRepository(draft), controller = new DraftController(repository);
+  await controller.initialize();
+  const items = async () => (await request()).items as AccountState["items"];
+  const account: AccountState = { available: true, fixture: true, user: { id: owner, email: null }, items: await items() };
+  const service = createLiveSocialService({ account, controller, request, refreshAccount: async () => ({ ...account, items: await items() }),
+    openWorkspace: () => {}, signIn: async () => {}, signedOut: () => {} });
+  const revision = (id: string) => service.snapshot().cards.find((card) => card.id === id)!.revision!;
+  // Someone else searching for partners can find the shared card until it is deleted.
+  const searcher = crypto.randomUUID(), theirs = crypto.randomUUID(), theirRequest = fixtureRequest(fixtureSession(searcher));
+  await theirRequest("", { action: "save", accountId: searcher, id: theirs, expectedRevision: 0, requestId: crypto.randomUUID(), document: needing });
+  await shareAll(theirRequest, theirs);
+  const found = async () => parseMatchingSearch(await theirRequest("", { action: "search", initiativeId: theirs }, "/api/matching"))
+    .results.some(({ evidence }) => evidence.type === "shared" && evidence.entryId === offer.id);
+  assert.ok(await found(), "the shared card is a candidate before it is deleted");
+  // Its sharing goes with it: a personal save cannot reach matching to withdraw it first (QA notes, 26 November 2026).
+  assert.equal((await service.deleteCard!({ id: shared, revision: revision(shared) }, crypto.randomUUID())).deleted.id, shared);
+  assert.ok(!(await items()).some((item) => item.id === shared), "the shared card is gone");
+  assert.ok(!(await found()), "and no longer a candidate for anyone");
+  // A card that is a listed project's workspace names that project; otherwise nothing is named that Weave did not check.
+  assert.deepEqual(cardReferences(plain, [{ workspaceId: plain, name: "Water notes (fixture)" }]), { project: "Water notes (fixture)" });
+  assert.equal(deleteFailure(new CardReferenced({ project: "Water notes (fixture)" })),
+    "This card cannot be deleted yet because it is the saved copy of your Certified project Water notes (fixture). Nothing was removed.");
+  assert.deepEqual(cardReferences(plain, []), { project: null });
+  const generic = deleteFailure(new CardReferenced({ project: null }));
+  assert.equal(generic, "Weave still uses this card for something else, such as a project being set up, so it cannot be deleted yet. Nothing was removed.");
+  assert.doesNotMatch(generic, /shared for matching|Partners For You|Certified/u, "no reason Weave did not check, and no way forward it cannot offer");
+  // The plain card has no reference and is deleted.
+  assert.equal((await service.deleteCard!({ id: plain, revision: revision(plain) }, crypto.randomUUID())).deleted.id, plain);
+});
+
+test("private saves download in full, page by page, for this account only", async () => {
+  const exporter = crypto.randomUUID();
+  const token = fixtureSession(exporter), request = fixtureRequest(token);
+  const ids: string[] = [];
+  for (let n = 0; n < 23; n++) {
+    const id = crypto.randomUUID(); ids.push(id);
+    await request("", { action: "save", accountId: exporter, id, expectedRevision: 0, requestId: crypto.randomUUID(), document });
+  }
+  const result = await privateSavesExport(exporter, request, undefined, () => new Date("2026-11-25T12:00:00Z"));
+  assert.equal(result.kind, "weave-private-saves");
+  assert.equal(result.exportedAt, "2026-11-25T12:00:00.000Z");
+  assert.deepEqual(result.cards.map((card) => card.id).sort(), [...ids].sort(), "all 23, across two pages");
+  assert.equal(result.cards[0]!.document.initiative.name, "Synthetic river circle");
+  assert.equal(result.truncated, false);
+  assert.equal(exportedMessage(result), "Download started: 23 private saves from your account.");
+  await assert.rejects(privateSavesExport(owner, request), { code: "account_changed" }, "another account's session stops the export");
+  assert.equal(exportedMessage({ ...result, cards: [] }), "No private saves to download.");
 });

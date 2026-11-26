@@ -13,12 +13,19 @@ import { Fit } from "../ui/Fit.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { Link } from "../router.tsx";
 import { ShareMenu } from "../ui/ShareMenu.tsx";
+import { InitiativeShortlistButton, SHORTLIST_FULL } from "../shortlist/ShortlistButton.tsx";
 import { entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
 import { MatchDetails, PartialFitDetails } from "./NetworkResults.tsx";
 import { missingLine, projectAddress, projectFit, projectPassages, rememberedProject, requestPublicProject } from "./public-project.ts";
 import { sharedByLine, type PublicProjectCard } from "./public-projects.ts";
 import { MatchingDate } from "./SharingReview.tsx";
 import { recordFirstView } from "../record-first-view.ts";
+import { PublicAsks } from "../ui/PublicAsks.tsx";
+import { Media } from "../ui/Media.tsx";
+import { StepLayout } from "../ui/layouts.tsx";
+import { Tag } from "../ui/Tag.tsx";
+import { keyLabel } from "./public-projects.ts";
+import { initialsOf, publicAsk, requestPublicInitiative, type InitiativeLookup } from "./public-initiative.ts";
 
 type Loaded =
   | { status: "loading" }
@@ -64,7 +71,7 @@ export function PublicProjectRecord({ uri, sheet, presentation }: { uri: string;
   }, [title, sheet.open, presentation]);
   const Section = sectionTag(recordSectionLevel(presentation));
   return (
-    <DetailSheet title={title} state={sheet} presentation={presentation}>
+    <DetailSheet title={title} state={sheet} presentation={presentation} wide>
       {loaded.status === "loading" ? (
         <>
           {firstView && <RecordLead summary={firstView.summary} />}
@@ -101,36 +108,123 @@ export function PublicProjectRecord({ uri, sheet, presentation }: { uri: string;
   );
 }
 
+type Detail = { status: "loading" } | InitiativeLookup | { status: "failed" };
+
+/**
+ * The initiative's own answer (`/api/public-initiative`), asked for on every opening, from a link or from the
+ * list, and never kept: only current, confirmed public needs and offers of exactly this project are shown, so
+ * one withdrawn or expired since is gone when the page opens again.
+ */
+function useInitiativeDetail(uri: string): [Detail, () => void] {
+  const [detail, setDetail] = useState<Detail>({ status: "loading" });
+  useEffect(() => {
+    if (detail.status !== "loading") return;
+    const controller = new AbortController();
+    requestPublicInitiative(uri, controller.signal).then(
+      (lookup) => { if (!controller.signal.aborted) setDetail(lookup); },
+      () => { if (!controller.signal.aborted) setDetail({ status: "failed" }); },
+    );
+    return () => controller.abort();
+  }, [uri, detail.status]);
+  return [detail, () => setDetail({ status: "loading" })];
+}
+
+/**
+ * A public initiative's page (DL-151, Direction 1 of 25 November 2026): its mark beside who shared it, where
+ * and its focus; its own words and what it needs and can offer in the main column; whether it could
+ * partner with the person's initiative, its links, Share, how to reach it and the small print in the rail
+ * beside them on a wide screen, under them on a phone.
+ */
 function ProjectBody({ card, Section }: { card: PublicProjectCard; Section: SectionTag }) {
   const line = sharedByLine(card);
   const path = projectAddress(card.uri);
-  return (
+  const [detail, retry] = useInitiativeDetail(card.uri);
+  const [shortlistFull, setShortlistFull] = useState(false);
+  const found = detail.status === "found" ? detail.initiative : null;
+  // The fuller description, once the initiative's own answer is here; the list's opening words until then.
+  const passages = found?.project.description.length ? found.project.description : projectPassages(card);
+  const focus = found ? [...new Set([...found.project.focus, ...found.project.organizationTypes])] : [];
+  const main = (
     <>
-      {line && <p className="rc-card-meta">{line}</p>}
-      {projectPassages(card).map((passage) => (
+      {passages.map((passage) => (
         <p className="rc-prose" key={passage}>
           {passage}
         </p>
       ))}
-      <p className="rc-meta">
-        Shared on Certified on <MatchingDate value={card.sharedAt} />. Weave last checked it on <MatchingDate value={card.checkedAt} />.
-      </p>
-      {path && <ShareMenu share={initiativeShare({ name: card.name, path })} />}
+      {detail.status === "loading" ? (
+        <p className="rc-meta" role="status">Checking what this initiative needs and can offer.</p>
+      ) : detail.status === "failed" ? (
+        <section className="rc-notice" data-tone="warning" aria-label="Needs and offers">
+          <div className="rc-notice-body">
+            <p>Weave could not check what this initiative needs and can offer.</p>
+            <div className="rc-action-bar">
+              <button type="button" className="rc-button" data-variant="secondary" onClick={retry}>Try Again</button>
+            </div>
+          </div>
+        </section>
+      ) : found ? (
+        <>
+          <PublicAsks kind="needs" asks={found.needs.map(publicAsk)} />
+          <PublicAsks kind="offers" asks={found.offers.map(publicAsk)} />
+          {(found.needs.length > 0 || found.offers.length > 0) && (
+            <p className="rc-meta">Published by Weave to the project's own Certified repository. Anyone can read them.</p>
+          )}
+        </>
+      ) : null}
+    </>
+  );
+  const rail = (
+    <>
       <section className="rc-stack">
         <Section className="rc-heading" data-size="section">
           Could It Partner With Your Initiative?
         </Section>
         <ProjectFitPanel card={card} />
       </section>
+      {found && found.project.publisherLinks.length > 0 && (
+        <section className="rc-stack">
+          <Section className="rc-heading" data-size="section">Links</Section>
+          <div className="rc-action-bar" data-layout="rows">
+            {found.project.publisherLinks.map((link) => (
+              <ButtonLink key={link.url} href={link.url} variant="quiet">{link.label}</ButtonLink>
+            ))}
+          </div>
+        </section>
+      )}
+      {/* Keeping and sending share a row (DL-153). */}
+      {path && (
+        <ShareMenu
+          share={initiativeShare({ name: card.name, path })}
+          before={<InitiativeShortlistButton project={card} place="button" onChange={(change) => setShortlistFull(change === "full")} />}
+          note={shortlistFull ? SHORTLIST_FULL : ""}
+        />
+      )}
       <section className="rc-stack">
         <Section className="rc-heading" data-size="section">
           Get In Touch
         </Section>
         <p>Weave makes no introductions yet. The record on Certified may say how to reach them.</p>
-        <p className="rc-meta">
-          <Link href={card.sourceUrl}>See the record's data on Certified</Link>
-        </p>
       </section>
+      <p className="rc-meta">
+        Shared on Certified on <MatchingDate value={card.sharedAt} />. Weave last checked it on <MatchingDate value={card.checkedAt} />.{" "}
+        <Link href={card.sourceUrl}>See the record's data on Certified</Link>
+      </p>
+    </>
+  );
+  return (
+    <>
+      <div className="rc-record-head">
+        <Media thumb initials={initialsOf(card.name)} />
+        <div className="rc-record-head-text">
+          {line && <p className="rc-card-meta">{line}</p>}
+          {focus.length > 0 && (
+            <ul className="rc-tag-list" aria-label="Focus">
+              {focus.map((key) => <li key={key}><Tag>{keyLabel(key)}</Tag></li>)}
+            </ul>
+          )}
+        </div>
+      </div>
+      <StepLayout wide aside={rail}>{main}</StepLayout>
     </>
   );
 }

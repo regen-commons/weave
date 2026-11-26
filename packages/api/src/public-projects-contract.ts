@@ -238,10 +238,12 @@ function text(value: unknown, max: number): string {
 function isoDate(value: unknown): string {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/u.test(value) && Number.isFinite(Date.parse(value)) ? value : fail();
 }
+/** The public read API the index came from, and the only place a card's source link may point. */
+export const PROJECT_SOURCE_ORIGIN = "https://api.hypercerts.dev";
 function sourceUrl(value: unknown): string {
   const url = new URL(text(value, 2048));
   // The list links only to the public read API the index came from.
-  return url.origin === "https://api.hypercerts.dev" && !url.username && !url.password ? url.href : fail();
+  return url.origin === PROJECT_SOURCE_ORIGIN && !url.username && !url.password ? url.href : fail();
 }
 /** The longest publisher name or place label a card carries. The index leaves out a longer one, never cuts it. */
 export const PROJECT_LABEL_MAX = 120;

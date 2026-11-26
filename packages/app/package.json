@@ -25,6 +25,7 @@
   "dependencies": {
     "@regen-commons/design-system": "workspace:*",
     "@weave/api": "workspace:*",
+    "pdf-lib": "1.17.1",
     "pdfjs-dist": "6.5.438",
     "react": "19.3.1",
     "react-dom": "19.3.1",

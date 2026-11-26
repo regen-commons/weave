@@ -29,9 +29,8 @@ import {
   speechMode,
   speechNotStarted,
   speechProblem,
-  speechSettingLine,
+  speechOptions,
   speechSetupStore,
-  SPEECH_SETTING,
   talkControls,
   talksHere,
 } from "../src/describe/speech-setup.ts";
@@ -276,8 +275,8 @@ test("withdrawing the agreement stops the recording at once and sends nothing", 
 
 test("each way the server can refuse says what happened, that the recording was not kept, and keeps typing open", async () => {
   const refusals: [Response | Error, boolean, string, RegExp][] = [
-    [Response.json({ error: "speech_limit_reached" }, { status: 503 }), true, "cloud-limit", /reached its limit for today/u],
-    [Response.json({ error: "speech_busy" }, { status: 503 }), true, "cloud-busy", /^Cloudflare is busy right now/u],
+    [Response.json({ error: "speech_limit_reached" }, { status: 503 }), true, "cloud-limit", /reached its daily limit/u],
+    [Response.json({ error: "speech_busy" }, { status: 503 }), true, "cloud-busy", /^Cloud speech is busy right now/u],
     [Response.json({ error: "speech_unavailable" }, { status: 503 }), true, "cloud-off", /not available right now/u],
     [Response.json({ error: "recording_too_large" }, { status: 413 }), true, "cloud-too-long", /too long to send/u],
     [Response.json({ error: "recording_unreadable" }, { status: 422 }), true, "cloud-unreadable", /could not be read/u],
@@ -304,6 +303,36 @@ test("each way the server can refuse says what happened, that the recording was 
     assert.match(line, /(It|The recording) was not kept\./u, `${problem}: the recording is gone`);
     assert.match(line, /type in the box\.$/u, `${problem}: typing still works`);
     assert.doesNotMatch(line, /[—→]/u);
+  }
+});
+
+test("quota refusals give a local retry time and keep typing open without resending the recording", async () => {
+  const now = Date.UTC(2026, 10, 25, 23, 50);
+  const retryAt = now + 600_000;
+  const time = new Intl.DateTimeFormat(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" }).format(retryAt);
+  for (const [answer, text] of [
+    [Response.json({ error: "speech_caller_limited" }, { status: 429, headers: { "Retry-After": "600" } }), "This connection has reached its limit"],
+    [Response.json({ error: "speech_limit_reached" }, { status: 429, headers: { "Retry-After": new Date(retryAt).toUTCString() } }), "Cloud speech has reached its daily limit"],
+    [new Response("Too Many Requests", { status: 429, headers: { "Retry-After": "600" } }), "Cloud speech is busy right now"],
+  ] as const) {
+    const { recorder, recorders, devices } = studio();
+    const { send, requests } = server(answer);
+    const { heard, callbacks } = page();
+    const handle = await startCloudSpeech("en-US", {
+      ...callbacks,
+      error(problem, when) {
+        assert.equal(when, retryAt);
+        heard.push(speechProblem(problem, "cloud", false, when));
+      },
+    }, { recorder, devices, send, status: async () => ON, consent: memoryConsent(true), now: () => now, log: memoryLog() });
+    await settle();
+    handle.stop();
+    recorders[0]!.end();
+    await settle();
+    assert.equal(requests.length, 1);
+    assert.ok(heard[0]?.startsWith(text));
+    assert.ok(heard[0]?.endsWith(`Try again after ${time}, or type in the box.`));
+    assert.equal(heard[1], "end:false");
   }
 });
 
@@ -531,7 +560,7 @@ test("Talk It Out says where the recording goes before, during and after, and as
   // The notice is plain sentences, names the provider and offers a way out.
   assert.equal(CLOUD_SPEECH_NOTICE.title, "Send Your Recording To Be Turned Into Text?");
   assert.deepEqual([CLOUD_SPEECH_NOTICE.agree, CLOUD_SPEECH_NOTICE.decline], ["Agree And Record", "Not Now"]);
-  for (const line of [...CLOUD_SPEECH_NOTICE.body, CLOUD_SPEECH_NOTE, SPEECH_SETTING.cloudAgreed, speechNotStarted("cloud")]) {
+  for (const line of [...CLOUD_SPEECH_NOTICE.body, CLOUD_SPEECH_NOTE, speechOptions(null)[2]!.note, speechNotStarted("cloud")]) {
     assert.match(line, /^[A-Z][^]*\.$/u, line);
     assert.doesNotMatch(line, /[—→·]/u, line);
   }
@@ -575,13 +604,7 @@ test("the two agreements are kept apart, and Settings says which are in force", 
   assert.deepEqual([browser.agreed(), cloud.agreed()], [true, false]);
   assert.deepEqual([...values.keys()], [BROWSER_SPEECH_KEY]);
 
-  assert.equal(speechSettingLine(false, false), SPEECH_SETTING.notAgreed);
-  assert.match(SPEECH_SETTING.notAgreed, /Weave asks before your voice leaves this device\.$/u);
-  assert.equal(speechSettingLine(true, false), SPEECH_SETTING.agreed);
-  assert.equal(speechSettingLine(false, true), SPEECH_SETTING.cloudAgreed);
-  assert.equal(speechSettingLine(true, true), `${SPEECH_SETTING.agreed} ${SPEECH_SETTING.cloudAgreed}`);
-  assert.match(SPEECH_SETTING.cloudAgreed, /Cloudflare Workers AI[^]*Weave does not keep it\.$/u);
-  assert.equal(SPEECH_SETTING.withdrawCloud, "Stop Using Cloud Speech");
+  // Settings no longer lists agreements: choosing an option there is the agreement (speech-choice.ts).
 });
 
 test("the device notes each recording sent, with its time and length and nothing of what was said", async () => {

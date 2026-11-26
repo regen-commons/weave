@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SaveAction } from "../account/door.tsx";
 import { SignInButton } from "../account/SignInButton.tsx";
 import { InitiativeRecord } from "../initiative/InitiativeRecord.tsx";
@@ -22,6 +22,8 @@ import { PartnerExperience } from "../partners/PartnerExperience.tsx";
 import { pathTo } from "../routes.ts";
 import { FUNDING_COMMONS } from "../links.ts";
 import { ExampleSave } from "../social/Door.tsx";
+import { PublishInitiative } from "../initiative/PublishInitiative.tsx";
+import { adoptPlan, readPlan } from "../initiative/publish-plan.ts";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
 import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
 import { editorStorage, PROJECT_EDITORS, readEditorHandoff } from "../initiative/editor-handoff.ts";
@@ -55,6 +57,16 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const { draft, ready, error, controller } = useDraft();
   const status = useCardStatus();
   const [saveMessage, setSaveMessage] = useState("");
+  // The public finish to the intake. A plan waiting in this tab, as after signing in or Certified's
+  // permission screen, opens it again where the person left it.
+  const [publishing, setPublishing] = useState(false);
+  const signedInAs = account.state?.user?.id ?? null;
+  useEffect(() => {
+    if (!ready || (import.meta.env.DEV && fixture)) return;
+    // Only a plan made before sign-in, or by the account signed in now; another account's stays unshown.
+    if (adoptPlan(readPlan((() => { try { return window.sessionStorage; } catch { return undefined; } })(), draft.id), signedInAs))
+      setPublishing(true);
+  }, [ready, draft.id, signedInAs]);
   const [retrying, setRetrying] = useState(false);
   const checked = intakeComplete(draft);
   const waiting = waitingSuggestions(draft);
@@ -230,14 +242,30 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               <Panel>
                 <Section id="saving-sharing" title="Saving And Sharing">
                   <DuplicateNotice />
+                  {/* Two destinations come first: this device, where the card is, and a Certified project, where
+                      what the person chooses becomes public. A private save in Weave follows (QA notes, 25 November 2026). */}
+                  {!example && (
+                    <>
+                      <p className="rc-meta">On this device: kept in this browser, where only you can see it.</p>
+                      <StatusLine
+                        actions={
+                          <button className="rc-button" data-variant="primary" data-size="sm" type="button" onClick={() => setPublishing(true)}>
+                            Make It Public
+                          </button>
+                        }
+                      >
+                        Public: put your initiative and its needs and offers on Certified, for anyone to read.
+                      </StatusLine>
+                    </>
+                  )}
                   <StatusLine
                     actions={
                       !save ? undefined : example && save.needs === "save" ? (
                         <ExampleSave size="sm" onFailed={setSaveMessage} />
                       ) : !example && account.state?.user ? (
-                        <PrivateSaveAction size="sm" onFailed={setSaveMessage}>{save.label}</PrivateSaveAction>
+                        <PrivateSaveAction size="sm" variant="secondary" confirm={save.label === "Save Privately"} onFailed={setSaveMessage}>{save.label}</PrivateSaveAction>
                       ) : (
-                        <SaveAction variant="primary" size="sm">
+                        <SaveAction variant={example ? "primary" : "secondary"} size="sm">
                           {save.label}
                         </SaveAction>
                       )
@@ -302,6 +330,10 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                   )}
                   {steps.later && <p className="rc-meta">{steps.later}</p>}
                 </Section>
+                {!example && (
+                  <PublishInitiative open={publishing} onClose={() => setPublishing(false)}
+                    onPublished={() => { setSharedVersion(v => v + 1); setMatchVersion(v => v + 1); }} />
+                )}
                 <nav className="rc-section" aria-labelledby="change-it">
                   <Heading level={2} size="section" id="change-it">
                     Change It

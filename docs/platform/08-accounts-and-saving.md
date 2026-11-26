@@ -25,6 +25,14 @@ requirements.
 | Saved privately | Owner-authorized Weave database record | Checked initiative, kept needs/offers and funding answers only; available to the same Certified identity on another device. |
 | Saved to a team workspace (target) | Weave database, accessible to teammates with workspace read access | Saved needs and offers are visible to the team before sharing. Personal saves outside the workspace stay personal. |
 | Shared for matching | Selected current entries and an approved initiative summary | Any workspace editor can preview and explicitly share what signed-in Weave users can see. Saving alone does not share. |
+| Published to a Certified project | Public listings in the project's own repository, one record per chosen need or offer | Anyone can read them, in Weave and in other apps. The person chooses the entries, sees the exact records and their destination, and confirms once. The project's name, description and place stay Certified's own (DL-148). |
+
+Since 25 November 2026 the primary destinations are this device and a Certified
+project (DL-147). A private save in Weave is a secondary choice, offered only to
+someone signed in, and it says where the card goes and who can read it before it
+saves. Existing private saves are not migrated or published: Your Initiatives keeps
+them under Private Weave Saves, where each can be opened, all can be downloaded, and
+any one can be deleted.
 
 Saving the checked document does not back up conversation transcripts, files,
 unfinished alternatives or AI history. Show this limit where the person saves.
@@ -118,6 +126,13 @@ A person can manage several workspaces with the same Certified identity. See the
 [project integration contract](05-technical-spec.md#certified-project-integration-target).
 
 ## Public project creation and return
+
+Since 25 November 2026 (DL-148), Make It Public can create a personal Certified project from the draft in
+the person's own account, after warning of a likely existing project on Certified or Ma Earth. The
+external editor route below remains for group projects and for Ma Earth, where Weave offers the
+draft's name, place and description to copy before opening Ma Earth. Weave's
+own public page for a new project appears after the public list's next daily
+refresh (`/api/project-index-refresh`), because public pages read that list.
 
 The user [decided on 12 November](open-decisions.md#public-project-editors-decided-12-november-2026)
 that public organizations/projects are created in Ma Earth or Certified for the

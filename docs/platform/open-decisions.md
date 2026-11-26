@@ -137,11 +137,11 @@ What the code holds to (`packages/app/src/describe/speech-cloud.ts`, `speech-con
 - Nothing records before the agreement. Withdrawing it stops a recording at once and sends nothing.
 - The recording stays in the tab's memory until Stop or the three-minute limit, goes once to Weave's own server with the chosen language, no cookies and nothing else, and is dropped whether or not words come back. It is never tried a second time. Only Stop and the limit send it: Discard drops it unsent, and so does a recorder that stops by itself, as when the microphone is unplugged. The server stores and logs nothing about it. The device notes the time and length of each recording that left it, and Settings shows how many.
 - The notice says what Weave can vouch for ("Weave does not keep the recording") and gives the rest as the provider's own statement ("Cloudflare says"). Cloudflare can run a request in any of its regions, so the notice says the recording may be processed outside the person's country and promises no place.
-- One recording is three minutes and 3 MB at most. It is off until `WEAVE_CLOUD_SPEECH_ENABLED=true` with the Cloudflare account and token set, and the page offers it only while the server says it is on. The production CSP is unchanged, because the page calls only its own origin. No dependency was added.
+- The app records up to three minutes and the server reads up to 3 MB. It is off until `WEAVE_CLOUD_SPEECH_ENABLED=true` with the Cloudflare and shared quota settings in place. The page offers it only while the server says it is on.
+- The server reserves up to six calls per connection in each ten-minute window and up to 60 calls across Weave per UTC day. The shared database uses a short-lived keyed digest of the connection address. Both limits are checked together before Cloudflare is called. A refusal shows when to try voice again beside Talk It Out and leaves typing available.
 
 Not built, and for the owner to decide:
 
-- **A limit for each visitor.** The endpoint needs no sign-in and keeps no count. What bounds it is the size of one recording and Cloudflare's daily allowance: on the Workers Free plan a used-up day fails closed, at no cost, and the page says cloud speech has reached its limit. A person who wanted to could use up the day for everyone. A rate limit on `/api/transcribe` in Vercel's firewall would close that, and is a Vercel setting.
 - **A server record of consent and calls.** R10 asks for a consent and call ledger the person can view and export. The device's record is viewable in Settings; it is not in the downloaded copy of the device's data, and the server has none.
 - **Brave.** It has a speech recognizer whose service does not work, so it is offered the browser's service, not this. What it reports was not established.
 
@@ -198,6 +198,8 @@ records the baseline, owning paths and tests. These roles are proposed responsib
 not assignments to people or authorization to provision infrastructure.
 
 ### Public project editors, decided 12 November 2026
+
+**Amended 25 November 2026** by the user: Weave may create a personal Certified project from a person's draft, in their own Certified account, when they make it public (DL-148). Before creating, Weave warns of a likely existing project among the account's own (personal and group, Ma Earth organizations included) and in the public list (Ma Earth's projects included), and a match needs the person's explicit word that it is a different initiative. Ma Earth remains an external editor: Weave offers the details to copy and the existing handoff, since there is no Ma Earth API or prefill. Group projects are still created in Certified's or Ma Earth's editors. The new Certified permission (`publish-initiative`: create the project, its place record and its listings in the person's own repository) and hosted write and read-back are unproven.
 
 The user chose external public project editors for the first release. Guide a
 new initiative that aligns with Ma Earth and chooses its ecosystem to create
@@ -311,6 +313,12 @@ draft. Certified failure keeps device work available and offers retry through
 Certified. Returning identity must preserve account UUID and saved rows. An
 unexpected identity conflict fails without merging accounts or moving data.
 
+On 25 November 2026 the QA notes moved private saving behind the two primary
+destinations, this device and a Certified project (DL-147). Existing private saves
+are kept as they are: nothing is migrated, linked or published. Signed in, a person
+can open them, download them all, or delete one; a card's copy on this device goes
+to the device backups only when they choose that before the deletion.
+
 The [first-build contract](05-technical-spec.md#51-first-build-certified-sign-in-and-private-saving)
 owns implementation order, acceptance tests and remaining hosting decisions.
 Hosted staging and a second auth review are release gates. This records the user's
@@ -407,6 +415,21 @@ withdrawal. A confirmed withdrawal initiated through another AT Protocol app
 changes the public listing state only. The team's Weave share stays active
 while eligible. Certified project-page display and partner indexing can follow
 independently.
+
+**Intake finish and public page, 25 November 2026.** After the QA notes of 25
+November, publishing is the primary finish to the intake (DL-148). One dialog
+takes the person from choosing needs and offers, through Certified sign-in and
+project selection, to a preview built from the server's own reviews, and one
+confirmation sends each reviewed publication once. The plan, with each listing's
+request ID, survives the sign-in and consent redirects in the tab's own storage,
+so a retry repeats the same request and never publishes an unreviewed revision.
+Publishing still needs the card saved as the project's workspace; the dialog says
+so before that save. Group projects publish from their team workspace, as before.
+A public initiative's page reads `GET /api/public-initiative`, which serves only
+confirmed, open, unexpired listings for the exact project AT URI and is never
+cached (DL-149). Banners and other images stay out until D30 is decided. Hosted
+Certified write consent, read-back and the `weave-public-support-listings.sql`
+candidate remain unapplied and unproven outside local fixtures.
 
 ### Shared entries and acting on matches
 

@@ -22,11 +22,11 @@ test("no search keeps a button, and Home has none: Initiatives holds the search 
     assert.doesNotMatch(read(page), /type="submit"/u, page);
 });
 
-test("Funding and every form of Initiatives use the one filter bar, under one opening line", () => {
+test("Funding and every form of Initiatives use the one filter bar, straight under the page's name (DL-153)", () => {
   for (const page of ["pages/Funding.tsx", "pages/ListPage.tsx", "partners/PublicProjects.tsx", "partners/PartnerDiscovery.tsx"])
     assert.match(read(page), /<FilterBar\b/u, page);
-  assert.match(read("pages/Funding.tsx"), /<p className="rc-prose">Find support for your next chapter\.<\/p>/u);
-  assert.match(read("pages/ListPage.tsx"), /<p className="rc-prose">\{opening\}<\/p>/u);
+  // No opening line repeats what the name says; the list starts a line and a gap higher.
+  for (const page of ["pages/Funding.tsx", "pages/ListPage.tsx"]) assert.doesNotMatch(read(page), /className="rc-prose"/u, page);
   // The public list asks the server, so it waits for a pause and keeps the last cards on screen.
   const live = read("partners/PublicProjects.tsx");
   assert.match(live, /usePaused\(searchQuery\(search\), SEARCH_PAUSE_MS\)/u);
@@ -138,7 +138,7 @@ test("Your Initiatives holds its own cards' shape while it loads, under the head
   assert.doesNotMatch(page, /CardGridSkeleton kind="funding"/u, "a funding card is twice the height of a card on this page");
   assert.equal(page.split('<CardGridSkeleton kind="own" count={2} />').length - 1, 2, "while checking the account, and while reading projects");
   // The heading is there before its cards: the section is drawn as soon as its projects are being read.
-  assert.match(page, /\{\(certified \|\| loading \|\| social\.problem \|\| noProjectYet\) && \(\s*<Section id="initiatives-certified" title="On Certified">/u);
+  assert.match(page, /\{\(certified \|\| loading \|\| social\.problem \|\| noProjectYet\) && \(\s*<Section id="initiatives-certified" title="Certified Projects"/u);
   assert.match(page, /\{loading && \(\s*<div aria-busy="true">/u, "and the cards' shape is under it while they load");
 });
 
@@ -172,11 +172,12 @@ test("a skeleton holds as many cards as the view loads, and the list end has its
   assert.match(read("home.ts"), /\.slice\(0, FUNDING_PREVIEW_COUNT\)/u);
 });
 
-test("the count and the fact about the whole list each keep a line, loading and loaded (DL-108)", () => {
+test("the count, the fact about the whole list and what follows run on in set room, loading and loaded (DL-108, DL-153)", () => {
   const bar = read("ui/FilterBar.tsx");
   assert.match(bar, /const noted = loading \? reserve : note;/u);
-  assert.match(bar, /\{noted && \(\s*<span data-part="note" aria-hidden=\{loading \|\| undefined\}>/u);
-  assert.doesNotMatch(bar, /` \$\{note\}`/u, "the fact no longer runs on after the count");
+  assert.match(bar, /\{noted && \(\s*<>\s*\{" "\}\s*<span data-part="note" aria-hidden=\{loading \|\| undefined\}>/u);
+  // The way to the shortlist waits for the list, so a loading bar holds only the words it will have.
+  assert.match(bar, /\{after && !loading && \(/u);
 });
 
 test("no section on Home is set apart by a band (DL-109)", () => {
@@ -184,10 +185,10 @@ test("no section on Home is set apart by a band (DL-109)", () => {
   assert.doesNotMatch(read("ui/Section.tsx"), /band/u);
 });
 
-test("the prompt to describe an initiative is a plain section, not a notice (DL-109)", () => {
+test("the prompt to describe an initiative is one status line, not a section or a notice (DL-109, DL-153)", () => {
   const prompt = read("ui/DescribePrompt.tsx");
-  assert.match(prompt, /<Section\b/u);
-  assert.doesNotMatch(prompt, /rc-notice/u);
+  assert.match(prompt, /<StatusLine\b/u);
+  assert.doesNotMatch(prompt, /<Section\b|rc-notice/u);
   // The list is told what was remembered, and an answer is kept for the next visit.
   const projects = read("partners/PublicProjects.tsx");
   assert.match(projects, /listView\(list, indexSeen, expectStarter\)/u);

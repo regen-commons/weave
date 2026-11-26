@@ -17,8 +17,8 @@
  * - Weave receives audio in one case only: a browser that cannot turn speech into text itself (no
  *   speech recognition at all, or a speech service that cannot work here, as in Brave), the server
  *   has cloud speech on, and the person agreed to its notice. The page then records and sends the
- *   recording once to `/api/transcribe`, which passes it to Cloudflare Workers AI and stores and
- *   logs nothing (`src/describe/speech-cloud.ts`, `@weave/api` transcribe). The device keeps the
+ *   recording once to `/api/transcribe`, which checks its quota before passing it to Cloudflare
+ *   Workers AI. Weave stores and logs neither the audio nor the words. The device keeps the
  *   time and length of each recording sent, and nothing of its content
  *   (`src/describe/speech-cloud-log.ts`).
  * - The device notes in one word whether the browser's own speech service gave words here, so a
@@ -34,13 +34,20 @@
  *   `/api/feedback` with no cookie, header or address of the person's, keeps nothing, logs only the
  *   website's status when it did not confirm, and counts posts by address in memory only
  *   (`src/feedback/send.ts`, `@weave/api` feedback).
+ * - The shortlist of funds and initiatives is kept in this browser only, never in an account, and saving
+ *   does not include it (`src/shortlist/store.ts`). To show a shortlisted initiative, the page asks
+ *   Weave's server for that one public project, as any list page does, with nothing of the person's
+ *   attached (`src/shortlist/use-initiative-lookups.ts`). Exports are made on the device (DL-152, DL-153).
  * - One saved card and one device backup can be deleted. A whole account cannot, yet.
  * Change a sentence here only with the code that makes it true.
  */
 export type Term = readonly [question: string, answer: string];
 
 export const STORAGE_SUMMARY: readonly Term[] = [
-  ["On this device", "Your draft, conversations, files and backups stay in this browser until you save."],
+  [
+    "On this device",
+    "Your draft, conversations, files and backups stay in this browser until you save. Your shortlist of funds and initiatives stays in this browser only.",
+  ],
   [
     "When you save",
     "Your checked card, the needs and offers you kept and your funding details go to the Regen Commons database, linked to your Certified sign-in. Conversations and files are not sent.",
@@ -67,7 +74,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
   {
     title: "What Stays On This Device",
     body: [
-      "Your draft, conversations, files, unfinished edits, assistant records and backups are kept in this browser. Settings can download all of it, including files.",
+      "Your draft, conversations, files, unfinished edits, assistant records, backups and shortlist are kept in this browser. Settings can download all of it, including files. Saving does not include the shortlist. To show a shortlisted initiative, Weave asks for that public project only, with nothing of yours.",
       "Clearing this site's data in your browser removes them. Work you have not saved cannot be recovered after that.",
     ],
   },
@@ -90,7 +97,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     body: [
       "Each of these is its own choice, and each shows what leaves before you confirm.",
       "A team workspace can be read by the teammates who are given access to it. Sharing for matching shows the needs and offers you pick, with your initiative's name, description, places and themes, to other signed-in people whose own shared entries fit. Publishing on Certified creates a public record that anyone, and other apps, can read.",
-      "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in on Your Initiatives goes on to that question, and the page says so first. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in.",
+      "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in goes on to that question, except a sign-in to save a card. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in.",
       "Weave also uses that permission to check that you still belong to a group whenever you open or change its team workspace, its sharing, its invitations or who has access. If Certified says you have left the group, Weave stops your access to that workspace.",
       "Weave stores that permission encrypted on its server and can use it for up to 30 days. Signing out ends it: Weave can no longer use it and deletes its stored copy. If that deletion fails, the copy stays encrypted and unusable until it expires.",
       "Two things ask Certified again, for up to one hour each time: reading who else belongs to your group, and changing Certified itself, such as creating a project, adding a member, or publishing or withdrawing a listing.",
@@ -102,6 +109,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
       "When you talk, your browser turns your voice into text wherever it can, and gives Weave only the words.",
       "Where your browser can do that on this device, the audio stays here. Where it cannot, your browser can send your voice to its own speech service instead. Weave asks before the first time, and you can turn it off in Settings. That service belongs to your browser, so its own terms apply.",
       "Some browsers cannot turn speech into text themselves. Where Weave offers cloud speech there, and only if you agree, Weave records what you say and, when you press Stop or the recording reaches its limit of three minutes at most, sends it once through its own server to Cloudflare Workers AI, which turns it into text. Discard drops it unsent. Weave does not keep the recording or the words on its server. Cloudflare says it does not keep them or use them to train models. The recording may be processed outside your country. This device notes when a recording was sent and how long it was, and Settings shows how many. Weave asks before the first time, and you can turn it off in Settings.",
+      "To limit misuse, Weave counts requests using a short-lived code based on your internet address. This count stays with Weave.",
       "Where your browser's own speech service gives no words back, this device notes that, and nothing of what you said, so Talk It Out can offer cloud speech instead. Use Browser Speech Again in Settings forgets it.",
       "On a phone, your keyboard's microphone key is part of the phone, not Weave.",
     ],
@@ -161,6 +169,11 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
 export const SIGN_IN = {
   offer: "Sign in with Certified to save your work and open it on another device. In Weave, only you can open what you save.",
   effect: "Signing in only says who you are. Nothing is saved, loaded or shared until you choose it.",
+  /** Said before a sign-in that goes on to project access (DL-137). */
+  projectsNext: "Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in.",
+  /** The same, where the page has just said the initiatives are only in this browser. */
+  withProjects:
+    "Signing in says who you are, and Certified then asks to let Weave read your projects for as long as you stay signed in. Nothing of yours is saved or shared until you choose it.",
   saved:
     "Saving keeps your checked card, needs, offers and kept funding details. Conversations, files, unfinished edits and assistant records stay on this device.",
   session: "You stay signed in on this browser for up to 30 days. If you do not open Weave for 14 days, you are signed out sooner.",

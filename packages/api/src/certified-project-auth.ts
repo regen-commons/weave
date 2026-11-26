@@ -22,20 +22,64 @@ const membership = "app.certified.groups.membership.list";
 const memberList = "app.certified.group.member.list";
 const register = "app.certified.group.register";
 const supportCollection = "com.regencommons.weave.supportListing";
-const personalCreate = "com.atproto.repo.createRecord";
-const personalDelete = "com.atproto.repo.deleteRecord";
+const projectCollection = "org.hypercerts.collection";
+const locationCollection = "app.certified.location";
+const supportCreate = "com.atproto.repo.createRecord#com.regencommons.weave.supportListing";
+const supportDelete = "com.atproto.repo.deleteRecord#com.regencommons.weave.supportListing";
+const projectCreate = "com.atproto.repo.createRecord#org.hypercerts.collection";
+const locationCreate = "com.atproto.repo.createRecord#app.certified.location";
+/**
+ * Writes to the signed-in person's own repository. Each is a pseudo-method for one operation on one
+ * collection: its grant is that collection-limited `repo:` scope, never an RPC scope, it is sent as
+ * `com.atproto.repo.createRecord` or `deleteRecord`, and no service token is ever minted for it.
+ */
+const ownWrites = {
+  [supportCreate]: { collection: supportCollection, operation: "create" },
+  [supportDelete]: { collection: supportCollection, operation: "delete" },
+  [projectCreate]: { collection: projectCollection, operation: "create" },
+  [locationCreate]: { collection: locationCollection, operation: "create" },
+} as const;
+type OwnWrite = typeof ownWrites[keyof typeof ownWrites];
+/** The pseudo-methods that name a write to the person's own repository, for a caller's grant check. */
+export const ownRepositoryMethods = { supportCreate, supportDelete, projectCreate, locationCreate } as const;
+const ownWrite = (method: string): OwnWrite | undefined => Object.hasOwn(ownWrites, method)
+  ? ownWrites[method as keyof typeof ownWrites] : undefined;
+const repoScope = ({ collection, operation }: OwnWrite) => `repo:${collection}?action=${operation}`;
+const ownWriteScopes = new Set(Object.values(ownWrites).map(repoScope));
 const grantMethods = {
   membership: [membership],
   "workspace-members": [membership, memberList],
   "create-project": [membership, register, "app.certified.group.repo.createRecord"],
   "add-member": [membership, memberList, "app.certified.group.member.add"],
-  "publish-support": [membership, "app.certified.group.repo.createRecord", personalCreate],
-  "withdraw-support": [membership, "app.certified.group.repo.deleteRecord", personalDelete],
+  "publish-support": [membership, "app.certified.group.repo.createRecord", supportCreate],
+  "withdraw-support": [membership, "app.certified.group.repo.deleteRecord", supportDelete],
+  /**
+   * Publishing a whole draft as the person's own project (the user's choice, 25 November 2026): its project
+   * record, its place's location record and its support listings, on one Certified screen. Nothing is deleted.
+   */
+  "publish-initiative": [membership, projectCreate, locationCreate, supportCreate],
 } as const;
 type ConsentAction = keyof typeof grantMethods;
 export type CertifiedProjectRpc = typeof grantMethods[ConsentAction][number];
 const actions = Object.keys(grantMethods) as ConsentAction[];
 const rpcMethods: readonly CertifiedProjectRpc[] = [...new Set(Object.values(grantMethods).flat())];
+const tid = /^[2-7a-j][2-7a-z]{12}$/u;
+
+/**
+ * The request body for one write to the person's own repository, or null when the input does not fit that
+ * write: a record of the write's own collection to create, or the expected CID of the record to delete.
+ */
+function ownWriteBody(method: keyof typeof ownWrites, repo: string,
+  input: { rkey: string; record?: unknown; expectedCid?: string }): string | null {
+  const { collection, operation } = ownWrites[method];
+  if (!tid.test(input.rkey)) return null;
+  if (operation === "delete" ? !input.expectedCid || !/^b[a-z2-7]{40,100}$/u.test(input.expectedCid)
+    : !input.record || typeof input.record !== "object" || Array.isArray(input.record)
+      || (input.record as Record<string, unknown>).$type !== collection) return null;
+  const body = JSON.stringify({ repo, collection, rkey: input.rkey,
+    ...(operation === "create" ? { record: input.record } : { swapRecord: input.expectedCid }) });
+  return Buffer.byteLength(body) > 65536 ? null : body;
+}
 const attemptTtl = 600;
 /** A grant that can write, to Certified or to a group, is asked for again after an hour. */
 const grantTtl = 3600;
@@ -46,6 +90,14 @@ const grantTtl = 3600;
  */
 const readGrantTtl = SESSION_CAP_SECONDS;
 const readOnlyAction = "membership";
+/**
+ * Every grant that can write makes Certified show its screen, each time. The read-only grant leaves that
+ * to Certified, which may approve it without a screen when the person already allowed this same read for
+ * this client (the user's choice, 25 November 2026, DL-137). The scope and DID checks still apply.
+ */
+export function consentPrompt(action: string): "consent" | undefined {
+  return action === readOnlyAction ? undefined : "consent";
+}
 const cookieName = "__Host-weave_project_consent";
 const nonce = /^[A-Za-z0-9_-]{43}$/u;
 const randomId = () => randomBytes(32).toString("base64url");
@@ -243,9 +295,10 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       returnUrl.searchParams.has("projectConsent")) throw Error("invalid_project_oauth_return_path");
 
   const rpcScope = (method: string) => `rpc:${method}?aud=${service.replace("#", "%23")}`;
-  const methodScope = (method: string) => method === personalCreate
-    ? `repo:${supportCollection}?action=create`
-    : method === personalDelete ? `repo:${supportCollection}?action=delete` : rpcScope(method);
+  const methodScope = (method: string) => {
+    const write = ownWrite(method);
+    return write ? repoScope(write) : rpcScope(method);
+  };
   const scopes = (methods: readonly string[]) => ["atproto", ...methods.map(methodScope)].join(" ");
   const clientMetadata: NodeOAuthClientOptions["clientMetadata"] = {
     client_id: `${origin}${certifiedProjectOAuthPaths.metadata}`,
@@ -280,7 +333,7 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       methodScope(method).replace("%23", "#"))]);
     const actual = scope.split(" ").map(part => {
       if (part === "atproto") return part;
-      if (part === `repo:${supportCollection}?action=create` || part === `repo:${supportCollection}?action=delete`) return part;
+      if (ownWriteScopes.has(part)) return part;
       const rpc = /^(rpc:[A-Za-z.]+\?aud=)([^&]+)$/u.exec(part);
       if (!rpc) throw denied();
       return rpc[1]! + decodeURIComponent(rpc[2]!);
@@ -353,8 +406,9 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       get: async () => undefined,
       del: async () => {},
     });
+    const prompt = consentPrompt(action);
     const target = await timing.time("par", () => client.authorize(CERTIFIED_ISSUER, {
-      state: JSON.stringify(input), scope: scopes(grantMethods[action]), prompt: "consent",
+      state: JSON.stringify(input), scope: scopes(grantMethods[action]), ...(prompt ? { prompt } : {}),
     }));
     const endpoint = target.origin + target.pathname;
     if (![CERTIFIED_ISSUER + "/oauth/authorize", "https://auth.certified.one/oauth/authorize"].includes(endpoint) ||
@@ -534,6 +588,13 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
       return await run(session, deadline);
     } finally { sessions.disable(); }
   }
+  /** Sends one checked write to the actor's own PDS under the grant for that write, or returns null without one. */
+  function writeOwnRecord(request: Request, expectedDid: string, method: keyof typeof ownWrites, body: string, signal?: AbortSignal) {
+    const endpoint = ownWrites[method].operation === "create" ? "com.atproto.repo.createRecord" : "com.atproto.repo.deleteRecord";
+    return callAsActor(request, expectedDid, method, (session, deadline) => session.fetchHandler(`/xrpc/${endpoint}`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body, signal: deadline,
+    }), signal);
+  }
 
   return {
     async settle(request: Request) {
@@ -644,7 +705,7 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
           !await selectGrant(actor, methods)) throw denied();
     },
     async mintServiceAuth(request: Request, expectedDid: string, method: string, signal?: AbortSignal) {
-      if (!isMethod(method) || method === register || method === membership || method === personalCreate || method === personalDelete) return null;
+      if (!isMethod(method) || method === register || method === membership || ownWrite(method)) return null;
       return callAsActor(request, expectedDid, method, async (session, deadline) => {
         const params = new URLSearchParams({ aud: service, lxm: method, exp: String(Math.floor(Date.now() / 1000) + 60) });
         const result = await session.fetchHandler(`/xrpc/com.atproto.server.getServiceAuth?${params}`, { signal: deadline });
@@ -653,17 +714,21 @@ export async function createCertifiedProjectAuth(options: ProjectOAuthOptions) {
     },
     async writeSupportRecord(request: Request, expectedDid: string, operation: "create" | "delete",
       input: { rkey: string; record?: unknown; expectedCid?: string }, signal?: AbortSignal) {
-      if (!/^[2-7a-j][2-7a-z]{12}$/u.test(input.rkey)) throw Error("invalid_support_repository_request");
-      const method = operation === "create" ? personalCreate : operation === "delete" ? personalDelete : null;
-      if (!method || (operation === "delete" && (!input.expectedCid || !/^b[a-z2-7]{40,100}$/u.test(input.expectedCid))) ||
-          (operation === "create" && record(input.record).$type !== supportCollection))
-        throw Error("invalid_support_repository_request");
-      const body = JSON.stringify({ repo: expectedDid, collection: supportCollection, rkey: input.rkey,
-        ...(operation === "create" ? { record: input.record } : { swapRecord: input.expectedCid }) });
-      if (Buffer.byteLength(body) > 65536) throw Error("invalid_support_repository_request");
-      return callAsActor(request, expectedDid, method, (session, deadline) => session.fetchHandler(`/xrpc/${method}`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body, signal: deadline,
-      }), signal);
+      const method = operation === "create" ? supportCreate : operation === "delete" ? supportDelete : null;
+      const body = method && ownWriteBody(method, expectedDid, input);
+      if (!method || !body) throw Error("invalid_support_repository_request");
+      return writeOwnRecord(request, expectedDid, method, body, signal);
+    },
+    /**
+     * Creates a project or location record in the signed-in person's own repository, under the grant that
+     * names that collection. Support listings are written only through `writeSupportRecord`. Null without one.
+     */
+    async createOwnRecord(request: Request, expectedDid: string, collection: typeof projectCollection | typeof locationCollection,
+      input: { rkey: string; record: unknown }, signal?: AbortSignal) {
+      const method = collection === projectCollection ? projectCreate : collection === locationCollection ? locationCreate : null;
+      const body = method && ownWriteBody(method, expectedDid, input);
+      if (!method || !body) throw Error("invalid_own_repository_request");
+      return writeOwnRecord(request, expectedDid, method, body, signal);
     },
     async proxyServiceRequest(request: Request, expectedDid: string, method: string, init: RequestInit, query?: URLSearchParams) {
       // Service-level CGS methods require a bare-DID JWT. The PDS proxy checks

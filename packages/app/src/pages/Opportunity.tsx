@@ -28,6 +28,8 @@ import { FitLine } from "../ui/Fit.tsx";
 import { LinesSkeleton } from "../ui/CardSkeleton.tsx";
 import { DescribeDoor } from "../ui/DescribePrompt.tsx";
 import { recordFirstView } from "../record-first-view.ts";
+import { FundShortlistButton, SHORTLIST_FULL, SHORTLIST_NOT_KEPT } from "../shortlist/ShortlistButton.tsx";
+import { useFundShortlist } from "../shortlist/use-shortlist.ts";
 
 /**
  * One funding opportunity, opened over the page the person was on. `search` is the query it was
@@ -66,6 +68,8 @@ export function Opportunity({
     // Another account's card keeps its answers to itself (DL-055).
     setAside = useSetAside();
   const [retried, setRetried] = useState(false);
+  const shortlist = useFundShortlist();
+  const [shortlistFull, setShortlistFull] = useState(false);
   // Continue the card in progress, or start one: this page never reopens a card under a "describe" label.
   const query = new URLSearchParams(search);
   const programId = query.get("program"),
@@ -171,8 +175,11 @@ export function Opportunity({
         )}
       </div>
       {!url && <p className="rc-meta">The source link needs checking, so no link is offered.</p>}
+      {/* Keeping and sending share a row, apart from going to the funder (DL-153). */}
       <ShareMenu
         share={fundShare({ id: entry.fund.id, name: entry.fund.displayName }, program ? { id: program.id, name: program.name } : null)}
+        before={<FundShortlistButton entry={entry} name={title} place="button" onChange={(change) => setShortlistFull(change === "full")} />}
+        note={shortlistFull ? SHORTLIST_FULL : !shortlist.kept && shortlist.items.length ? SHORTLIST_NOT_KEPT : ""}
       />
       <section className="rc-stack">
         <Section className="rc-heading" data-size="section">

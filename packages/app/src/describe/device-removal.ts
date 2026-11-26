@@ -1,4 +1,5 @@
 import type { DeviceDraft } from "./contracts.ts";
+import type { DraftController } from "./controller.ts";
 import { BackupChanged, DraftChanged, RemovalNotice, type DeviceRemoval } from "./repository.ts";
 
 /** The name a backup is listed under. Two backups can share it, so it never identifies one. */
@@ -61,6 +62,35 @@ export const removedBackupMessage = (result: DeviceRemoval) =>
   `Removed 1 backup. ${backups(result.kept)}${olderTabLine(result.older)}`;
 export const discardedMessage = (result: DeviceRemoval) =>
   `Removed this draft from this device and kept it as a backup you can restore. ${backups(result.kept)}`;
+
+/**
+ * Moves one of this device's drafts into its backups, whichever tab it is open in: the tab's own
+ * through `discardCurrent`, which then opens a blank draft, and any other through `retire`. False
+ * when the other draft changed meanwhile or waits for a save's answer; the tab's own throws a
+ * `RemovalNotice` in those cases. Nothing is deleted: the backup can be restored in Settings.
+ */
+export async function backUpDraft(
+  controller: Pick<DraftController, "getSnapshot" | "discardCurrent" | "retire">,
+  id: string,
+): Promise<boolean> {
+  if (controller.getSnapshot().draft.id === id) {
+    await controller.discardCurrent();
+    return true;
+  }
+  return controller.retire(id);
+}
+
+/** The confirmation for moving one draft from Your Initiatives to the device's backups. */
+export function backUpWarning(draft: DeviceDraft, savedInAccount: boolean): string {
+  const count = attachedFiles(draft);
+  return `This moves ${draftTitle(draft)}${count ? `, with its ${files(count)},` : ""} from Your Initiatives to the device backups in Settings, where you can restore it or delete it for good.${
+    savedInAccount ? " Its saved copy in your account is not changed." : " It is not saved anywhere else."}`;
+}
+/** Said when a draft other than the tab's could not be moved: it changed meanwhile, or a save of it waits for its answer. */
+export const NOT_BACKED_UP = "This draft changed, or a save of it is not confirmed yet. Nothing was removed. Try again in a moment.";
+/** Said after a draft moved to the backups: where it went. */
+export const backedUpMessage = (draft: DeviceDraft) =>
+  `Moved ${draftTitle(draft)} to the device backups. Restore it or delete it for good in Settings, under Device Backups.`;
 
 /** Why nothing was removed. A draft another tab changed meanwhile keeps that tab's words. */
 export function deviceRemovalFailure(error: unknown): string {

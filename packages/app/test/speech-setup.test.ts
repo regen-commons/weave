@@ -12,7 +12,7 @@ import {
   BROWSER_SPEECH_NOTICE,
   KEYBOARD_MIC,
   speechPaused,
-  SPEECH_SETTING,
+  speechOptions,
   speechMode,
   speechNotStarted,
   speechProblem,
@@ -413,10 +413,11 @@ test("the notice before browser speech names no company, says where the audio go
   assert.match(notice, /Typing always works/);
   assert.match(notice, /turn this off in Settings/);
   assert.doesNotMatch(notice, /Google|Apple|Microsoft|Siri|Brave|Chrome|Safari|Edge/u, "Weave cannot know who runs the service");
-  for (const line of [...BROWSER_SPEECH_NOTICE.body, SPEECH_SETTING.agreed, SPEECH_SETTING.notAgreed])
+  for (const line of [...BROWSER_SPEECH_NOTICE.body, speechOptions(null)[1]!.note])
     assert.doesNotMatch(line, /[\u2014\u2192]/);
   assert.equal(BROWSER_SPEECH_NOTICE.agree, "Agree And Talk It Out", "the action keeps its name through the flow");
-  assert.equal(SPEECH_SETTING.withdraw, "Stop Using Browser Speech");
+  // Settings turns it off by choosing another way of talking (speech-choice.ts), so the notice still says Settings.
+  assert.equal(speechOptions(null)[1]!.label, "Your browser's speech service");
 });
 
 test("on a touch screen with no way to talk, one calm line points to the keyboard's microphone key", () => {

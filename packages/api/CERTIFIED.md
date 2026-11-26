@@ -708,13 +708,26 @@ membership through this read grant. They used to stop after an hour until the pe
 they now keep working for the session. Whoever holds a person's Weave session can therefore use those
 commands for as long as it lasts, as they already can save, load and delete that person's private cards.
 
-Signing in from Your Initiatives goes on to the `membership` consent without another press. The app
-keeps a note for the tab before leaving, reads it once on the callback's return to that page, waits
+Every sign-in except one that began at Save goes on to the `membership` consent without another
+press (the user's choice, 25 November 2026, DL-137; until then only Your Initiatives did). The app
+keeps a note for the tab before leaving, holding its limit and the page the sign-in left from. It
+reads the note once as its code loads on the callback's return, acts on it only on that page, waits
 for the session check and the device store, and then starts consent exactly as the Allow button does
-(`initiative/consent-chain.ts`). The trip is made at most once for a page load and is dropped if it
-cannot start within 20 seconds or the person has left the page. Certified still shows its consent
-screen, and the receipt is finished the same way. A sign-in from anywhere else leaves no note and
-clears an earlier one.
+(`initiative/consent-chain.ts`, mounted once in `App.tsx`). The trip is made at most once for a page
+load and is dropped if it cannot start within 20 seconds or the person has gone to another page. The
+receipt is finished the same way. The consent task records that page (`returnTo`, a known Weave route
+other than Your Initiatives), so a granted or declined consent returns there; one that could not be
+confirmed goes to Your Initiatives with its notice. A sign-in from Save leaves no note and clears an
+earlier one, so it returns to its Save dialog. This means everyone who signs in is asked for the read
+grant, and Weave stores it for each session that allows it.
+
+The `membership` request does not send `prompt=consent` (`consentPrompt` in `certified-project-auth.ts`;
+the user's choice, 25 November 2026, DL-137). The AT Protocol OAuth spec lets an authorization server
+approve a confidential client without a screen when the person already approved the same scopes for
+it, so Certified may skip its screen on a later sign-in. Whether Certified does is unverified. Every
+action that can write still sends `prompt=consent`, so Certified shows its screen each time. A read
+approved without a screen passes the same checks as any other: the issuer, the signed-in DID and the
+exact requested scope, then the browser-bound, session-bound receipt.
 
 The app finishes the one-use, session-bound project receipt before mounting its
 project loaders. React effect replay shares the same finish request. A missing,
@@ -879,10 +892,15 @@ account's remaining personal cards.
 
 Apply `supabase/candidates/weave-initiative-deletion.sql` last, after
 `weave-open-ended-sharing.sql`. It refuses to install before team content,
-matching vectors and support publication. The command checks the owner, the exact
-ID and the revision before it removes anything. It then removes the card, its
-needs and offers, that owner's save and matching receipts and any expired matching
-review, and keeps a tombstone so the ID never returns. A first save of a removed ID
+matching vectors and support publication. Then apply
+`weave-initiative-deletion-stale-references.sql`, which replaces the command. The command
+checks the owner, the exact ID and the revision before it removes anything. It then
+removes the card, its needs and offers (any still shared for matching stop being shared),
+that owner's saved and dismissed partners, query vectors, save and matching receipts, any
+expired matching review, and a project setup that finished or was marked `group_rejected`,
+and keeps a tombstone so the ID never returns. A setup is marked `group_rejected` after a
+refused registration, a timeout or a server error, so a group may exist on Certified under
+the setup's handle; deleting the card removes that record of the handle. A first save of a removed ID
 fails with `initiative_deleted`, and the app then saves the words as a new card; an
 old revision is not found. These cases are refused, with the stable code:
 
@@ -891,7 +909,7 @@ old revision is not found. These cases are refused, with the stable code:
 | No session | `sign_in_required` |
 | Another owner's card, a team document, a removed card | `not_found` |
 | A different revision | `save_conflict` |
-| A project link, create intent, open matching review, lead or query vector, a support listing, review or request, an entry still shared for matching, or another account's save or matching receipt | `initiative_referenced` |
+| A project link, a project setup still under way, an open matching review, a support listing, review or request, or another account's save or matching receipt | `initiative_referenced` |
 
 `initiative-deletion-postgres.test.ts` needs a disposable loopback database
 named `weave_deletion_test` in `WEAVE_DELETION_TEST_DATABASE_URL`. It also needs the
@@ -904,6 +922,94 @@ retries, a create racing a deletion and direct table denial. The tombstone check
 relies on READ COMMITTED, the default for PostgREST and the API's transactions.
 Under REPEATABLE READ, a review probe found that a stale create racing a deletion
 fails with a serialization error (40001) rather than `initiative_deleted`.
+
+### Local public initiative response
+
+`GET /api/public-initiative?uri=<project AT URI>` answers one public initiative for
+signed-out visitors (DL-149). The only accepted parameter is a `uri` in the public
+project shape (`did:plc`, `org.hypercerts.collection`, a timestamp record key). The
+project must be one the public list shows; otherwise the answer is 404 `not_found`.
+It returns the project's passages, kinds of work and of group, publisher, place and
+publisher links, plus `needs` and `offers`: only listings whose publication Weave
+confirmed by read-back, still open, not expired and naming exactly that project.
+Every listing is checked again in the handler. Every answer is `Cache-Control:
+no-store`. While the public list is off the answer is `{ "status": "off" }`.
+
+Publisher links are read live from the organization record through the Certified
+read boundary within 1.5 seconds, and need `WEAVE_CERTIFIED_GROUP_ORIGIN` and
+`WEAVE_CERTIFIED_GROUP_PDS_ORIGIN`; without them, or on any failure, the list is
+empty. No banner, avatar or other image is read (D30).
+
+Apply `supabase/candidates/weave-public-support-listings.sql` after the project
+index and support publication candidates, and after the website's
+organization-description migration. It adds one security-definer function,
+`private.weave_public_support_listings(text)`, executable only by
+`weave_index_job`, and changes no table, trigger or other function. No hosted
+migration is implied. The disposable `public-support-listings-postgres.test.ts`
+suite needs a loopback database named `weave_public_listings_test` in
+`WEAVE_PUBLIC_LISTINGS_TEST_DATABASE_URL` and the private-account baseline in
+`WEAVE_PUBLIC_LISTINGS_TEST_BASELINE`. It covers published, pending, withdrawing,
+withdrawn, conflicting, expired, wrong-project, unrelated-project, matching-only and
+private entries, the role grants, and the handler end to end as the index login.
+
+### Local personal project creation
+
+On 25 November 2026 the user chose to put the whole draft on Certified.
+`create_personal_project` on `POST /api/projects` creates a personal project in the
+signed-in person's own repository from the draft's title, description and place.
+The existing support publication commands then publish its needs and offers to it.
+Group projects and the group `create` command are unchanged.
+
+The `publish-initiative` consent action asks for the membership read and three
+collection-limited create scopes: `repo:org.hypercerts.collection?action=create`,
+`repo:app.certified.location?action=create` and
+`repo:com.regencommons.weave.supportListing?action=create`. Like every write grant it
+lasts an hour. It also satisfies the support listing create check, so the person sees
+one Certified screen. It grants no delete; withdrawal still asks for
+`withdraw-support`. The client metadata lists the two new scopes after the existing
+ones, and the earlier actions ask for exactly the scopes they asked for before.
+
+The body is exact:
+
+```json
+{ "action": "create_personal_project", "requestId": "<uuid>", "projectRkey": "<TID>",
+  "locationRkey": "<TID>", "title": "…", "description": "…", "place": "…" }
+```
+
+`locationRkey` and `place` come together or not at all, and any other key is
+rejected. The title is 1 to 80 graphemes and at most 800 bytes on one line, the
+description at most 800 characters and may be empty, and the place 1 to 120
+characters on one line. Surrounding space is trimmed, and runs of space in a place
+become one. The answer is `{ "status": "created", "projectUri", "cid" }`.
+
+The location record is an address written as text: `lpVersion` `1.0.0`, the CRS84
+`srs`, `locationType` `address`, an `app.certified.location#string` location,
+`createdAt`, and `name` when the place fits the lexicon's 100 graphemes for a name.
+The project record is the one group creation writes, plus `location`, a strong
+reference `{ uri, cid }` to that record. It has no `visibility` field, which readers
+take as public.
+
+The client chooses both record keys, so a retry finds what an earlier attempt wrote.
+The server reads both keys first. A project already there with the same content,
+apart from `createdAt`, and pinning the stored location's CID is returned without a
+write. Different content at either key answers 409 `project_conflict` before any
+write. Otherwise the server creates the location, reads it back for its CID, creates
+the project and reads it back through the same reader as `getProject`. That read
+must show the same title, description and place, public visibility and the person's
+own repository. A lost response or a partial write finishes on a retry with the same
+body. `requestId` is checked but not stored.
+
+A missing grant answers 403 `project_consent_required` before anything is read, and
+so does a write the PDS refuses. A bad body answers 400 `invalid_project_command`.
+Any upstream failure, a group repository or an unapproved PDS answers 503
+`project_workspace_unavailable`. No provider text is returned and nothing is logged.
+
+`project-commands.test.ts` and `certified-project-auth.test.ts` prove this against a
+synthetic PDS and OAuth fixture, including that `link` and `support_review` accept
+the new project. Hosted proof is still needed: Certified must accept the
+`org.hypercerts.collection` and `app.certified.location` create scopes for this
+client, and a hosted write and independent read-back of both records are unproven.
+So is whether Certified's PDS validates location records against the lexicon.
 
 ### Production pilot preparation
 

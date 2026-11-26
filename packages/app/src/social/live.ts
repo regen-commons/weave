@@ -3,7 +3,7 @@ import { parseSummaries, record, uuid, type InitiativeSummary } from "@weave/api
 import type { AccountState } from "../account/client.ts";
 import { AccountFailure, accountMessage, accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
 import { AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../account/document.ts";
-import { deleteSavedCard } from "../account/delete-card.ts";
+import { CardReferenced, cardReferences, deleteSavedCard } from "../account/delete-card.ts";
 import { withConfirmedSession } from "../account/session-end.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { hasDraft } from "../describe/view.ts";
@@ -254,7 +254,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       const account = await options.refreshAccount(); checked();
       service.syncAccount(account);
     },
-    async linkProject(uri, signal) {
+    async linkProject(uri, signal, linkOptions) {
       signal?.throwIfAborted();
       // Linking writes the project's details into the tab's card, so another account's card is refused before anything is asked.
       if (setAside()) throw new AnotherAccountsCard();
@@ -272,7 +272,8 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       else if (result.status !== "unlinked" && result.status !== "pending") throw Error("The project could not be linked.");
       // Publish selection only after the reviewed device update is durable. Its host may
       // remove the link task as soon as state.project appears.
-      const linkedDraft = options.controller.change(current => draftWithRecord(current, chosen));
+      // A project made from this card already says what the card says, and its page suggests nothing new.
+      const linkedDraft = linkOptions?.keepCard ? before : options.controller.change(current => draftWithRecord(current, chosen));
       await options.controller.settled(); checked(); signal?.throwIfAborted();
       const current = options.controller.getSnapshot();
       if (current.draft !== linkedDraft) throw Error("Your device card changed. Review it before choosing this project again.");
@@ -375,6 +376,11 @@ export function createLiveSocialService(options: Options): LiveSocialService {
           state = { ...state, cards: state.cards.filter(item => item.id !== card.id) }; emit();
         }
         return result;
+      } catch (error) {
+        // The account gives one code for every reference. Say only what Weave can verify (QA notes, 25 November 2026).
+        if (error instanceof AccountFailure && error.code === "initiative_referenced" && !(error instanceof CardReferenced))
+          throw new CardReferenced(cardReferences(card.id, state.workspaces ?? []));
+        throw error;
       } finally {
         // The account list is the authority afterwards, whether the card went or was refused.
         if (!lifetime.signal.aborted) await options.refreshAccount().then(account => service.syncAccount(account), () => {});

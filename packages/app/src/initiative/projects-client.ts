@@ -1,7 +1,7 @@
 import { record, uuid } from "@weave/api/account-contract";
 import { AccountFailure, accountRequest } from "../account/client.ts";
 import { LinkSchema } from "../describe/source-contracts.ts";
-import { beginConsentReturn, cancelConsentReturn, currentConsentReturn, finishConsentReturn, takeConsentReturn,
+import { beginConsentReturn, cancelConsentReturn, currentConsentReturn, finishConsentReturn, returnPage, takeConsentReturn,
   type ProjectConsentAction } from "./consent-return.ts";
 export type { ProjectConsentAction } from "./consent-return.ts";
 
@@ -91,8 +91,9 @@ export function workspacePage(value: Record<string, unknown>) {
   }) };
 }
 
-export async function startProjectConsent(action: ProjectConsentAction, storage: Storage, signal?: AbortSignal) {
-  const id = beginConsentReturn(storage, { kind: "directory", action });
+/** `returnTo` names the page a consent that followed a sign-in began on, so the person comes back there. */
+export async function startProjectConsent(action: ProjectConsentAction, storage: Storage, signal?: AbortSignal, returnTo?: string) {
+  const id = beginConsentReturn(storage, { kind: "directory", action, ...(returnPage(returnTo) ? { returnTo } : {}) });
   try {
     const result = await accountRequest("", { action }, "/api/certified-project-consent", signal);
     const target = typeof result.authorizeUrl === "string" ? new URL(result.authorizeUrl) : null;

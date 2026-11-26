@@ -54,8 +54,8 @@ reaches it as fast.
   bodies at 64 KB. Write endpoints require a same-origin `Origin` header and JSON.
   `/api/transcribe` is the one exception to the size and to JSON: it takes one audio
   recording of up to 3 MB, and still requires the same-origin `Origin` header. It
-  stores and logs nothing, and needs no sign-in, so nothing in it may depend on who
-  is asking.
+  needs no sign-in and stores or logs no audio, transcript or raw address. Its server-only
+  quota uses a short-lived keyed digest of the connection address and a shared daily count.
 - `/api/feedback` is the one endpoint that posts to another site: the feedback sheet's message,
   kinds and page path, to the Regen Commons website's fixed `/api/feedback`, so it reaches the
   stewards' desk (DL-145). It forwards no cookie, header or address of the person's and logs only

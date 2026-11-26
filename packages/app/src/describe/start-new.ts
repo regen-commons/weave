@@ -28,10 +28,10 @@ export function describeDoor(started: boolean, route: RouteName): { href: string
 }
 
 /**
- * The title of the prompt to describe an initiative. It is there before this device's draft has
- * opened, in the words for someone without a card; with a card in progress it asks to finish it.
- * The two titles take the same room at 360 and 1280 px, so the change is in place.
+ * The sentence that leads the prompt to describe an initiative. It is there before this device's draft
+ * has opened, in the words for someone without a card; with a card in progress it asks to finish it.
+ * The two take about the same room at 360 and 1280 px, so the change is in place (DL-104, DL-153).
  */
-export function describePromptTitle(ready: boolean, started: boolean): string {
-  return ready && started ? "Finish Describing Your Initiative To See What Fits" : "Describe Your Initiative To See What Fits";
+export function describePromptLine(ready: boolean, started: boolean): string {
+  return ready && started ? "Finish describing your initiative to see what fits." : "Describe your initiative to see what fits.";
 }

@@ -1,12 +1,12 @@
 import { record } from "./account-contract.ts";
 import { AccountError } from "./account-provider.ts";
+import { ownRepositoryMethods } from "./certified-project-auth.ts";
 import type { CertifiedProjectProvider, CertifiedProjectResult } from "./certified-project-provider.ts";
 import { SUPPORT_COLLECTION, parseSupportListing, type SupportPublicationAdapter, type SupportTarget } from "./support-publication.ts";
 
 const groupCreate = "app.certified.group.repo.createRecord";
 const groupDelete = "app.certified.group.repo.deleteRecord";
-const personalCreate = "com.atproto.repo.createRecord";
-const personalDelete = "com.atproto.repo.deleteRecord";
+const { supportCreate: personalCreate, supportDelete: personalDelete } = ownRepositoryMethods;
 export interface SupportPublicationProviderOptions {
   projectProvider: Pick<CertifiedProjectProvider, "readRepoRecord">;
   groupServiceOrigin: string;

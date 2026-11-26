@@ -134,26 +134,32 @@ records that a request was made, its address, status and duration, as for any re
 
 ## Switching it on
 
-One request takes up to 50 seconds on the server (20 for the recording to arrive, 30 for the
-provider). `/api/transcribe` is served by the app's one router function, whose time limit in
+One request takes up to 53 seconds on the server (20 for the recording to arrive, three for the
+quota check and 30 for the provider). `/api/transcribe` is served by the app's one router function, whose time limit in
 `vercel.json` is 60 seconds.
 
 A deployment behind Vercel's deployment protection is likely to refuse the page's own requests to
 `/api/transcribe`, which carry no cookie, so try it on one without protection.
 
-Three settings in the Weave Vercel project, and nothing else:
+Before releasing the quota gate, have the Platform migration owner apply the
+[speech quota SQL](../../../../../supabase/candidates/weave-speech-quota.sql).
+Enable login for the migration's `weave_speech_quota_runtime` role and use its transaction pooler
+URL, without query parameters. The role can execute the reservation function in Weave. Set these
+server-side values in the Weave Vercel project:
 
 | Setting | Value |
 |---|---|
 | `WEAVE_CLOUDFLARE_ACCOUNT_ID` | The Cloudflare account's ID, 32 hex characters |
 | `WEAVE_CLOUDFLARE_AI_TOKEN` | An API token made from Cloudflare's "Workers AI" template |
+| `WEAVE_SPEECH_QUOTA_DATABASE_URL` | TLS connection URL for the restricted quota login |
+| `WEAVE_SPEECH_QUOTA_DATABASE_CA_PEM` | Database CA certificate if needed for TLS verification |
+| `WEAVE_SPEECH_QUOTA_SECRET` | A 32-byte random secret encoded as 64 lowercase hex characters |
 | `WEAVE_CLOUD_SPEECH_ENABLED` | `true` |
 
-Staying on Cloudflare's Workers Free plan makes the daily allowance (10,000 neurons, about 214
-minutes of audio) a hard stop that costs nothing: past it Cloudflare refuses, and the page says
-cloud speech has reached its limit for today. On the Paid plan the same use is billed at
-$0.0005 a minute with no stop, so a rate limit on `/api/transcribe` in Vercel's firewall should
-come first.
+Weave allows six Cloudflare calls per connection in each fixed ten-minute window and 60 calls per
+UTC day across all server instances. A reservation still counts if the provider fails. When the
+quota check is unavailable, Weave skips the provider. Cloudflare's allowance and pricing still
+apply to the work it receives. Weave's cap counts requests.
 
 Then, on production in Firefox on a computer and on Android, with site data cleared:
 

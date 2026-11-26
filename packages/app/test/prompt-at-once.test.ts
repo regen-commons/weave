@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { DraftController } from "../src/describe/controller.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
 import { MemoryDraftRepository, type DraftRepository } from "../src/describe/repository.ts";
-import { describeDoor, describePromptTitle } from "../src/describe/start-new.ts";
+import { describeDoor, describePromptLine } from "../src/describe/start-new.ts";
 import { memoryPointer } from "../src/describe/tabs.ts";
 import { hasDraft } from "../src/describe/view.ts";
 import { cardRoute } from "../src/initiative/status.ts";
@@ -19,7 +19,7 @@ function prompt(controller: DraftController) {
   const { draft, ready } = controller.getSnapshot();
   const started = hasDraft(draft);
   // The door waits for the draft (DescribeDoor holds its button until `ready`).
-  return { title: describePromptTitle(ready, started), actionWaits: !ready, door: describeDoor(started, started ? cardRoute(draft) : "initiative") };
+  return { title: describePromptLine(ready, started), actionWaits: !ready, door: describeDoor(started, started ? cardRoute(draft) : "initiative") };
 }
 
 test("with a card in progress and a draft that opens late, the words read at once and the action waits for the draft", async () => {
@@ -40,13 +40,13 @@ test("with a card in progress and a draft that opens late, the words read at onc
   // While the draft opens: the words for someone without a card, and the action held unseen. The
   // door it holds would start a new card, which is wrong for this person, so it cannot be pressed.
   const waiting = prompt(controller);
-  assert.equal(waiting.title, "Describe Your Initiative To See What Fits");
+  assert.equal(waiting.title, "Describe your initiative to see what fits.");
   assert.equal(waiting.actionWaits, true);
   release();
   await opening;
   // Once it opens: the title asks to finish this card, and the action continues it.
   const open = prompt(controller);
-  assert.equal(open.title, "Finish Describing Your Initiative To See What Fits");
+  assert.equal(open.title, "Finish describing your initiative to see what fits.");
   assert.equal(open.actionWaits, false);
   assert.deepEqual(open.door, { href: "/start/initiative", label: "Continue Your Initiative" });
 });
@@ -64,7 +64,7 @@ test("without a card the prompt is the same before and after the draft opens, ap
 test("the door holds its room until the draft opens, everywhere it is offered, and Funding draws the prompt at once", () => {
   const door = source("ui/DescribePrompt.tsx");
   assert.match(door, /return door\.ready \? \(\s*button\s*\) : \(\s*<span className="rc-skeleton" data-shape="room" aria-hidden="true">\s*\{button\}/u);
-  assert.match(door, /<DescribeDoor variant="primary" \/>/u, "the prompt's own door");
+  assert.match(door, /<DescribeDoor variant="primary" size="sm" \/>/u, "the prompt's own door");
   // Every other page that offers the door uses the one that waits, and none builds its own.
   for (const [file, variant] of [["pages/ListPage.tsx", "primary"], ["pages/Opportunity.tsx", "primary"], ["partners/PublicProjectRecord.tsx", "secondary"]] as const) {
     const page = source(file);

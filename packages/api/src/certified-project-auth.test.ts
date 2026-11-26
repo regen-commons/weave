@@ -4,9 +4,10 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { NodeOAuthClient, type NodeOAuthClientOptions, type NodeSavedSession } from "@atproto/oauth-client-node";
 import postgres from "postgres";
-import { certifiedProjectOAuthPaths as paths, createCertifiedProjectAuth, grantLifetime, projectOAuthStore, type ProjectOAuthStore } from "./certified-project-auth.ts";
+import { certifiedProjectOAuthPaths as paths, consentPrompt, createCertifiedProjectAuth, grantLifetime, ownRepositoryMethods, projectOAuthStore, type ProjectOAuthStore } from "./certified-project-auth.ts";
 import { createCipher } from "./certified/crypto.ts";
 import { record } from "./account-contract.ts";
+import { createSupportPublicationAdapter } from "./support-publication-provider.ts";
 import { projectSdkFixture, sdkMembership } from "../test-fixtures/project-sdk.ts";
 
 const origin = "https://weave.example.test", issuer = "https://certified.one", cgsOrigin = "https://dev.groups.certified.app";
@@ -71,6 +72,7 @@ async function fixture(transactionalLocks = false, readying: Readying = {}) {
     exchangeCount: 0,
     actorsResolved: 0,
     scope: "",
+    prompts: [] as (string | undefined)[],
     onRestore: null as ((options: NodeOAuthClientOptions) => Promise<void>) | null,
     calls: [] as { path: string; init?: RequestInit }[],
   };
@@ -106,7 +108,7 @@ async function fixture(transactionalLocks = false, readying: Readying = {}) {
         async authorize(input, params) {
           readying.order?.push("authorize");
           assert.equal(input, issuer);
-          assert.equal(params?.prompt, "consent");
+          fake.prompts.push(params?.prompt);
           fake.scope = params?.scope ?? "";
           await options.stateStore.set(sdkState, { appState: params?.state, iss: issuer } as never);
           const url = new URL("https://auth.certified.one/oauth/authorize");
@@ -171,7 +173,7 @@ test("public metadata and JWKS describe a separate confidential client without p
 test("support publication and withdrawal have separate collection-limited personal grants", async () => {
   const f = await fixture();
   const collection = "com.regencommons.weave.supportListing";
-  const createPersonal = "com.atproto.repo.createRecord", deletePersonal = "com.atproto.repo.deleteRecord";
+  const { supportCreate: createPersonal, supportDelete: deletePersonal } = ownRepositoryMethods;
   assert.equal(await f.auth.writeSupportRecord(f.cmd({}), did, "create", {
     rkey: "3jui7kd54zh2y", record: { $type: collection },
   }), null);
@@ -181,7 +183,7 @@ test("support publication and withdrawal have separate collection-limited person
   await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [deletePersonal]), /project_consent_required/);
   await f.auth.writeSupportRecord(f.cmd({}), did, "create", { rkey: "3jui7kd54zh2y", record: { $type: collection, title: "Synthetic" } });
   const sent = f.fake.calls.at(-1)!;
-  assert.equal(sent.path, "/xrpc/" + createPersonal);
+  assert.equal(sent.path, "/xrpc/com.atproto.repo.createRecord");
   assert.deepEqual(JSON.parse(String(sent.init?.body)), {
     repo: did, collection, rkey: "3jui7kd54zh2y", record: { $type: collection, title: "Synthetic" },
   });
@@ -206,6 +208,107 @@ test("support OAuth refuses a broadened or incomplete personal collection scope"
     assert.equal(projectStatus(await f.auth.callback(f.oauth(binding(started)))), "failed");
     await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [create]), /project_consent_required/);
   }
+});
+
+test("each consent action asks Certified for exactly its own scopes, and the earlier actions ask what they asked before", async () => {
+  const aud = "did:web:dev.groups.certified.app%23certified_group_service";
+  const rpc = (method: string) => `rpc:${method}?aud=${aud}`;
+  const read = rpc("app.certified.groups.membership.list");
+  const expected = {
+    membership: `atproto ${read}`,
+    "workspace-members": `atproto ${read} ${rpc("app.certified.group.member.list")}`,
+    "create-project": `atproto ${read} ${rpc("app.certified.group.register")} ${rpc("app.certified.group.repo.createRecord")}`,
+    "add-member": `atproto ${read} ${rpc("app.certified.group.member.list")} ${rpc("app.certified.group.member.add")}`,
+    "publish-support": `atproto ${read} ${rpc("app.certified.group.repo.createRecord")} repo:com.regencommons.weave.supportListing?action=create`,
+    "withdraw-support": `atproto ${read} ${rpc("app.certified.group.repo.deleteRecord")} repo:com.regencommons.weave.supportListing?action=delete`,
+    "publish-initiative": `atproto ${read} repo:org.hypercerts.collection?action=create repo:app.certified.location?action=create `
+      + "repo:com.regencommons.weave.supportListing?action=create",
+  };
+  const f = await fixture();
+  for (const [action, scope] of Object.entries(expected)) {
+    await f.start(action);
+    assert.equal(f.fake.scope, scope, action);
+  }
+  // The client's own list keeps its earlier order and adds the two new collections at the end.
+  assert.equal(record(await f.auth.metadata().json()).scope, `atproto ${read} ${rpc("app.certified.group.member.list")} `
+    + `${rpc("app.certified.group.register")} ${rpc("app.certified.group.repo.createRecord")} ${rpc("app.certified.group.member.add")} `
+    + `repo:com.regencommons.weave.supportListing?action=create ${rpc("app.certified.group.repo.deleteRecord")} `
+    + "repo:com.regencommons.weave.supportListing?action=delete repo:org.hypercerts.collection?action=create "
+    + "repo:app.certified.location?action=create");
+});
+
+test("one publish-initiative grant creates the project, its place and its support listings in the person's own repository, and nothing else", async () => {
+  const f = await fixture();
+  const { projectCreate, locationCreate, supportCreate, supportDelete } = ownRepositoryMethods;
+  const rkey = "3jui7kd54zh2y";
+  const project = { $type: "org.hypercerts.collection", type: "project", title: "Synthetic garden", createdAt: "2026-11-25T00:00:00.000Z" };
+  const place = { $type: "app.certified.location", name: "Synthetic valley" };
+  assert.equal(await f.auth.createOwnRecord(f.cmd({}), did, "org.hypercerts.collection", { rkey, record: project }), null);
+  assert.equal(f.fake.calls.length, 0, "nothing is sent before consent");
+  await f.approve("publish-initiative");
+  await f.auth.assertGrant(f.cmd({}), did, [projectCreate, locationCreate]);
+  await f.auth.assertGrant(f.cmd({}), did, [supportCreate]);
+  for (const method of [supportDelete, create, register, list])
+    await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [method]), /project_consent_required/, method);
+  assert.equal(await f.auth.mintServiceAuth(f.cmd({}), did, projectCreate), null, "a repository write is never a service token");
+
+  // Support publication checks the same grant, so the person sees one Certified screen for the whole draft.
+  const adapter = createSupportPublicationAdapter({
+    projectProvider: { readRepoRecord: async () => ({ ok: false, code: "not_found" }) }, groupServiceOrigin: cgsOrigin,
+    assertGrant: (actorDid, methods) => f.auth.assertGrant(f.cmd({}), actorDid, methods),
+    serviceAuth: async () => null,
+    personalWrite: (actorDid, operation, input, signal) => f.auth.writeSupportRecord(f.cmd({}), actorDid, operation, input, signal),
+  });
+  const target = { projectUri: `at://${did}/org.hypercerts.collection/${rkey}`, repositoryDid: did, groupDid: null };
+  await adapter.authorize(did, target, "create");
+  await assert.rejects(adapter.authorize(did, target, "delete"), /project_consent_required/);
+
+  for (const [collection, entry] of [["org.hypercerts.collection", project], ["app.certified.location", place]] as const) {
+    await f.auth.createOwnRecord(f.cmd({}), did, collection, { rkey, record: entry });
+    const sent = f.fake.calls.at(-1)!;
+    assert.equal(sent.path, "/xrpc/com.atproto.repo.createRecord");
+    assert.equal(sent.init?.method, "POST");
+    assert.deepEqual(JSON.parse(String(sent.init?.body)), { repo: did, collection, rkey, record: entry });
+  }
+  const listing = { $type: "com.regencommons.weave.supportListing", title: "Synthetic" };
+  await f.auth.writeSupportRecord(f.cmd({}), did, "create", { rkey, record: listing });
+  assert.deepEqual(JSON.parse(String(f.fake.calls.at(-1)!.init?.body)).record, listing);
+
+  const count = f.fake.calls.length;
+  for (const [collection, input] of [
+    ["com.regencommons.weave.supportListing", { rkey, record: listing }],
+    ["org.hypercerts.collection", { rkey, record: place }],
+    ["app.certified.location", { rkey: "not-a-key", record: place }],
+    ["org.hypercerts.collection", { rkey, record: [project] }],
+  ] as const) await assert.rejects(f.auth.createOwnRecord(f.cmd({}), did, collection as never, input), /invalid_own_repository_request/);
+  assert.equal(await f.auth.createOwnRecord(f.cmd({}), otherDid, "org.hypercerts.collection", { rkey, record: project }), null);
+  f.fake.actor = { did, sessionId: "another-session" };
+  assert.equal(await f.auth.createOwnRecord(f.cmd({}), did, "org.hypercerts.collection", { rkey, record: project }), null);
+  assert.equal(f.fake.calls.length, count, "a refused write never reaches the PDS");
+});
+
+test("a publish-initiative grant is refused unless Certified returns exactly its scopes", async () => {
+  const read = `rpc:${membership}?aud=${cgs.replace("#", "%23")}`;
+  const project = "repo:org.hypercerts.collection?action=create", place = "repo:app.certified.location?action=create";
+  const support = "repo:com.regencommons.weave.supportListing?action=create";
+  for (const scope of [
+    `atproto ${read} ${project} ${support}`,
+    `atproto ${read} ${project} ${place}`,
+    `atproto ${read} repo:org.hypercerts.collection ${place} ${support}`,
+    `atproto ${read} ${project} ${place} ${support} repo:com.regencommons.weave.supportListing?action=delete`,
+    `atproto ${read} ${project} ${place} ${support} repo:*`,
+  ]) {
+    const f = await fixture();
+    const started = await f.start("publish-initiative");
+    f.fake.issuedScope = scope;
+    assert.equal(projectStatus(await f.auth.callback(f.oauth(binding(started)))), "failed", scope);
+    await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [ownRepositoryMethods.projectCreate]), /project_consent_required/);
+  }
+  // An earlier action's grant never comes back carrying the new collections.
+  const f = await fixture();
+  const started = await f.start("publish-support");
+  f.fake.issuedScope = `${requested(membership, create)} ${support} ${project}`;
+  assert.equal(projectStatus(await f.auth.callback(f.oauth(binding(started)))), "failed");
 });
 
 test("consent is explicit, same-origin and scoped to the requested action", async () => {
@@ -263,7 +366,7 @@ test("callback is browser-bound and one-time; it requires same-session activatio
 test("only the read-only grant lasts the session; every grant that can write still ends within the hour", async () => {
   const day = 24 * 60 * 60;
   assert.equal(grantLifetime("membership"), 30 * day);
-  for (const action of ["workspace-members", "create-project", "add-member", "publish-support", "withdraw-support", "unknown"])
+  for (const action of ["workspace-members", "create-project", "add-member", "publish-support", "withdraw-support", "publish-initiative", "unknown"])
     assert.equal(grantLifetime(action), 3600, action);
 
   const f = await fixture();
@@ -328,15 +431,15 @@ test("signing out deletes that session's grants, and only those; a failure there
   assert.equal(grants(), 3);
 
   f.fake.actor = { did, sessionId: "weave-session" };
-  assert.equal(await f.auth.forget(f.cmd({})), 6, "every action's grant is asked for, since a session's grants cannot be listed");
+  assert.equal(await f.auth.forget(f.cmd({})), 7, "every action's grant is asked for, since a session's grants cannot be listed");
   assert.equal(grants(), 1, "the tokens and the key they are bound to are gone from the store");
   await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership]), /project_consent_required/);
   await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [register]), /project_consent_required/);
   f.fake.actor = { did, sessionId: "another-session" };
   await f.auth.assertGrant(f.cmd({}), did, [membership]);
-  assert.equal(await f.auth.forget(f.cmd({})), 6);
+  assert.equal(await f.auth.forget(f.cmd({})), 7);
   assert.equal(grants(), 0);
-  assert.equal(await f.auth.forget(f.cmd({})), 6, "forgetting twice is harmless");
+  assert.equal(await f.auth.forget(f.cmd({})), 7, "forgetting twice is harmless");
 
   // A consent that came back from Certified but was not finished is a receipt holding the same tokens.
   // Sign-out removes it first, so a finish from another tab cannot make a grant of it afterwards.
@@ -345,7 +448,7 @@ test("signing out deletes that session's grants, and only those; a failure there
   assert.equal(projectStatus(returned), "ready");
   const receipts = () => [...f.rows.keys()].filter(key => key.startsWith("receipt/")).length;
   assert.equal(receipts(), 1);
-  assert.equal(await f.auth.forget(f.cmd({}, binding(returned))), 6);
+  assert.equal(await f.auth.forget(f.cmd({}, binding(returned))), 7);
   assert.equal(receipts(), 0);
   assert.equal((await f.auth.consent(f.cmd({ action: "finish" }, binding(returned)))).status, 403, "the unfinished consent cannot be finished after sign-out");
   assert.equal(grants(), 0);
@@ -360,7 +463,7 @@ test("signing out deletes that session's grants, and only those; a failure there
   const removedTester = await fixture();
   assert.equal((await removedTester.approve("membership")).status, 200);
   removedTester.fake.allowed = false;
-  assert.equal(await removedTester.auth.forget(removedTester.cmd({})), 6);
+  assert.equal(await removedTester.auth.forget(removedTester.cmd({})), 7);
   assert.equal([...removedTester.rows.keys()].filter(key => key.startsWith("grant/")).length, 0);
 
   // A store that fails for some grants, or a time limit that has passed, stops nothing else.
@@ -370,7 +473,7 @@ test("signing out deletes that session's grants, and only those; a failure there
     resolveActor: async () => ({ did, sessionId: "weave-session" }),
     store: { ...flaky.store, withLock: async (id, run, signal) => { if (++locks % 2) throw new Error("database busy"); return flaky.store.withLock(id, run, signal); } } });
   assert.equal(await failing.forget(f.cmd({})), 3, "the removals that could run did");
-  assert.equal(locks, 6);
+  assert.equal(locks, 7);
   assert.equal(await failing.forget(f.cmd({}), AbortSignal.abort()), 0, "past its limit it starts nothing");
 });
 
@@ -402,6 +505,30 @@ test("a removed tester cannot start or complete an outstanding Certified authori
   f.fake.allowed = true;
   assert.equal(projectStatus(await f.auth.callback(f.oauth(pending))), "failed");
   assert.equal(f.fake.exchangeCount, 0);
+});
+
+test("only the read-only grant lets Certified skip its screen; every grant that can write asks each time", async () => {
+  const f = await fixture();
+  const writes = ["workspace-members", "create-project", "add-member", "publish-support", "withdraw-support"] as const;
+  for (const action of ["membership", ...writes]) await f.start(action);
+  assert.deepEqual(f.fake.prompts, [undefined, ...writes.map(() => "consent")]);
+  assert.equal(consentPrompt("membership"), undefined);
+  for (const action of [...writes, "finish", "unknown"]) assert.equal(consentPrompt(action), "consent");
+});
+
+test("a read approved without a screen still activates only for the signed-in DID and the exact read scope", async () => {
+  for (const mode of ["wrong-did", "broad", "write"] as const) {
+    const f = await fixture();
+    const pending = binding(await f.start("membership"));
+    if (mode === "wrong-did") f.fake.issuedDid = otherDid;
+    if (mode === "broad") f.fake.issuedScope = f.fake.scope + " transition:generic";
+    if (mode === "write") f.fake.issuedScope = requested(membership, register, create);
+    assert.equal(projectStatus(await f.auth.callback(f.oauth(pending))), "failed");
+    await assert.rejects(f.auth.assertGrant(f.cmd({}), did, [membership]), /project_consent_required/);
+  }
+  const f = await fixture();
+  assert.equal((record(await (await f.approve("membership")).json())).granted, "membership");
+  await f.auth.assertGrant(f.cmd({}), did, [membership]);
 });
 
 test("denial, wrong DID, partial and broadened grants never activate project OAuth", async () => {

@@ -18,6 +18,16 @@ const records = new Map<string, { owner: string; saved: SavedInitiative }>();
 const requests = new Map<string, { input: string; saved: SavedInitiative }>();
 /** Removed IDs stay reserved, as in the database candidate, so a stale first save cannot bring a card back. */
 const removed = new Map<string, { owner: string; requestId: string; deleted: DeletedInitiative }>();
+/**
+ * Whether anything else still refers to a card, such as a project link or a support listing. The project
+ * and matching fixtures register it, so deletion refuses as the database does
+ * (weave-initiative-deletion-stale-references.sql), with one generic code whatever the reference is.
+ */
+let referenced: (id: string) => boolean = () => false;
+export function fixtureReferences(check: (id: string) => boolean) { referenced = check; }
+/** Called once a card is deleted, so the matching fixture drops its entries and partners, as the database does. */
+let forget: (id: string) => void = () => {};
+export function fixtureDeleted(drop: (id: string) => void) { forget = drop; }
 const owner = (token: string) => {
   const id = sessions.get(token);
   if (!id) throw new AccountError(401, "sign_in_required");
@@ -112,7 +122,9 @@ const provider: AccountProvider = {
       throw new AccountError(404, "not_found");
     }
     if (row.saved.revision !== command.expectedRevision) throw new AccountError(409, "save_conflict");
+    if (referenced(command.id)) throw new AccountError(409, "initiative_referenced");
     records.delete(command.id);
+    forget(command.id);
     for (const [key, request] of requests) if (key.startsWith(`${id}:`) && request.saved.id === command.id) requests.delete(key);
     const deleted: DeletedInitiative = { id: command.id, deleted: true, revision: command.expectedRevision, removed: [command.id],
       kept: [...records.values()].filter((item) => item.owner === id).length };

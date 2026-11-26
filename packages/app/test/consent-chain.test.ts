@@ -8,47 +8,65 @@ function tab() {
     removeItem: (key: string) => { kept.delete(key); } }) };
 }
 
-test("project access follows only a finished sign-in that said it would, once", () => {
+const page = "/funding";
+
+test("project access follows only a finished sign-in, once, on the page it left from", () => {
   const t = tab();
   let now = 1_000_000;
-  expectProjectAccess(t.storage, () => now);
+  expectProjectAccess(t.storage, page, () => now);
   assert.equal(t.kept.size, 1);
   assert.doesNotMatch([...t.kept.values()].join(), /did:|@|[a-f\d]{8}-/u, "the note names nobody");
   now += 90_000;
-  assert.equal(takeProjectAccess(t.storage, "signed-in", true, () => now), true);
+  assert.equal(takeProjectAccess(t.storage, "signed-in", page, () => now), true);
   assert.equal(t.kept.size, 0, "reading it removes it");
-  assert.equal(takeProjectAccess(t.storage, "signed-in", true, () => now), false, "a reload never repeats the trip to Certified");
+  assert.equal(takeProjectAccess(t.storage, "signed-in", page, () => now), false, "a reload never repeats the trip to Certified");
 
-  // A sign-in from anywhere else leaves no note, so it only identifies the person.
-  assert.equal(takeProjectAccess(tab().storage, "signed-in", true, () => now), false);
+  // A sign-in from Save leaves no note, so it only identifies the person and returns to the card.
+  assert.equal(takeProjectAccess(tab().storage, "signed-in", page, () => now), false);
+  // Every page can be the one: the header, Settings, a card's page, Your Initiatives.
+  for (const from of ["/", "/settings", "/your-initiatives", "/funding/some-fund"]) {
+    const each = tab();
+    expectProjectAccess(each.storage, from, () => 0);
+    assert.equal(takeProjectAccess(each.storage, "signed-in", from, () => 1000), true, from);
+  }
 });
 
 test("a sign-in that did not finish, took too long or never started is followed by nothing", () => {
   for (const result of ["cancelled", "failed", "expired", null, "anything"]) {
     const t = tab();
-    expectProjectAccess(t.storage, () => 0);
-    assert.equal(takeProjectAccess(t.storage, result, true, () => 1000), false, String(result));
+    expectProjectAccess(t.storage, page, () => 0);
+    assert.equal(takeProjectAccess(t.storage, result, page, () => 1000), false, String(result));
     assert.equal(t.kept.size, 0, "and the note does not wait for a later sign-in");
   }
   const late = tab();
-  expectProjectAccess(late.storage, () => 0);
-  assert.equal(takeProjectAccess(late.storage, "signed-in", true, () => 10 * 60_000), false, "after ten minutes it is not acted on");
+  expectProjectAccess(late.storage, page, () => 0);
+  assert.equal(takeProjectAccess(late.storage, "signed-in", page, () => 10 * 60_000), false, "after ten minutes it is not acted on");
   const never = tab();
-  expectProjectAccess(never.storage, () => 0);
+  expectProjectAccess(never.storage, page, () => 0);
   forgetProjectAccess(never.storage);
-  assert.equal(takeProjectAccess(never.storage, "signed-in", true, () => 1000), false);
+  assert.equal(takeProjectAccess(never.storage, "signed-in", page, () => 1000), false);
 });
 
-test("a note that is malformed, set far ahead or unreadable is never acted on", () => {
-  for (const value of ["", "soon", "NaN", "1e99", String(1000 + 11 * 60_000)]) {
+test("a note that is malformed, set far ahead, names no page of Weave's or is unreadable is never acted on", () => {
+  const ahead = JSON.stringify({ until: 1000 + 11 * 60_000, page });
+  const old = String(1000 + 60_000);
+  for (const value of ["", "soon", "NaN", "1e99", "null", "[]", old, ahead, JSON.stringify({ until: 60_000, page: "https://elsewhere.test/" }),
+    JSON.stringify({ until: 60_000, page: "//elsewhere.test" }), JSON.stringify({ until: 60_000 }), JSON.stringify({ until: "60000", page })]) {
     const t = tab();
     t.kept.set("weave-sign-in-then-projects", value);
-    assert.equal(takeProjectAccess(t.storage, "signed-in", true, () => 1000), false, value);
+    assert.equal(takeProjectAccess(t.storage, "signed-in", page, () => 1000), false, value);
+    assert.equal(t.kept.size, 0, value);
+  }
+  for (const from of ["//elsewhere.test", "https://elsewhere.test/", "/funding?fund=1", "/a b", ""]) {
+    const t = tab();
+    t.kept.set("weave-sign-in-then-projects", "earlier");
+    expectProjectAccess(t.storage, from, () => 0);
+    assert.equal(t.kept.size, 0, `${from} is not a page to come back to, and an earlier note goes too`);
   }
   const blocked = () => { throw new Error("storage is blocked"); };
-  assert.doesNotThrow(() => expectProjectAccess(blocked));
+  assert.doesNotThrow(() => expectProjectAccess(blocked, page));
   assert.doesNotThrow(() => forgetProjectAccess(blocked));
-  assert.equal(takeProjectAccess(blocked, "signed-in", true), false);
+  assert.equal(takeProjectAccess(blocked, "signed-in", page), false);
 });
 
 test("the trip waits for device writes, never leaves unsaved words behind, and asks Certified once", async () => {
@@ -68,16 +86,16 @@ test("the trip waits for device writes, never leaves unsaved words behind, and a
   await assert.rejects(projectAccessAddress(device("saved", async () => { throw new Error("project_consent_failed"); })), /project_consent_failed/);
 });
 
-test("a sign-in that returns to any other page is followed by nothing, and its note is gone", () => {
+test("a sign-in that returns to another page than it left from is followed by nothing, and its note is gone", () => {
   const t = tab();
-  expectProjectAccess(t.storage, () => 0);
-  assert.equal(takeProjectAccess(t.storage, "signed-in", false, () => 1000), false, "the page that said what follows is the only one that goes on");
+  expectProjectAccess(t.storage, page, () => 0);
+  assert.equal(takeProjectAccess(t.storage, "signed-in", "/settings", () => 1000), false, "only the page it left from goes on");
   assert.equal(t.kept.size, 0);
-  // Pressing Sign In anywhere else clears an earlier note before leaving.
+  // A sign-in to save clears an earlier note before leaving.
   const stale = tab();
-  expectProjectAccess(stale.storage, () => 0);
+  expectProjectAccess(stale.storage, page, () => 0);
   forgetProjectAccess(stale.storage);
-  assert.equal(takeProjectAccess(stale.storage, "signed-in", true, () => 1000), false);
+  assert.equal(takeProjectAccess(stale.storage, "signed-in", page, () => 1000), false);
 });
 
 function clock() {
@@ -181,6 +199,24 @@ test("a person who moved on is not taken to Certified, and the address is droppe
   assert.equal(strict.pending(), false, "after 20 seconds the page stops waiting to leave");
   strict.returned();
   assert.equal(strict.pending(), false);
+});
+
+test("a person who went to another page of the app meanwhile is not taken to Certified", async () => {
+  const went: string[] = [], time = clock(), answer = deferred<string>();
+  let here = true;
+  const trip = new ProjectAccessTrip(true, (to) => went.push(to), time, () => here);
+  trip.attend();
+  trip.update(known, () => answer.promise);
+  here = false;
+  answer.resolve(address);
+  await settled();
+  assert.equal(went.length, 0, "the trip is mounted for the app, so the page it came back to decides");
+  assert.equal(trip.pending(), false);
+  const stayed = new ProjectAccessTrip(true, (to) => went.push(to), time, () => true);
+  stayed.attend();
+  stayed.update(known, async () => address);
+  await settled();
+  assert.deepEqual(went, [address]);
 });
 
 test("nobody signed in, or a check that never answers, ends the trip instead of holding the page", async () => {

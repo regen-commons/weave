@@ -17,6 +17,7 @@ test("each shared endpoint keeps the methods its own function exported", () => {
     matching: ["POST"],
     mcp: ["GET", "POST", "DELETE"],
     projects: ["POST"],
+    "public-initiative": ["GET"],
     "public-projects": ["GET"],
     "record-image": ["GET", "HEAD"],
     "record-page": ["GET", "HEAD"],
@@ -107,7 +108,12 @@ test("a recording reaches cloud speech through the router as it came: streamed, 
       return { text: "We grow seedlings" };
     },
   };
-  const router = createRouter({ transcribe: { methods: ["GET", "POST"], load: async () => createTranscribeHandlers({ provider: speech }) } });
+  const router = createRouter({
+    transcribe: {
+      methods: ["GET", "POST"],
+      load: async () => createTranscribeHandlers({ provider: speech, quota: async () => ({ allowed: true }) }),
+    },
+  });
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       for (let at = 0; at < audio.length; at += 65_536) controller.enqueue(audio.subarray(at, at + 65_536));

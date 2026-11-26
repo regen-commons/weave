@@ -84,7 +84,7 @@ for (const project of [greenGoods, techAndSun]) {
       await fixtureAccount(page, project);
       if (withDraft) await describeByTyping(page);
       await page.goto("/your-initiatives");
-      const certified = page.getByRole("region", { name: "On Certified" });
+      const certified = page.getByRole("region", { name: "Certified Projects" });
       await expect(certified.getByRole("button", { name: project.name })).toBeVisible();
       if (withDraft) await expect(page.getByRole("button", { name: "River Keepers" })).toBeVisible();
       const before = await deviceState(page);

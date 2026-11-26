@@ -1,8 +1,8 @@
 import { AccountError, createSupabaseAccountProvider } from "./account-provider.ts";
 import { accountConfiguration } from "./account-runtime.ts";
-import { createCertifiedProjectAuth, projectOAuthStore, type CertifiedProjectRpc } from "./certified-project-auth.ts";
+import { createCertifiedProjectAuth, ownRepositoryMethods, projectOAuthStore, type CertifiedProjectRpc } from "./certified-project-auth.ts";
 import { createCertifiedProjectProvider } from "./certified-project-provider.ts";
-import { createProjectCommands } from "./project-commands.ts";
+import { createPersonalProjectCommand, createProjectCommands } from "./project-commands.ts";
 import { createProjectDiscovery } from "./project-discovery.ts";
 import { createProjectDiscoveryStore } from "./project-discovery-store.ts";
 import { createProjectHandler } from "./project-http.ts";
@@ -78,6 +78,8 @@ async function createRuntime(env: NodeJS.ProcessEnv) {
         optionalGrant(() => auth.mintServiceAuth(request, actorDid, method, signal)),
       serviceProxy: ({ actorDid, method, init, query, signal }) =>
         optionalGrant(() => auth.proxyServiceRequest(request, actorDid, method, { ...init, signal }, query)),
+      ownRecordWrite: ({ actorDid, collection, rkey, record, signal }) =>
+        optionalGrant(() => auth.createOwnRecord(request, actorDid, collection, { rkey, record }, signal)),
     });
   }
   return {
@@ -115,6 +117,10 @@ async function createRuntime(env: NodeJS.ProcessEnv) {
             return createWorkspaceContent(provider, content, store).publicEvidence(actor, command.workspaceId);
           if (command.action === "team_load" || command.action === "team_save")
             return createWorkspaceContent(provider, content, store).saveOrLoad(actor, command);
+          if (command.action === "create_personal_project")
+            return createPersonalProjectCommand(provider, did => auth.assertGrant(request, did, [
+              ownRepositoryMethods.projectCreate, ownRepositoryMethods.locationCreate,
+            ]))(actor, command);
           if (command.action === "create") await auth.assertGrant(request, actor.did, [
             membership, "app.certified.group.register", "app.certified.group.repo.createRecord",
           ]);

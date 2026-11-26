@@ -520,10 +520,11 @@
 /* The count line: how much of the list is left, and under it one fact about the whole list. Each
    keeps set room, a line for the count and a line for the fact, two for the fact on a phone, so
    the bar is one height loading and loaded and the list under it does not move (DL-108). */
-.rc-filter-bar > .rc-meta { display: grid; }
-.rc-filter-bar > .rc-meta > :not(.rc-visually-hidden) { min-block-size: 1lh; }
+/* The count, the fact about the whole list and the way to the shortlist run on as one sentence
+   (DL-153), in room set for them: a line on a wide screen, two on a phone, loading or loaded (DL-108). */
+.rc-filter-bar > .rc-meta { min-block-size: 1lh; }
 @container (width < 37.5rem) {
-  .rc-filter-bar > .rc-meta > [data-part="note"] { min-block-size: 2lh; }
+  .rc-filter-bar > .rc-meta { min-block-size: 2lh; }
 }
 /* List end: the foot of a long list. It says how much of the list is on the page and holds Show
    More, which the keyboard uses and which waits once the list has stopped filling in on its own
@@ -755,6 +756,38 @@
 .rc-draft-status { display: flex; align-items: start; gap: var(--space-2); font: var(--type-body-sm); color: var(--text-muted); }
 /* Ask list and share card use the same card vocabulary on intake and finish. */
 .rc-ask-list { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+/* Read-only needs or offers (DL-150): two to a row, each card as tall as its neighbour, with its kinds of
+   support at the foot in room for two rows of tags, so a card naming several kinds lines up with one that
+   names one. The list's own section is the container, so a sheet and a page column decide alike. Below 37.5
+   rem it is one row that swipes sideways and rests on a card, with the next showing at the edge, as a
+   preview row does on a phone (DL-090); behaviors/carousel.js bounces it at either end (DL-128). */
+.rc-card-list:has(> .rc-ask-list[data-layout="pair"]) { container-type: inline-size; }
+.rc-ask-list[data-layout="pair"] { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+.rc-ask-list[data-layout="pair"] > li { display: grid; min-inline-size: 0; }
+.rc-ask-list[data-layout="pair"] .rc-ask-card { display: flex; flex-direction: column; }
+.rc-ask-list[data-layout="pair"] .rc-ask-foot { margin-block-start: auto; }
+.rc-ask-list[data-layout="pair"] .rc-ask-foot > .rc-tag-list { align-content: start; min-block-size: calc(2 * var(--tag-height) + var(--space-1)); }
+@container (width < 37.5rem) {
+  .rc-ask-list[data-layout="pair"] {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(100% - var(--space-8), var(--card-min-width));
+    margin: calc(var(--space-2) * -1) 0;
+    padding: var(--space-2) 0;
+    overflow-x: auto;
+    overscroll-behavior-x: none;
+    scroll-snap-type: inline mandatory;
+  }
+  .rc-ask-list[data-layout="pair"] > li { scroll-snap-align: start; }
+  .rc-ask-list[data-layout="pair"]:has(> li:only-child) { grid-auto-columns: 100%; }
+  @media (prefers-reduced-motion: no-preference) {
+    .rc-ask-list[data-layout="pair"][data-bounce] > li > * { animation: rc-bounce-start calc(var(--duration-slow) * 1.5) var(--ease-out); }
+    .rc-ask-list[data-layout="pair"][data-bounce="end"] > li > * { animation-name: rc-bounce-end; }
+  }
+  @media (pointer: coarse) {
+    .rc-ask-list[data-layout="pair"] { scrollbar-width: none; }
+  }
+}
 .rc-ask-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
 .rc-ask-count { font: var(--type-label-md); color: var(--text-secondary); white-space: nowrap; }
 .rc-share-card { display: grid; gap: var(--space-4); overflow-wrap: anywhere; }
