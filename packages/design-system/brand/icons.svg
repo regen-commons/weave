@@ -40,6 +40,10 @@
   <symbol id="filter" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M4 7h16M7 12h10M10 17h4"/></symbol>
   <!-- The signs a phone shows on the way to its home screen, for the install guide (DL-067). -->
   <symbol id="share" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V3.5M8 7l4-3.5L16 7"/><path d="M7.5 10.5H6A1.5 1.5 0 0 0 4.5 12v7A1.5 1.5 0 0 0 6 20.5h12a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5h-1.5"/></g></symbol>
+  <!-- The funding shortlist (DL-152): an outline to add a fund, the same shape filled once it is on the list. -->
+  <symbol id="bookmark" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M7 3.5h10a1 1 0 0 1 1 1v16l-6-4.25-6 4.25v-16a1 1 0 0 1 1-1z"/></symbol>
+  <symbol id="bookmarked" viewBox="0 0 24 24"><path fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M7 3.5h10a1 1 0 0 1 1 1v16l-6-4.25-6 4.25v-16a1 1 0 0 1 1-1z"/></symbol>
+  <symbol id="download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11M7.5 10 12 14.5l4.5-4.5"/><path d="M4.5 16v2.5A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5V16"/></g></symbol>
   <symbol id="add-box" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4.5" width="15" height="15" rx="3"/><path d="M12 8.5v7M8.5 12h7"/></g></symbol>
   <symbol id="more" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="12" cy="5.5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="18.5" r="1.4"/></g></symbol>
   <!-- The theme the header's switch changes to (DL-079). -->

@@ -5,18 +5,23 @@ import { accessSign, fundingEyebrow, opportunityHref } from "../funding/catalog.
 import { closingDay, deadlineSign } from "../funding/deadline.ts";
 import { fullDate } from "../home.ts";
 import { Link, routeSearch } from "../router.tsx";
+import { FundShortlistButton, type ShortlistChange } from "../shortlist/ShortlistButton.tsx";
 import { Card } from "./Card.tsx";
 import { FitLine } from "./Fit.tsx";
 import { Icon } from "./Icon.tsx";
 import { Tag } from "./Tag.tsx";
 
-/** One funding opportunity in a list. The whole card opens it, so it carries no button. */
+/**
+ * One funding opportunity in a list. The whole card opens it, so its one button is the shortlist
+ * toggle in its corner, above the card's link (DL-152).
+ */
 export function OpportunityCard({
   entry,
   search,
   result,
   teamLine,
   level = 2,
+  onShortlist,
 }: {
   entry: Entry;
   /**
@@ -28,11 +33,14 @@ export function OpportunityCard({
   /** What is known about the partners this call asks for. Left out when nothing is. */
   teamLine?: string;
   level?: 2 | 3;
+  /** Hears each press of the card's shortlist toggle. */
+  onShortlist?(change: ShortlistChange): void;
 }) {
   const Title = level === 3 ? "h3" : "h2";
   const fund = FundSchema.parse(programFund(entry.fund, entry.program));
   const access = effectiveAccess(fund);
   const sign = accessSign(access);
+  const name = entry.program?.name ?? fund.displayName;
   const funder = entry.program && entry.program.name !== fund.displayName ? fund.displayName : "";
   const deadline = fund.deadlineDate
     ? deadlineSign(closingDay(fund.deadlineDate, fund.deadlineInstant), access === "closed", new Date())
@@ -44,8 +52,9 @@ export function OpportunityCard({
         {fundingEyebrow(entry.program)}
       </p>
       <Title className="rc-card-title">
-        <Link href={opportunityHref(entry, search ?? routeSearch())}>{entry.program?.name ?? fund.displayName}</Link>
+        <Link href={opportunityHref(entry, search ?? routeSearch())}>{name}</Link>
       </Title>
+      <FundShortlistButton entry={entry} name={name} place="card" onChange={onShortlist} />
       {/* The funder's line keeps its room on every card, so cards are one height (DL-108). It is
           empty where the name above is already the funder's, and a long name is cut with its whole
           self one hover away. */}

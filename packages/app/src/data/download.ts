@@ -11,8 +11,13 @@ export function blobDataUrl(blob: Blob): Promise<string> {
   });
 }
 
-export function downloadJson(name: string, data: unknown): void {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+/**
+ * Hands the person a file made on this device, as the browser's own download. Nothing is uploaded:
+ * the file is a local object address, released once the browser has taken it.
+ */
+export function downloadFile(content: string | Uint8Array, name: string, type: string): void {
+  const body = typeof content === "string" ? content : new Uint8Array(content);
+  const url = URL.createObjectURL(new Blob([body], { type }));
   const link = document.createElement("a");
   link.href = url;
   link.download = name;
@@ -23,4 +28,8 @@ export function downloadJson(name: string, data: unknown): void {
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+}
+
+export function downloadJson(name: string, data: unknown): void {
+  downloadFile(JSON.stringify(data, null, 2), name, "application/json");
 }

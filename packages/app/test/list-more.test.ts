@@ -32,4 +32,5 @@ test("the line at the list's end says how much of it is on the page", () => {
   assert.equal(shownLine(1200, 12345, "projects"), "Showing 1,200 of 12,345 projects.");
   assert.equal(shownLine(40, 40, "projects"), "Showing all 40 projects.");
   assert.equal(shownLine(41, 40, "projects"), "Showing all 40 projects.", "never more than the whole");
+  assert.equal(shownLine(1, 1, "funds"), "Showing the only fund.", "a list of one names its one thing");
 });

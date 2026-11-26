@@ -1,6 +1,7 @@
 import { DeviceDraftSchema, type AiRun, type DeviceDraft } from "../describe/contracts.ts";
 import type { Attachment } from "../describe/source-contracts.ts";
 import type { DraftBackup } from "../describe/repository.ts";
+import type { FundItem, InitiativeItem } from "../shortlist/items.ts";
 
 type ReadBlob = (blob: Blob) => Promise<string>;
 async function filesForExport(files: readonly Attachment[], read: ReadBlob) {
@@ -23,6 +24,8 @@ export async function deviceExport(
   backups: readonly DraftBackup[],
   theme: string,
   read: ReadBlob,
+  /** The shortlists this browser keeps, of funds and of initiatives (DL-152, DL-153). */
+  shortlist: { readonly funds: readonly FundItem[]; readonly initiatives: readonly InitiativeItem[] } = { funds: [], initiatives: [] },
 ) {
   const current = await draftForExport(draft, read);
   const history = [];
@@ -33,6 +36,7 @@ export async function deviceExport(
     scope: "this-device",
     exportedAt: new Date().toISOString(),
     theme,
+    shortlist,
     current,
     backups: history,
   };

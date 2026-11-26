@@ -15,6 +15,14 @@ export type FundingFit = "strong" | "good" | "possible" | "low";
  */
 export const FIT_FLOORS: Readonly<Record<FundingFit, number>> = { strong: 60, good: 40, possible: 20, low: 0 };
 
+/** What each level is called, on a fit line and in an export (VOICE.md). Never a number. */
+export const FIT_LABELS: Readonly<Record<FundingFit, string>> = {
+  strong: "Strong fit",
+  good: "Good fit",
+  possible: "Possible fit",
+  low: "Low fit",
+};
+
 /** The level a thematic score reads as. Null where the rubric could not assess the program. */
 export function fundingFit(score: number | null): FundingFit | null {
   if (score === null || !Number.isFinite(score)) return null;

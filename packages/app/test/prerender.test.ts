@@ -57,7 +57,7 @@ test("only the drawing process's result line is read, and every address must hav
 test("the addresses with no link preview of their own are a person's pages and the steps, and search engines leave them out", () => {
   const previewed = new Set(LINK_PREVIEWS.map(previewFile));
   const unlisted = FIRST_VIEWS.filter((view) => !previewed.has(view.file)).map((view) => view.path).sort();
-  assert.deepEqual(unlisted, ["/partners", "/settings", "/start/needs", "/start/new", "/start/offers", "/your-initiative"]);
+  assert.deepEqual(unlisted, ["/partners", "/settings", "/start/needs", "/start/new", "/start/offers", "/your-initiative", "/your-initiatives/shortlist"]);
   const home = withPreview(PAGE.replace("<title>Weave</title>", '<title>Weave</title>\n    <meta name="description" content="x">'), LINK_PREVIEWS[0]!);
   const page = unlistedPage(home);
   assert.match(page, /<meta name="robots" content="noindex">/u);

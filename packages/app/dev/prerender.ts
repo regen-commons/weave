@@ -88,6 +88,7 @@ export const PAGE_MODULES: Readonly<Record<RouteName, string>> = {
   "initiative-detail": "RecordDetail.tsx",
   "team-workspace": "TeamWorkspace.tsx",
   settings: "Settings.tsx",
+  shortlist: "Shortlist.tsx",
   "your-initiative": "YourInitiative.tsx",
   "your-initiatives": "YourInitiatives.tsx",
 };

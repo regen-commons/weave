@@ -520,6 +520,11 @@
 /* The actions keep their width beside the line, and wrap their labels only when they are wider than
    the row on their own, as at 200 percent text on a phone, so no button runs off the screen. */
 .rc-status-line > .rc-action-bar { flex: 0 1 auto; min-inline-size: 0; }
+/* A line that stands in for a side panel shows only where the panel is not drawn (DL-153). It uses
+   the panel's own measure, the width of the page's content, so exactly one of the two is ever shown. */
+@container (min-width: 56.25rem) {
+  .rc-status-line[data-until="wide"] { display: none; }
+}
 
 /* Save status: always says where the work lives. */
 .rc-save-status {
@@ -668,6 +673,17 @@ a.rc-save-status:active { color: var(--on-surface); }
 /* The last line sits at the foot, so cards in a row end together. */
 .rc-card[data-layout="listing"] > :last-child { margin-block-start: auto; }
 .rc-card .rc-tooltip-wrap { position: relative; z-index: 1; }
+/* A card's own toggle (DL-152), such as a funding card's shortlist button: an Icon button in the
+   card's top corner, above the title's stretched link, so pressing it never opens the card. The
+   eyebrow and title keep clear of it. It follows the title in the source, so the keyboard reaches
+   the card first and its toggle next. */
+.rc-card-toggle {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: calc(var(--card-padding) - var(--space-2));
+  inset-inline-end: calc(var(--card-padding) - var(--space-2));
+}
+.rc-card:has(> .rc-card-toggle) > :is(.rc-eyebrow, .rc-card-title) { padding-inline-end: calc(var(--control-sm-height) + var(--space-1)); }
 /* On a phone a list card holds only what it has (DL-090): it keeps no room for a picture it does
    not have. Where the card opens from its name it is one target, so a tag in it is a label under
    the card's own link and not a button of its own a finger could hit by mistake. What the tag

@@ -15,6 +15,7 @@ export type RouteName =
   | "initiative-detail"
   | "opportunity"
   | "settings"
+  | "shortlist"
   | "team-workspace";
 /** The four tabs. A page inside one keeps that tab marked. */
 export type Section = "home" | "funding" | "initiatives" | "your-initiatives";
@@ -113,6 +114,14 @@ export const ROUTES: readonly Route[] = [
     section: "funding",
     parent: "funding",
     sheet: true,
+  },
+  {
+    name: "shortlist",
+    path: "/your-initiatives/shortlist",
+    title: "Your Shortlist",
+    form: false,
+    section: "your-initiatives",
+    parent: "your-initiatives",
   },
   {
     name: "settings",

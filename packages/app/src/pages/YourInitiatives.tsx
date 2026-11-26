@@ -22,7 +22,8 @@ import { Card, CardGrid } from "../ui/Card.tsx";
 import { EmptyState } from "../ui/EmptyState.tsx";
 import { Heading } from "../ui/Heading.tsx";
 import { Section } from "../ui/Section.tsx";
-import { Doorway, ListLayout } from "../ui/layouts.tsx";
+import { Doorway, ListLayout, StepLayout } from "../ui/layouts.tsx";
+import { ShortlistLine, ShortlistRail } from "../shortlist/ShortlistPanel.tsx";
 import { useAccount } from "../account/context.tsx";
 import { accountKey } from "../account/document.ts";
 import { useSetAside } from "../account/set-aside.ts";
@@ -285,6 +286,8 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
           <Heading level={1} size="page">
             Your Initiatives
           </Heading>
+          {/* A welcome has no side panel, so the shortlist is one line here at every width (DL-153). */}
+          <ShortlistLine />
           {consentNotice}
           <p className="rc-prose">Sign in with Certified to open your projects and what you saved in Weave.</p>
           {live && <PendingInvite />}
@@ -302,46 +305,49 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
     );
   if (!state.identity)
     return (
-      <ListLayout>
-        <Heading level={1} size="page">
-          Your Initiatives
-        </Heading>
-        {consentNotice}
-        {live && <PendingInvite />}
-        {listed.length > 0 && <CardGrid>{listed.map((item) => draftCard(item, null))}</CardGrid>}
-        {checking ? (
-          <div aria-busy="true">
-            <p className="rc-visually-hidden" role="status">
-              Checking your account
-            </p>
-            <CardGridSkeleton kind="own" count={2} />
-          </div>
-        ) : (
-          // The card above is already here and usable, so signing in is an offer, never a gate.
-          <section className="rc-notice" data-tone="info" aria-labelledby="initiatives-sign-in">
-            <div className="rc-notice-body">
-              <h2 className="rc-notice-title" id="initiatives-sign-in">
-                Sign in to save and open on another device
-              </h2>
-              <p>
-                {listed.length === 1 ? "Your initiative is" : "Your initiatives are"} kept in this browser only.{" "}
-                {live ? SIGN_IN.withProjects : SIGN_IN.effect}
+      <StepLayout wide asideFrom="wide" aside={<ShortlistRail />}>
+        <ListLayout>
+          <Heading level={1} size="page">
+            Your Initiatives
+          </Heading>
+          <ShortlistLine until="wide" />
+          {consentNotice}
+          {live && <PendingInvite />}
+          {listed.length > 0 && <CardGrid>{listed.map((item) => draftCard(item, null))}</CardGrid>}
+          {checking ? (
+            <div aria-busy="true">
+              <p className="rc-visually-hidden" role="status">
+                Checking your account
               </p>
-              <div className="rc-action-bar">
-                <SignInButton />
-                <AboutCertified />
-              </div>
-              <SignInReturnNotice />
+              <CardGridSkeleton kind="own" count={2} />
             </div>
-          </section>
-        )}
-        <div className="rc-action-bar">{startAction("quiet")}{removeAction}</div>
-        {/* Said, not drawn: the card that was pressed is already busy, and a new line would push the page down. */}
-        {busy && <p className="rc-visually-hidden" role="status">Opening</p>}
-        {note}
-        {removeDialog}
-        <PhoneSettings />
-      </ListLayout>
+          ) : (
+            // The card above is already here and usable, so signing in is an offer, never a gate.
+            <section className="rc-notice" data-tone="info" aria-labelledby="initiatives-sign-in">
+              <div className="rc-notice-body">
+                <h2 className="rc-notice-title" id="initiatives-sign-in">
+                  Sign in to save and open on another device
+                </h2>
+                <p>
+                  {listed.length === 1 ? "Your initiative is" : "Your initiatives are"} kept in this browser only.{" "}
+                  {live ? SIGN_IN.withProjects : SIGN_IN.effect}
+                </p>
+                <div className="rc-action-bar">
+                  <SignInButton />
+                  <AboutCertified />
+                </div>
+                <SignInReturnNotice />
+              </div>
+            </section>
+          )}
+          <div className="rc-action-bar">{startAction("quiet")}{removeAction}</div>
+          {/* Said, not drawn: the card that was pressed is already busy, and a new line would push the page down. */}
+          {busy && <p className="rc-visually-hidden" role="status">Opening</p>}
+          {note}
+          {removeDialog}
+          <PhoneSettings />
+        </ListLayout>
+      </StepLayout>
     );
   // A draft can stand for any saved card. A personal save that is also a workspace is listed by
   // itself once, as the workspace.
@@ -447,206 +453,211 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
     go(pathTo("initiative"));
   }
   return (
-    <ListLayout>
-      <Heading level={1} size="page">
-        Your Initiatives
-      </Heading>
-      {consentNotice}
-      {live && <PendingInvite />}
-      {/* Certified's permission screens come back here, so a publication waiting in this tab is offered first. */}
-      {waitingPublication && (
-        <StatusLine actions={
-          <button className="rc-button" data-variant="primary" data-size="sm" type="button" disabled={busy}
-            onClick={() => void run(() => openDraft(waitingPublication))}>Continue Publishing</button>
-        }>
-          {`Publishing ${cardName(waitingPublication)} is waiting where you left it. Nothing is public until you confirm.`}
-        </StatusLine>
-      )}
-      {handoff && (
-        <StatusLine actions={<ProjectAction variant="primary" />}>
-          {`Back from ${PROJECT_EDITORS[handoff.editor].name}? Link the project you published.`}
-        </StatusLine>
-      )}
-      {/* What is only in this browser (DL-134). Nobody else can see it until it is published or saved. */}
-      {deviceEntries.length > 0 && (
-        <Section id="initiatives-device" title="On This Device"
-          note="Kept only in this browser. Nobody else can see these until you publish one to a Certified project.">
-          <CardGrid>{deviceEntries.map((entry) => draftCard(entry.draft, entry.saved))}</CardGrid>
-          <div className="rc-action-bar">{removeAction}</div>
-        </Section>
-      )}
-      {/* Everything that is a Certified project, or a draft linked to one. A failed read is not an
-          empty list, so it says so with its retry, and what was read stays. */}
-      {(certified || loading || social.problem || noProjectYet) && (
-        <Section id="initiatives-certified" title="Certified Projects"
-          note="Public on Certified, where each project's name, description and place are edited. What you publish from Weave adds needs and offers that anyone can read.">
-          {certified && (
-            <CardGrid>
-              {certifiedDrafts.map((entry) => draftCard(entry.draft, entry.saved))}
-              {listedWorkspaces.map(record => (
-                <li key={record.uri}><Card><h3 className="rc-card-title"><button type="button" disabled={busy}
-                  onClick={() => void run(() => openRecord(record))}>{record.name}</button></h3>
-                  {kindTags([projectKind({ group: record.group, workspace: true })])}
-                  <p className="rc-card-meta">{record.group ? (record.accessRole === "viewer" ? "You can view." : record.accessRole === "admin" ? "You manage teammates." : "You can edit.") : "Only you work on it."}</p>
-                </Card></li>
-              ))}
-              {!loading && records.map((record) => (
-                <li key={record.uri}>
-                  <Card>
-                    <h3 className="rc-card-title">
-                      <button type="button" disabled={busy} onClick={() => void run(() => openRecord(record))}>
-                        {record.name}
-                      </button>
-                    </h3>
-                    {kindTags([projectKind(record)])}
-                    <p className="rc-card-meta">{record.group ? projectLine(record) : "Only you work on it."}</p>
-                  </Card>
-                </li>
-              ))}
-            </CardGrid>
-          )}
-          {/* The shape of the cards that arrive. */}
-          {loading && (
-            <div aria-busy="true">
-              <p className="rc-visually-hidden" role="status">
-                Checking your Certified projects
-              </p>
-              <CardGridSkeleton kind="own" count={2} />
-            </div>
-          )}
-          {social.problem && !continuing && (
-            <section className="rc-notice" data-tone="warning" aria-label="Certified projects">
-              <div className="rc-notice-body">
-                <p role="status">{social.problem}</p>
-                <div className="rc-action-bar">
-                  {social.consent ? <ConsentButton action="membership" /> : (
-                    <button className="rc-button" data-variant="secondary" type="button" onClick={() => void social.reload?.()}>Try Again</button>
-                  )}
-                </div>
+    // The shortlist sits beside the person's own work on a wide screen, in what was an empty third
+    // column, and is one line under the heading on a phone, so their initiatives stay first (DL-153).
+    <StepLayout wide asideFrom="wide" aside={<ShortlistRail />}>
+      <ListLayout>
+        <Heading level={1} size="page">
+          Your Initiatives
+        </Heading>
+        <ShortlistLine until="wide" />
+        {consentNotice}
+        {live && <PendingInvite />}
+        {/* Certified's permission screens come back here, so a publication waiting in this tab is offered first. */}
+        {waitingPublication && (
+          <StatusLine actions={
+            <button className="rc-button" data-variant="primary" data-size="sm" type="button" disabled={busy}
+              onClick={() => void run(() => openDraft(waitingPublication))}>Continue Publishing</button>
+          }>
+            {`Publishing ${cardName(waitingPublication)} is waiting where you left it. Nothing is public until you confirm.`}
+          </StatusLine>
+        )}
+        {handoff && (
+          <StatusLine actions={<ProjectAction variant="primary" />}>
+            {`Back from ${PROJECT_EDITORS[handoff.editor].name}? Link the project you published.`}
+          </StatusLine>
+        )}
+        {/* What is only in this browser (DL-134). Nobody else can see it until it is published or saved. */}
+        {deviceEntries.length > 0 && (
+          <Section id="initiatives-device" title="On This Device"
+            note="Kept only in this browser. Nobody else can see these until you publish one to a Certified project.">
+            <CardGrid>{deviceEntries.map((entry) => draftCard(entry.draft, entry.saved))}</CardGrid>
+            <div className="rc-action-bar">{removeAction}</div>
+          </Section>
+        )}
+        {/* Everything that is a Certified project, or a draft linked to one. A failed read is not an
+            empty list, so it says so with its retry, and what was read stays. */}
+        {(certified || loading || social.problem || noProjectYet) && (
+          <Section id="initiatives-certified" title="Certified Projects"
+            note="Public on Certified, where each project's name, description and place are edited. What you publish from Weave adds needs and offers that anyone can read.">
+            {certified && (
+              <CardGrid>
+                {certifiedDrafts.map((entry) => draftCard(entry.draft, entry.saved))}
+                {listedWorkspaces.map(record => (
+                  <li key={record.uri}><Card><h3 className="rc-card-title"><button type="button" disabled={busy}
+                    onClick={() => void run(() => openRecord(record))}>{record.name}</button></h3>
+                    {kindTags([projectKind({ group: record.group, workspace: true })])}
+                    <p className="rc-card-meta">{record.group ? (record.accessRole === "viewer" ? "You can view." : record.accessRole === "admin" ? "You manage teammates." : "You can edit.") : "Only you work on it."}</p>
+                  </Card></li>
+                ))}
+                {!loading && records.map((record) => (
+                  <li key={record.uri}>
+                    <Card>
+                      <h3 className="rc-card-title">
+                        <button type="button" disabled={busy} onClick={() => void run(() => openRecord(record))}>
+                          {record.name}
+                        </button>
+                      </h3>
+                      {kindTags([projectKind(record)])}
+                      <p className="rc-card-meta">{record.group ? projectLine(record) : "Only you work on it."}</p>
+                    </Card>
+                  </li>
+                ))}
+              </CardGrid>
+            )}
+            {/* The shape of the cards that arrive. */}
+            {loading && (
+              <div aria-busy="true">
+                <p className="rc-visually-hidden" role="status">
+                  Checking your Certified projects
+                </p>
+                <CardGridSkeleton kind="own" count={2} />
               </div>
-            </section>
-          )}
-          {noProjectYet && <p className="rc-meta">You have no project on Certified yet.</p>}
-        </Section>
-      )}
-      {/* Saved in the Weave account before. Opened, downloaded or deleted here; never moved or published. */}
-      {(privateEntries.length > 0 || moreSaves || removable.length > 0) && (
-        <Section id="initiatives-private" title="Private Weave Saves"
-          note="Copies saved in your Weave account. Only you can see them, when signed in. Nothing here is public or shared for matching.">
-          {privateEntries.length > 0 && (
-            <CardGrid>
-              {privateEntries.map((entry) => (
-                <li key={entry.card.id}>
-                  <Card>
-                    <h3 className="rc-card-title">
-                      <button type="button" disabled={busy} onClick={() => void run(() => openCard(entry.card))}>
-                        {entry.card.name}
-                      </button>
-                    </h3>
-                    {kindTags(["private"])}
-                    <p className="rc-card-meta">Saved on {fullDate(entry.card.savedOn)}.</p>
-                  </Card>
-                </li>
-              ))}
-            </CardGrid>
-          )}
-          <div className="rc-action-bar">
-            {moreSaves && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-              onClick={() => void run(async () => { await service.moreCards?.(); })}>More Private Saves</button>}
-            {live && state.cards.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-              onClick={() => void run(downloadSaves)}>Download Private Saves</button>}
-            {removable.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-              onClick={() => { setMessage(""); setDeleting(true); }}>Delete A Saved Card</button>}
-          </div>
-        </Section>
-      )}
-      {!!state.setupRequests?.length && <Section id="setup-requests" title="Workspace Requests">
-        <ul className="rc-ask-summary">{state.setupRequests.map(request => <li key={request.requestId}><strong>{request.name}</strong>
-          <p className="rc-meta">Approval sets up the team's workspace. The requester still needs an explicit access grant.</p>
-          <button className="rc-button" data-variant="secondary" type="button" disabled={busy}
-            onClick={() => void run(async () => { await service.approveSetup?.(request.projectUri, request.requestId); })}>Approve Workspace</button>
-        </li>)}</ul>
-      </Section>}
-      {empty && (
-        <EmptyState
-          title="Nothing here yet"
-          action={
-            <button className="rc-button" data-variant="primary" type="button" disabled={busy} onClick={() => void run(startNew)}>
-              Start An Initiative
-            </button>
-          }
-        >
-          Your Certified projects and what you save in Weave appear here.
-        </EmptyState>
-      )}
-      <div className="rc-action-bar">
-        {/* An empty list already offers to start one, so the page offers it once. */}
-        {!empty && startAction("quiet")}
-        {/* Drafts linked to a project are on this device too; with no other drafts the removal is offered here. */}
-        {deviceEntries.length === 0 && removeAction}
-        {/* A phone has the Settings section below in its place. */}
-        <ButtonLink href={pathTo("settings")} variant="quiet" from="wide">
-          Settings
-        </ButtonLink>
-      </div>
-      {setAside && (
-        <p className="rc-meta">A card from another account is on this device. It opens again when that account signs in.</p>
-      )}
-      <PhoneSettings />
-      {/* The account is not what people come here for, so it closes the page. */}
-      <div className="rc-action-bar">
-        <p className="rc-meta">{state.identity.handle ? `Signed in as ${state.identity.handle}.` : "Signed in with Certified."}</p>
-        <button
-          className="rc-button"
-          data-variant="quiet"
-          data-size="sm"
-          type="button"
-          disabled={busy}
-          onClick={() =>
-            void run(async () => {
-              await service.signOut();
-              setMessage("You are signed out. What is in this browser is still here.");
-            })
-          }
-        >
-          Sign Out
-        </button>
-      </div>
-      {/* Said, not drawn: the card that was pressed is already busy, and a new line would push the page down. */}
-      {busy && <p className="rc-visually-hidden" role="status">Opening</p>}
-      {note}
-      {service.deleteCard && (
-        <DeleteSavedCard open={deleting} cards={removable} onClose={() => setDeleting(false)}
-          onDelete={async (card, requestId, removeCopies) => {
-            const result = await service.deleteCard!(card, requestId);
-            refresh();
-            // Only once the account confirmed: the copies on this device go to the backups, as chosen before the press.
-            return removeCopies ? backUpCopies(controller, result, card.copies) : result;
-          }}
-          onReload={async () => { await (social.reload?.() ?? service.checkAgain()); refresh(); }}
-          onDeleted={(text) => { setDeleting(false); setFailed(false); setMessage(text); refresh(); }} />
-      )}
-      {removeDialog}
-      <TaskDialog title="Your Project" open={!!choosing} onClose={() => setChoosing(null)}>
-        {choosing && (
-          <ProjectStep
-            key={choosing.uri}
-            initial={choosing.uri}
-            onDone={() => setChoosing(null)}
-            onCancel={() => setChoosing(null)}
-            alternative={forDraft ? undefined :
-              <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
-                onClick={() => {
-                  const record = choosing;
-                  setChoosing(null);
-                  void run(() => startFrom(record));
-                }}>
-                Start A Separate Card
+            )}
+            {social.problem && !continuing && (
+              <section className="rc-notice" data-tone="warning" aria-label="Certified projects">
+                <div className="rc-notice-body">
+                  <p role="status">{social.problem}</p>
+                  <div className="rc-action-bar">
+                    {social.consent ? <ConsentButton action="membership" /> : (
+                      <button className="rc-button" data-variant="secondary" type="button" onClick={() => void social.reload?.()}>Try Again</button>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
+            {noProjectYet && <p className="rc-meta">You have no project on Certified yet.</p>}
+          </Section>
+        )}
+        {/* Saved in the Weave account before. Opened, downloaded or deleted here; never moved or published. */}
+        {(privateEntries.length > 0 || moreSaves || removable.length > 0) && (
+          <Section id="initiatives-private" title="Private Weave Saves"
+            note="Copies saved in your Weave account. Only you can see them, when signed in. Nothing here is public or shared for matching.">
+            {privateEntries.length > 0 && (
+              <CardGrid>
+                {privateEntries.map((entry) => (
+                  <li key={entry.card.id}>
+                    <Card>
+                      <h3 className="rc-card-title">
+                        <button type="button" disabled={busy} onClick={() => void run(() => openCard(entry.card))}>
+                          {entry.card.name}
+                        </button>
+                      </h3>
+                      {kindTags(["private"])}
+                      <p className="rc-card-meta">Saved on {fullDate(entry.card.savedOn)}.</p>
+                    </Card>
+                  </li>
+                ))}
+              </CardGrid>
+            )}
+            <div className="rc-action-bar">
+              {moreSaves && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+                onClick={() => void run(async () => { await service.moreCards?.(); })}>More Private Saves</button>}
+              {live && state.cards.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+                onClick={() => void run(downloadSaves)}>Download Private Saves</button>}
+              {removable.length > 0 && <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+                onClick={() => { setMessage(""); setDeleting(true); }}>Delete A Saved Card</button>}
+            </div>
+          </Section>
+        )}
+        {!!state.setupRequests?.length && <Section id="setup-requests" title="Workspace Requests">
+          <ul className="rc-ask-summary">{state.setupRequests.map(request => <li key={request.requestId}><strong>{request.name}</strong>
+            <p className="rc-meta">Approval sets up the team's workspace. The requester still needs an explicit access grant.</p>
+            <button className="rc-button" data-variant="secondary" type="button" disabled={busy}
+              onClick={() => void run(async () => { await service.approveSetup?.(request.projectUri, request.requestId); })}>Approve Workspace</button>
+          </li>)}</ul>
+        </Section>}
+        {empty && (
+          <EmptyState
+            title="Nothing here yet"
+            action={
+              <button className="rc-button" data-variant="primary" type="button" disabled={busy} onClick={() => void run(startNew)}>
+                Start An Initiative
               </button>
             }
-          />
+          >
+            Your Certified projects and what you save in Weave appear here.
+          </EmptyState>
         )}
-      </TaskDialog>
-    </ListLayout>
+        <div className="rc-action-bar">
+          {/* An empty list already offers to start one, so the page offers it once. */}
+          {!empty && startAction("quiet")}
+          {/* Drafts linked to a project are on this device too; with no other drafts the removal is offered here. */}
+          {deviceEntries.length === 0 && removeAction}
+          {/* A phone has the Settings section below in its place. */}
+          <ButtonLink href={pathTo("settings")} variant="quiet" from="wide">
+            Settings
+          </ButtonLink>
+        </div>
+        {setAside && (
+          <p className="rc-meta">A card from another account is on this device. It opens again when that account signs in.</p>
+        )}
+        <PhoneSettings />
+        {/* The account is not what people come here for, so it closes the page. */}
+        <div className="rc-action-bar">
+          <p className="rc-meta">{state.identity.handle ? `Signed in as ${state.identity.handle}.` : "Signed in with Certified."}</p>
+          <button
+            className="rc-button"
+            data-variant="quiet"
+            data-size="sm"
+            type="button"
+            disabled={busy}
+            onClick={() =>
+              void run(async () => {
+                await service.signOut();
+                setMessage("You are signed out. What is in this browser is still here.");
+              })
+            }
+          >
+            Sign Out
+          </button>
+        </div>
+        {/* Said, not drawn: the card that was pressed is already busy, and a new line would push the page down. */}
+        {busy && <p className="rc-visually-hidden" role="status">Opening</p>}
+        {note}
+        {service.deleteCard && (
+          <DeleteSavedCard open={deleting} cards={removable} onClose={() => setDeleting(false)}
+            onDelete={async (card, requestId, removeCopies) => {
+              const result = await service.deleteCard!(card, requestId);
+              refresh();
+              // Only once the account confirmed: the copies on this device go to the backups, as chosen before the press.
+              return removeCopies ? backUpCopies(controller, result, card.copies) : result;
+            }}
+            onReload={async () => { await (social.reload?.() ?? service.checkAgain()); refresh(); }}
+            onDeleted={(text) => { setDeleting(false); setFailed(false); setMessage(text); refresh(); }} />
+        )}
+        {removeDialog}
+        <TaskDialog title="Your Project" open={!!choosing} onClose={() => setChoosing(null)}>
+          {choosing && (
+            <ProjectStep
+              key={choosing.uri}
+              initial={choosing.uri}
+              onDone={() => setChoosing(null)}
+              onCancel={() => setChoosing(null)}
+              alternative={forDraft ? undefined :
+                <button className="rc-button" data-variant="quiet" type="button" disabled={busy}
+                  onClick={() => {
+                    const record = choosing;
+                    setChoosing(null);
+                    void run(() => startFrom(record));
+                  }}>
+                  Start A Separate Card
+                </button>
+              }
+            />
+          )}
+        </TaskDialog>
+      </ListLayout>
+    </StepLayout>
   );
 }

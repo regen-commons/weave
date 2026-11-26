@@ -25,7 +25,14 @@ test("device export retains unfinished words, original file bytes from every ste
     { composer: "Earlier draft", attachments: [file("unread.bin", new Uint8Array([9]))] },
     true,
   );
-  const result = await deviceExport(draft, [{ key: "backup-one", draft: backup }], "dark", encode);
+  const shortlist = {
+    funds: [{ id: "river::small", name: "Small grants", funder: "River fund", addedAt: "2026-11-26T10:00:00.000Z" }],
+    initiatives: [{
+      id: "at://did:plc:abcdefghijklmnopqrstuvwx/org.hypercerts.collection/3lbmwj6wdkc2a",
+      name: "Seed library", publisher: "Lagoa", addedAt: "2026-11-26T10:00:00.000Z",
+    }],
+  };
+  const result = await deviceExport(draft, [{ key: "backup-one", draft: backup }], "dark", encode, shortlist);
   assert.equal(result.scope, "this-device");
   assert.equal(result.current.composer, "Words not submitted yet");
   assert.equal(result.current.turns[0]!.text, "Unfinished source words stay in the device export.");
@@ -38,6 +45,7 @@ test("device export retains unfinished words, original file bytes from every ste
   );
   assert.equal(result.backups[0]!.draft.composer, "Earlier draft");
   assert.equal(result.theme, "dark");
+  assert.deepEqual(result.shortlist, shortlist, "both shortlists are part of what this device holds (DL-152, DL-153)");
   assert.ok(draft.attachments[0]!.blob instanceof Blob);
 });
 test("a failed file read rejects the export without discarding its source", async () => {
