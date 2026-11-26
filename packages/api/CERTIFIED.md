@@ -896,9 +896,11 @@ matching vectors and support publication. Then apply
 `weave-initiative-deletion-stale-references.sql`, which replaces the command. The command
 checks the owner, the exact ID and the revision before it removes anything. It then
 removes the card, its needs and offers (any still shared for matching stop being shared,
-as after a withdrawal), that owner's save and matching receipts, any expired matching
-review and a project setup that finished or that Certified refused, and keeps a tombstone
-so the ID never returns. A first save of a removed ID
+as after a withdrawal), that owner's saved partners, query vectors, save and matching
+receipts, any expired matching review, and a project setup that finished or was marked
+`group_rejected`, and keeps a tombstone so the ID never returns. A setup is marked
+`group_rejected` after a refused registration, a timeout or a server error, so a group may
+exist on Certified; its record is the only row tying that group to the card. A first save of a removed ID
 fails with `initiative_deleted`, and the app then saves the words as a new card; an
 old revision is not found. These cases are refused, with the stable code:
 
@@ -907,7 +909,7 @@ old revision is not found. These cases are refused, with the stable code:
 | No session | `sign_in_required` |
 | Another owner's card, a team document, a removed card | `not_found` |
 | A different revision | `save_conflict` |
-| A project link, a project setup still under way, an open matching review, lead or query vector, a support listing, review or request, or another account's save or matching receipt | `initiative_referenced` |
+| A project link, a project setup still under way, an open matching review, a support listing, review or request, or another account's save or matching receipt | `initiative_referenced` |
 
 `initiative-deletion-postgres.test.ts` needs a disposable loopback database
 named `weave_deletion_test` in `WEAVE_DELETION_TEST_DATABASE_URL`. It also needs the

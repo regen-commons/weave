@@ -379,7 +379,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       } catch (error) {
         // The account gives one code for every reference. Say only what Weave can verify (QA notes, 25 November 2026).
         if (error instanceof AccountFailure && error.code === "initiative_referenced" && !(error instanceof CardReferenced))
-          throw new CardReferenced(await cardReferences(card.id, state.workspaces ?? [], request, signal));
+          throw new CardReferenced(cardReferences(card.id, state.workspaces ?? []));
         throw error;
       } finally {
         // The account list is the authority afterwards, whether the card went or was refused.
