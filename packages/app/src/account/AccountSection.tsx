@@ -1,5 +1,5 @@
 import { busyProps } from "./busy.ts";
-import { expectProjectAccess, forgetProjectAccess } from "../initiative/consent-chain.ts";
+import { expectProjectAccess } from "../initiative/consent-chain.ts";
 import { SignOutAction } from "./SignOutAction.tsx";
 import { useEffect, useId, useState } from "react";
 import { parseSummaries, type InitiativeSummary } from "@weave/api/account-contract";
@@ -7,9 +7,8 @@ import { useSetAside } from "./set-aside.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { Link, navigate } from "../router.tsx";
 import { pathTo } from "../routes.ts";
-import { accountKey, saveBlocker } from "./document.ts";
 import { accountRequest, assertAccount } from "./client.ts";
-import { loadAccountCard, saveAccountCard } from "./actions.ts";
+import { loadAccountCard } from "./actions.ts";
 import { settleActionFailure } from "./action-failure.ts";
 import { useAccount } from "./context.tsx";
 import { continueToCertified, signInReturnFailed, signInReturnMessage } from "./sign-in.ts";
@@ -27,7 +26,6 @@ export function AccountSection({
   onBeginCard,
   onNotNow,
   onSignInStart,
-  forSaving = false,
 }: {
   compact?: boolean;
   autoFocus?: boolean;
@@ -43,11 +41,6 @@ export function AccountSection({
   onNotNow?: () => void;
   /** Told as the person leaves for Certified from here, so the place they left can be reopened. */
   onSignInStart?: () => void;
-  /**
-   * The person is signing in to save a card, so the sign-in returns to that card and asks nothing more.
-   * Any other sign-in goes on to project access (DL-137).
-   */
-  forSaving?: boolean;
 }) {
   const id = useId();
   const Title = compact ? "h3" : "h2";
@@ -70,9 +63,6 @@ export function AccountSection({
     setPage(null);
     setMore(true);
   }, [owner]);
-  const key = accountKey(draft),
-    saved = draft.account.saved;
-  const currentSaved = !!state?.user && saved?.owner === state.user.id && saved.contentKey === key && savedCheck === "present";
   async function run(action: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -102,18 +92,6 @@ export function AccountSection({
   /** The attributes of the button named `name`; `blocked` is any other reason it cannot be used. */
   const pressed = (name: string, blocked = false) => busyProps(busy && acting === name, busy || blocked);
   const spinner = (name: string) => busy && acting === name && <span className="rc-spinner" aria-hidden="true" />;
-  async function save() {
-    const user = state?.user;
-    if (!user) throw new Error("Sign in before saving.");
-    const contentKey = await saveAccountCard(controller, user.id, refresh);
-    setPage(null);
-    setMore(true);
-    setMessage(
-      accountKey(controller.getSnapshot().draft) === contentKey
-        ? "Saved privately in Weave. Review any entries you want to share in Partners."
-        : "The earlier checked card was saved. Your latest changes are still on this device; save again when ready.",
-    );
-  }
   /** A new initiative is a draft of its own, so nothing is asked and nothing is backed up (DL-112). */
   async function beginCard() {
     await controller.startNew();
@@ -130,10 +108,10 @@ export function AccountSection({
     <section className="rc-stack" aria-labelledby={heading ? `${id}-title` : undefined} aria-busy={busy}>
       {heading && (
         <Title className="rc-heading" data-size="section" id={`${id}-title`}>
-          {compact ? "Save Your Initiative" : "Your Account"}
+          {compact ? "Sign In" : "Your Account"}
         </Title>
       )}
-      {missingRecord && <p role="status">This card is no longer saved in your account. Your device copy is still here. You can save it again.</p>}
+      {missingRecord && <p role="status">This card is no longer saved in your account. Your device copy is still here.</p>}
       {!state ? (
         <>
           <p>Account access could not be checked yet.</p>
@@ -153,7 +131,7 @@ export function AccountSection({
           </button>
         </>
       ) : !state.available ? (
-        <p>Account saving is not available yet. Your draft stays on this device.</p>
+        <p>Signing in is not available yet. Your draft stays on this device.</p>
       ) : !state.user ? (
         <>
           <p>
@@ -163,9 +141,8 @@ export function AccountSection({
             event.preventDefault();
             const email = new FormData(event.currentTarget).get("email")?.toString().trim();
             onSignInStart?.();
-            // A sign-in to save returns to its card; any other goes on to project access (DL-137).
-            if (forSaving) forgetProjectAccess(() => window.sessionStorage);
-            else expectProjectAccess(() => window.sessionStorage, window.location.pathname);
+            // Every sign-in goes on to project access (DL-137); none begins at Save any more (DL-155).
+            expectProjectAccess(() => window.sessionStorage, window.location.pathname);
             start("sign-in", () => continueToCertified(controller, window.location.pathname,
               (returnTo) => accountRequest("", { returnTo, ...(email ? { email, emailRedirectConsent: true } : {}) }, "/api/sign-in"),
               (target) => window.location.assign(target)));
@@ -183,13 +160,13 @@ export function AccountSection({
               )}
             </div>
             <p className="rc-meta">
-              {forSaving ? SIGN_IN.effect : SIGN_IN.withProjects}
+              {SIGN_IN.withProjects}
             </p>
             <div className="rc-action-bar">
               <AboutCertified />
             </div>
             <details>
-              <summary className="rc-footer-link">What is saved</summary>
+              <summary className="rc-footer-link">What leaves this device</summary>
               <p>
                 {SIGN_IN.saved}
               </p>
@@ -213,7 +190,7 @@ export function AccountSection({
         <>
           <p>Signed in with Certified.</p>
           <details>
-            <summary className="rc-footer-link">About saving and this session</summary>
+            <summary className="rc-footer-link">About this session</summary>
             <p>
               {SIGN_IN.saved}
             </p>
@@ -222,30 +199,9 @@ export function AccountSection({
               draft and its backups in this browser; clear this site’s browser storage when leaving a shared
               device.
             </p>
-            <p>Sharing is separate. Choose what to share from your initiative's page.</p>
           </details>
           {setAside && <p>A card from another account is on this device. It opens again when that account signs in.</p>}
-          {!key && !setAside && (
-            <p>
-              {saveBlocker(draft) ??
-                "Check your initiative, needs and offers, and keep or cancel open funding changes before saving."}
-            </p>
-          )}
           <div className="rc-action-bar">
-            {/* Once the card is saved there is nothing to press: the header and the list say so. */}
-            {/* Another account's card is set aside here as on its own pages: this account cannot save it (DL-055). */}
-            {!currentSaved && !setAside && (
-              <button
-                className="rc-button"
-                data-variant="primary"
-                type="button"
-                {...pressed("save", !ready || !key || storage !== "saved")}
-                onClick={() => start("save", save)}
-              >
-                <span>Save Privately</span>
-                {spinner("save")}
-              </button>
-            )}
             {showLeave && (
               <SignOutAction
                 disabled={busy}

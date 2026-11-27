@@ -116,7 +116,7 @@ export function Settings() {
             </>
           ) : (
             <>
-              <p>Not signed in. Your initiative stays on this device until you save it.</p>
+              <p>Not signed in. Your initiative stays on this device.</p>
               <div className="rc-action-bar">
                 <SignInButton variant="secondary" />
                 <AboutCertified />

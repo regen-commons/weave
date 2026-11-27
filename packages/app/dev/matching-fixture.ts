@@ -1,7 +1,8 @@
 /** Development only. Real HTTP command parsing over ephemeral, fictional matching data. */
 import { createMatchingHandlers } from "@weave/api/matching";
+import type { MatchingProvider } from "../../api/src/matching-provider.ts";
 import {
-  parseMatchingPreview, parseMatchingSearch, matchingCandidateId,
+  parseMatchingPreview, parseMatchingSearch, parseMatchingState, matchingCandidateId,
   type MatchingEntryRef, type MatchingEntryState, type MatchingLead, type MatchingPreview, type MatchingState,
 } from "@weave/api/matching-contract";
 import { PARTNER_ENGINE_VERSION, rankPartnerMatches, type ProjectEvidence, type SharedPartnerEntry } from "@weave/api/partner-matcher";
@@ -465,115 +466,127 @@ const counterpart: SharedPartnerEntry[] = [{
   expiresAt: new Date(Date.now() + DAY).toISOString(),
 }];
 
-export const matchingFixture = createMatchingHandlers({
-  secureCookies: false,
-  provider: {
-    async execute(token, command) {
-      const { initiativeId, action } = command;
-      const team = isFixtureTeam(initiativeId) ? fixtureTeam(token, initiativeId) : null;
-      const { account, saved } = team ?? fixtureInitiative(token, initiativeId);
-      // Matching starts from a saved team card; an empty workspace has nothing to match yet.
-      if (!saved) throw new AccountError(404, "not_found");
-      if (team?.accessRole === "viewer" && !["state", "search", "leads"].includes(action))
-        throw new AccountError(403, "workspace_edit_required");
-      const card = reconcile(team ? initiativeId : account, saved);
-      const state = () => ({
-        initiativeId, initiativeRevision: card.revision, entries: [...card.entries.values()].map(entryState),
+const matchingProvider: MatchingProvider = {
+  async execute(token, command) {
+    const { initiativeId, action } = command;
+    const team = isFixtureTeam(initiativeId) ? fixtureTeam(token, initiativeId) : null;
+    const { account, saved } = team ?? fixtureInitiative(token, initiativeId);
+    // Matching starts from a saved team card; an empty workspace has nothing to match yet.
+    if (!saved) throw new AccountError(404, "not_found");
+    if (team?.accessRole === "viewer" && !["state", "search", "leads"].includes(action))
+      throw new AccountError(403, "workspace_edit_required");
+    const card = reconcile(team ? initiativeId : account, saved);
+    const state = () => ({
+      initiativeId, initiativeRevision: card.revision, entries: [...card.entries.values()].map(entryState),
+    });
+    const select = (refs: MatchingEntryRef[]) => refs.map((ref) => {
+      const row = card.entries.get(entryKey(ref));
+      if (!row || row.revision !== ref.revision || row.shareVersion !== ref.shareVersion) return conflict();
+      return row;
+    });
+    const allShared = () => [...counterpart, ...[...cards.entries()].flatMap(([id, candidate]) =>
+      candidate.account === (team ? initiativeId : account) ? [] : [...candidate.entries.values()].flatMap((row) => projection(id, row)))];
+    const resultLeads = () => ({
+      initiativeId,
+      leads: [...(privateLeads.get(initiativeId)?.values() ?? [])].map((lead): MatchingLead => ({
+        ...lead, evidenceStatus: card.entries.has(entryKey(lead)) &&
+          (lead.candidateId === `public:${sourceUri}` || allShared().some((item) =>
+            lead.candidateId === `weave:${item.initiativeId}:${item.kind}:${item.entryId}`)) ? "current" : "unavailable",
+      })),
+    });
+    const search = (rows: Row[]) => rankPartnerMatches({
+      queries: rows.flatMap((row) => projection(initiativeId, row)), shared: allShared(), publicEvidence,
+    });
+    if (action === "state") return state();
+    if (action === "leads") return resultLeads();
+    if (action === "search") {
+      const rows = command.entries ? select(command.entries) : [...card.entries.values()];
+      if (command.entries && rows.some((row) => !projection(initiativeId, row).length)) return conflict();
+      return parseMatchingSearch({ initiativeId, results: search(rows), coverage: {
+        shared: rows.some((row) => projection(initiativeId, row).length) ? "available" : "not_joined",
+        external: "partial", corpusVersion: "local-fictional-corpus", modelVersion: null, engineVersion: PARTNER_ENGINE_VERSION,
+      } });
+    }
+    if (action === "preview") {
+      if (command.initiativeRevision !== card.revision) return conflict();
+      const rows = select(command.entries);
+      if (rows.some((row) => row.status !== "open" || !(row.value.capitalForms as unknown[]).length)) return conflict();
+      const expiry = command.expiresAt ? Date.parse(command.expiresAt) : null;
+      if (expiry !== null && expiry <= Date.now()) return conflict();
+      const reviewId = crypto.randomUUID();
+      const preview = parseMatchingPreview({
+        initiativeId, reviewId, initiativeRevision: card.revision, audience: "weave_users",
+        summary: reviewSummary(saved.document), expiresAt: expiry === null ? null : new Date(expiry).toISOString(),
+        entries: rows.map(({ kind, entryId, revision, shareVersion, value }) => ({ kind, entryId, revision, shareVersion, value })),
       });
-      const select = (refs: MatchingEntryRef[]) => refs.map((ref) => {
-        const row = card.entries.get(entryKey(ref));
-        if (!row || row.revision !== ref.revision || row.shareVersion !== ref.shareVersion) return conflict();
-        return row;
-      });
-      const allShared = () => [...counterpart, ...[...cards.entries()].flatMap(([id, candidate]) =>
-        candidate.account === (team ? initiativeId : account) ? [] : [...candidate.entries.values()].flatMap((row) => projection(id, row)))];
-      const resultLeads = () => ({
-        initiativeId,
-        leads: [...(privateLeads.get(initiativeId)?.values() ?? [])].map((lead): MatchingLead => ({
-          ...lead, evidenceStatus: card.entries.has(entryKey(lead)) &&
-            (lead.candidateId === `public:${sourceUri}` || allShared().some((item) =>
-              lead.candidateId === `weave:${item.initiativeId}:${item.kind}:${item.entryId}`)) ? "current" : "unavailable",
-        })),
-      });
-      const search = (rows: Row[]) => rankPartnerMatches({
-        queries: rows.flatMap((row) => projection(initiativeId, row)), shared: allShared(), publicEvidence,
-      });
-      if (action === "state") return state();
-      if (action === "leads") return resultLeads();
-      if (action === "search") {
-        const rows = command.entries ? select(command.entries) : [...card.entries.values()];
-        if (command.entries && rows.some((row) => !projection(initiativeId, row).length)) return conflict();
-        return parseMatchingSearch({ initiativeId, results: search(rows), coverage: {
-          shared: rows.some((row) => projection(initiativeId, row).length) ? "available" : "not_joined",
-          external: "partial", corpusVersion: "local-fictional-corpus", modelVersion: null, engineVersion: PARTNER_ENGINE_VERSION,
-        } });
-      }
-      if (action === "preview") {
-        if (command.initiativeRevision !== card.revision) return conflict();
-        const rows = select(command.entries);
-        if (rows.some((row) => row.status !== "open" || !(row.value.capitalForms as unknown[]).length)) return conflict();
-        const expiry = command.expiresAt ? Date.parse(command.expiresAt) : null;
-        if (expiry !== null && expiry <= Date.now()) return conflict();
-        const reviewId = crypto.randomUUID();
-        const preview = parseMatchingPreview({
-          initiativeId, reviewId, initiativeRevision: card.revision, audience: "weave_users",
-          summary: reviewSummary(saved.document), expiresAt: expiry === null ? null : new Date(expiry).toISOString(),
-          entries: rows.map(({ kind, entryId, revision, shareVersion, value }) => ({ kind, entryId, revision, shareVersion, value })),
+      reviews.set(reviewId, { preview, until: Date.now() + 15 * 60_000 });
+      return preview;
+    }
+    if (!("requestId" in command)) return conflict();
+    const key = `${account}/${command.requestId}`;
+    const input = JSON.stringify(command);
+    const previous = requests.get(key);
+    if (previous) {
+      if (previous.input !== input) return conflict();
+      return previous.response;
+    }
+    if (action === "set_lead") {
+      const id = matchingCandidateId(command.candidateId);
+      const leads = privateLeads.get(initiativeId) ?? new Map<string, MatchingLead>();
+      const leadId = `${entryKey(command.entry)}/${id}`;
+      if (command.disposition === "removed") leads.delete(leadId);
+      else {
+        const [row] = select([command.entry]);
+        if (!row || !search([row]).some(({ candidateId }) => candidateId === id)) return conflict();
+        leads.set(leadId, {
+          kind: row.kind, entryId: row.entryId, candidateId: id, disposition: command.disposition,
+          updatedAt: new Date().toISOString(), evidenceStatus: "current",
         });
-        reviews.set(reviewId, { preview, until: Date.now() + 15 * 60_000 });
-        return preview;
       }
-      if (!("requestId" in command)) return conflict();
-      const key = `${account}/${command.requestId}`;
-      const input = JSON.stringify(command);
-      const previous = requests.get(key);
-      if (previous) {
-        if (previous.input !== input) return conflict();
-        return previous.response;
-      }
-      if (action === "set_lead") {
-        const id = matchingCandidateId(command.candidateId);
-        const leads = privateLeads.get(initiativeId) ?? new Map<string, MatchingLead>();
-        const leadId = `${entryKey(command.entry)}/${id}`;
-        if (command.disposition === "removed") leads.delete(leadId);
-        else {
-          const [row] = select([command.entry]);
-          if (!row || !search([row]).some(({ candidateId }) => candidateId === id)) return conflict();
-          leads.set(leadId, {
-            kind: row.kind, entryId: row.entryId, candidateId: id, disposition: command.disposition,
-            updatedAt: new Date().toISOString(), evidenceStatus: "current",
-          });
-        }
-        privateLeads.set(initiativeId, leads);
-        const response = resultLeads();
-        requests.set(key, { input, response });
-        return response;
-      }
-      if (action === "withdraw") {
-        for (const row of select(command.entries)) {
-          row.sharing = "withdrawn";
-          row.shareVersion++;
-        }
-      } else if (action === "share" || action === "renew") {
-        const review = reviews.get(command.reviewId);
-        if (!review || review.until <= Date.now() || review.preview.initiativeId !== initiativeId ||
-            review.preview.initiativeRevision !== card.revision) return conflict();
-        const rows = select(review.preview.entries);
-        if (rows.some((row) => row.status !== "open" || (action === "renew" &&
-            (row.reviewedRevision !== row.revision || row.sharing === "withdrawn")))) return conflict();
-        for (const row of rows) {
-          row.sharing = "shared";
-          row.shareVersion++;
-          row.reviewedRevision = row.revision;
-          row.summary = review.preview.summary;
-          row.confirmedAt = new Date().toISOString();
-          row.expiresAt = review.preview.expiresAt;
-        }
-        reviews.delete(command.reviewId);
-      }
-      const response = state();
+      privateLeads.set(initiativeId, leads);
+      const response = resultLeads();
       requests.set(key, { input, response });
       return response;
-    },
+    }
+    if (action === "withdraw") {
+      for (const row of select(command.entries)) {
+        row.sharing = "withdrawn";
+        row.shareVersion++;
+      }
+    } else if (action === "share" || action === "renew") {
+      const review = reviews.get(command.reviewId);
+      if (!review || review.until <= Date.now() || review.preview.initiativeId !== initiativeId ||
+          review.preview.initiativeRevision !== card.revision) return conflict();
+      const rows = select(review.preview.entries);
+      if (rows.some((row) => row.status !== "open" || (action === "renew" &&
+          (row.reviewedRevision !== row.revision || row.sharing === "withdrawn")))) return conflict();
+      for (const row of rows) {
+        row.sharing = "shared";
+        row.shareVersion++;
+        row.reviewedRevision = row.revision;
+        row.summary = review.preview.summary;
+        row.confirmedAt = new Date().toISOString();
+        row.expiresAt = review.preview.expiresAt;
+      }
+      reviews.delete(command.reviewId);
+    }
+    const response = state();
+    requests.set(key, { input, response });
+    return response;
   },
-}).POST;
+};
+export const matchingFixture = createMatchingHandlers({ secureCookies: false, provider: matchingProvider }).POST;
+
+/**
+ * Shares every entry of a saved card for matching, as Share For Matching did before Weave stopped taking new
+ * shares (DL-155, step 4). The handler refuses new shares, so tests set up an earlier share through the
+ * provider; withdrawing it and partner search still go through the handler.
+ */
+export async function seedFixtureShare(token: string, initiativeId: string, pick: (entry: MatchingEntryState) => boolean = () => true) {
+  const state = parseMatchingState(await matchingProvider.execute(token, { action: "state", initiativeId }));
+  const entries = state.entries.filter(pick).map(({ kind, entryId, revision, shareVersion }) => ({ kind, entryId, revision, shareVersion }));
+  const preview = parseMatchingPreview(await matchingProvider.execute(token,
+    { action: "preview", initiativeId, initiativeRevision: state.initiativeRevision, entries }));
+  return parseMatchingState(await matchingProvider.execute(token,
+    { action: "share", initiativeId, reviewId: preview.reviewId, requestId: crypto.randomUUID() }));
+}

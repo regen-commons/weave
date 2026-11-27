@@ -106,12 +106,34 @@ test("passes private mutations only to narrow RPCs and never returns database er
     return Response.json({ code: "PT409", message: "private-provider-details" }, { status: 409 });
   });
   const { POST } = createMatchingHandlers({ provider: createMatchingProvider(rpc) });
-  const response = await POST(request({ action: "share", initiativeId: owner, reviewId, requestId }));
+  const response = await POST(request({ action: "withdraw", initiativeId: owner, entries: [ref], requestId }));
   assert.deepEqual(calls, [{ rpc: "matching_change", body: {
-    p_id: owner, p_action: "share", p_request_id: requestId, p_review_id: reviewId, p_entries: null,
+    p_id: owner, p_action: "withdraw", p_request_id: requestId, p_review_id: null, p_entries: [ref],
   } }]);
   assert.equal(response.status, 409);
   assert.deepEqual(await response.json(), { error: "matching_conflict" });
+});
+
+test("nothing new is shared for matching: a preview, a share and a renewal are refused by name before any RPC (DL-155)", async () => {
+  const calls: string[] = [];
+  const rpc = createSupabaseWeaveRpc("https://db.example.test", "publishable-fixture", async (url) => {
+    calls.push(String(url).split("/").pop()!);
+    return Response.json({});
+  });
+  const { POST } = createMatchingHandlers({ provider: createMatchingProvider(rpc) });
+  const reviewId = "50000000-0000-4000-8000-000000000003", requestId = "50000000-0000-4000-8000-000000000002";
+  for (const body of [
+    { action: "preview", initiativeId: owner, initiativeRevision: 1, entries: [ref] },
+    { action: "share", initiativeId: owner, reviewId, requestId },
+    { action: "renew", initiativeId: owner, reviewId, requestId },
+  ]) {
+    const response = await POST(request(body));
+    assert.equal(response.status, 410, body.action);
+    assert.deepEqual(await response.json(), { error: "matching_shares_retired" });
+  }
+  assert.deepEqual(calls, [], "no command reached the database");
+  // A malformed command is still invalid data, not a retired one.
+  assert.equal((await POST(request({ action: "share", initiativeId: owner }))).status, 400);
 });
 
 test("preserves Weave entry identity and rejects case-only duplicate IDs in version 1 saves", () => {

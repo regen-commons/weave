@@ -87,7 +87,7 @@ export function DeleteSavedCard({ open, cards, onClose, onDelete, onReload, onDe
                     <span className="rc-choice-note">
                       {removeCopies
                         ? "The copy moves to the device backups in Settings, where you can restore it or delete it for good."
-                        : "The copy on this device keeps its words and stays in Your Initiatives, marked Not saved yet."}
+                        : "The copy on this device keeps its words and stays in Your Initiatives, marked On this device."}
                     </span>
                   </span>
                 </label>

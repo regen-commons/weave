@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { SaveAction } from "../account/door.tsx";
 import { SignInButton } from "../account/SignInButton.tsx";
 import { InitiativeRecord } from "../initiative/InitiativeRecord.tsx";
 import { LiveExposure } from "../social/LiveExposure.tsx";
-import { PrivateSaveAction } from "../account/PrivateSaveAction.tsx";
 import { activeInitiative } from "../account/active-initiative.ts";
 import { useAccount } from "../account/context.tsx";
 import { teamWorkspacePath } from "../routes.ts";
@@ -14,7 +12,7 @@ import { waitingSuggestions } from "../initiative/import.ts";
 import { strongestFirst, projectLinkLine } from "../initiative/list.ts";
 import { useProjectLink } from "../initiative/use-project-link.ts";
 import { ConsentButton } from "../initiative/ProjectConsent.tsx";
-import { cardName, cardRoute, onlyInitiativeWaits, openSteps } from "../initiative/status.ts";
+import { cardName, cardRoute, onlyInitiativeWaits, openSteps, SAVED_SIGNED_OUT } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { intakeComplete, keptAsks } from "../intake/finish.ts";
 import { ExamplePartners } from "../partners/ExamplePartners.tsx";
@@ -24,7 +22,7 @@ import { FUNDING_COMMONS } from "../links.ts";
 import { ExampleSave } from "../social/Door.tsx";
 import { PublishInitiative } from "../initiative/PublishInitiative.tsx";
 import { ProjectListings } from "../initiative/ProjectListings.tsx";
-import { adoptPlan, readPlan } from "../initiative/publish-plan.ts";
+import { adoptPlan, readPlan, takeMakePublic } from "../initiative/publish-plan.ts";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
 import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
 import { editorStorage, PROJECT_EDITORS, readEditorHandoff } from "../initiative/editor-handoff.ts";
@@ -64,9 +62,13 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const signedInAs = account.state?.user?.id ?? null;
   useEffect(() => {
     if (!ready || (import.meta.env.DEV && fixture)) return;
-    // Only a plan made before sign-in, or by the account signed in now; another account's stays unshown.
-    if (adoptPlan(readPlan((() => { try { return window.sessionStorage; } catch { return undefined; } })(), draft.id), signedInAs))
-      setPublishing(true);
+    // Only a plan made before sign-in, or by the account signed in now; another account's stays unshown. A private
+    // save opened here through its own Make It Public opens the dialog too (D49).
+    const tab = (() => { try { return window.sessionStorage; } catch { return undefined; } })();
+    // Both are read, so an ask is used up even when a plan opens the dialog, and never opens it on a later visit.
+    const planned = adoptPlan(readPlan(tab, draft.id), signedInAs);
+    const asked = takeMakePublic(tab, draft.id);
+    if (planned || asked) setPublishing(true);
   }, [ready, draft.id, signedInAs]);
   const [retrying, setRetrying] = useState(false);
   const checked = intakeComplete(draft);
@@ -259,21 +261,14 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                       </StatusLine>
                     </>
                   )}
-                  <StatusLine
-                    actions={
-                      !save ? undefined : example && save.needs === "save" ? (
-                        <ExampleSave size="sm" onFailed={setSaveMessage} />
-                      ) : !example && account.state?.user ? (
-                        <PrivateSaveAction size="sm" variant="secondary" confirm={save.label === "Save Privately"} onFailed={setSaveMessage}>{save.label}</PrivateSaveAction>
-                      ) : (
-                        <SaveAction variant={example ? "primary" : "secondary"} size="sm">
-                          {save.label}
-                        </SaveAction>
-                      )
-                    }
-                  >
-                    {status.line}
-                  </StatusLine>
+                  {/* Nothing is saved privately any more (DL-155). A card only here needs no second line; one opened from an
+                      earlier private save says so, signed out included, and an example team workspace still takes its card
+                      (until step 6). */}
+                  {(save || status.state !== "device" || status.line === SAVED_SIGNED_OUT) && (
+                    <StatusLine actions={save && example ? <ExampleSave size="sm" onFailed={setSaveMessage} /> : undefined}>
+                      {status.line}
+                    </StatusLine>
+                  )}
                   {save?.note && <p className="rc-meta">{save.note}</p>}
                   {saveMessage && (
                     <p className="rc-notice" data-tone="warning" role="alert">
@@ -309,25 +304,12 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                   {!example && project?.workspaceId && project.group && <StatusLine actions={<ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="secondary">Open Team Workspace</ButtonLink>}>Your team workspace is ready. This device card stays private until you choose to save it there.</StatusLine>}
                   {!example && project?.workspaceId && !project.group && project.workspaceId !== active?.id && <StatusLine actions={<ButtonLink href={pathTo("your-initiatives")} variant="secondary">Open Saved Initiative</ButtonLink>}>This project already has a saved initiative. Your device work stays here until you choose to open it.</StatusLine>}
                   {!example && project && !project.group && active && project.workspaceId === active.id && <LiveExposure saved={{ id: active.id, revision: active.revision, document: active.document, updatedAt: new Date().toISOString() }} owner={active.owner}
-                    readOnly={status.unsaved} onChanged={() => setMatchVersion(v => v + 1)} refreshVersion={sharedVersion} />}
+                    publishHeld={status.unsaved} onChanged={() => setMatchVersion(v => v + 1)} refreshVersion={sharedVersion} />}
                   {/* Listings made public from the draft have no saved card behind them (DL-155), so they are found by the project. */}
                   {!example && project && !project.group && !(active && project.workspaceId === active.id) && (
                     <ProjectListings projectUri={project.uri} refreshVersion={sharedVersion} />
                   )}
                   {project && <WorkspaceRow primary={steps.lead === "workspace"} />}
-                  {steps.sharing && (
-                    <StatusLine
-                      actions={
-                        steps.lead === "project" ? (
-                          <ProjectAction variant="primary" size="sm" />
-                        ) : (
-                          <ShareAction variant={steps.lead === "share" ? "primary" : "secondary"} size="sm" />
-                        )
-                      }
-                    >
-                      {steps.sharing.line}
-                    </StatusLine>
-                  )}
                   {steps.publishing && (
                     <StatusLine actions={<ShareAction start="publish" variant="secondary" size="sm" />}>
                       {steps.publishing.line}

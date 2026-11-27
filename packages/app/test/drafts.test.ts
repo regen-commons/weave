@@ -476,10 +476,11 @@ test("a working copy the account's version replaced under another ID goes to the
   const kept = await controller.backups();
   assert.equal(kept.some((backup) => backup.draft.composer === "Synthetic working copy under its own ID"), true, "the copy is a device backup, words and all");
   assert.equal(await controller.retire(copy.id), false, "gone already");
-  // A copy still waiting for a save's answer is left where it is.
+  // A copy still marked as waiting for a private save is moved too: nothing can answer that save now
+  // (DL-155, step 4), so the mark would otherwise keep it here for good.
   const waiting = bound(words("Synthetic copy waiting for a save"), true);
   await controller.replace(waiting);
   await controller.replace(loaded);
-  assert.equal(await controller.retire(waiting.id), false);
-  assert.equal(fake.snapshot().drafts.some(([key]) => key === waiting.id), true);
+  assert.equal(await controller.retire(waiting.id), true);
+  assert.equal(fake.snapshot().drafts.some(([key]) => key === waiting.id), false);
 });

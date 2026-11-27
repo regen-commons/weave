@@ -2,7 +2,6 @@ import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } fro
 import { useSocial } from "../social/context.tsx";
 import { useAccount } from "../account/context.tsx";
 import { activeInitiative, type ActiveInitiative } from "../account/active-initiative.ts";
-import { SaveAction } from "../account/door.tsx";
 import { accountKey } from "../account/document.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { projectLinkLine } from "../initiative/list.ts";
@@ -18,14 +17,14 @@ import { CardGridSkeleton, LinesSkeleton } from "../ui/CardSkeleton.tsx";
 import { waitingSuggestions } from "../initiative/import.ts";
 import { CertifiedSuggestions, type CertifiedPartnerResults } from "./CertifiedSuggestions.tsx";
 import { privatePartnerQueries } from "./certified-suggestions.ts";
-import { MatchingDate, SharingReview } from "./SharingReview.tsx";
+import { MatchingDate } from "./SharingReview.tsx";
 import { entryKey, entryReference, type MatchingEntry } from "./matching-client.ts";
-import { notSharedLine, sharedEntries, useNetworkMatching } from "./use-network-matching.ts";
+import { sharedEntries, sharedLine, useNetworkMatching } from "./use-network-matching.ts";
 
 const sharingLabels: Record<MatchingEntry["sharing"], string> = {
   private: "Not shared",
   shared: "Shared for matching",
-  needs_review: "Changed since you shared. Review it again",
+  needs_review: "Changed since you shared, so no longer shown",
   withdrawn: "Withdrawn from matching",
   expired: "Sharing ended",
 };
@@ -70,7 +69,7 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
     ? project.role === "member"
       ? "Your team workspace needs approval and an access grant before partner suggestions can open."
       : "Set up the team workspace to open partner suggestions."
-    : project && !linkedId ? "Save privately to finish linking this project for partner suggestions."
+    : project && !linkedId ? "Partner suggestions for this project are not ready yet. Make your needs and offers public so other initiatives can find them."
       : link === "signed-out" ? "Sign in to get partner suggestions for your linked Certified project."
         : link === "checking" || link === "unchecked" ? projectLinkLine(link)
           : "Link a Certified project to get partner suggestions for your private needs and offers.";
@@ -106,10 +105,7 @@ export function PartnerExperience({ mode, separateActions = false, refreshVersio
             {unlinkedLine}
           </StatusLine>
         ) : (
-          <div className="rc-stack">
-            <p>{unlinkedLine}</p>
-            <div className="rc-action-bar"><SaveAction variant="secondary">Save your initiative</SaveAction></div>
-          </div>
+          <p>{unlinkedLine}</p>
         ))
       )}
       {compact && active && !separateActions && (
@@ -149,9 +145,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
   useEffect(() => {
     notice.current?.focus();
   }, [network.notice]);
-  const [selected, setSelected] = useState<string[] | null>(null);
-  // The share step opened from Partners For You: the same step Saving And Sharing opens, which shows
-  // what other signed-in teams will see before anything is shared (23 November 2026, the user's choice).
+  // Stopping a share still on, from Partners For You (DL-155, step 4: nothing new is shared).
   const [sharing, setSharing] = useState(false);
   const [withdrawal, setWithdrawal] = useState<string | null>(null);
   const Title = compact || publicResults ? "h3" : "h2";
@@ -162,18 +156,11 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
     const item = active.document[entry.kind === "need" ? "needs" : "offers"].find(({ id }) => id === entry.entryId);
     return typeof item?.value.title === "string" ? [{ ...entry, title: item.value.title, kinds: kindsOf(item.value.capitalForms), classified: Array.isArray(item.value.capitalForms) && item.value.capitalForms.length > 0 }] : [];
   });
-  const eligible = entries.filter((entry) =>
-    !readOnly && entry.classified && entry.status === "open" && ["private", "needs_review", "withdrawn"].includes(entry.sharing));
-  const selection = eligible.filter((entry) => selected === null || selected.includes(selectionKey(entry)));
   const withdrawing = entries.find((entry) => selectionKey(entry) === withdrawal);
-  const reviewing = synced && !stale && network.preview && (
-    !network.pending || network.pending.action === network.preview.action
-  ) ? network.preview : null;
-
-  function toggle(entry: MatchingEntry, checked: boolean) {
-    const key = selectionKey(entry);
-    setSelected((current) => { const chosen = current ?? eligible.map(selectionKey); return checked ? [...chosen, key] : chosen.filter(value => value !== key); });
-  }
+  // What is still shared from before Weave stopped sharing, each with a way to withdraw it. Nothing else is
+  // listed: an entry never shared, or already withdrawn, has nothing left to do here.
+  const stillShared = entries.filter(({ sharing }) => sharing === "shared" || sharing === "expired" || sharing === "needs_review");
+  const listing = presentation === "sharing" || stillShared.length > 0;
 
   const results = (<NetworkResults search={online ? network.search : null} leads={online ? network.leads : null} entries={entries}
         compact={compact} blocked={blocked} readOnly={readOnly} includePublic={presentation !== "results" && !publicResults}
@@ -191,18 +178,24 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
       onRetry={command => void network.mutate(command)} onRefresh={network.refresh} refreshBlocked={blocked} />
     {/* Only from the entries as they stand: before they load, after a failed read or for an earlier
         version, an empty list would read as having no needs or offers. */}
-    {!network.loading && state !== null && !stale && notSharedLine(entries, { team, readOnly }) && (
-      <StatusLine actions={!readOnly && eligible.length > 0 && (
-        <button className="rc-button" data-variant="primary" data-size="sm" type="button" disabled={blocked}
-          onClick={() => setSharing(true)}>Share For Matching</button>
-      )}>{notSharedLine(entries, { team, readOnly })}</StatusLine>
+    {/* Nothing new is shared for matching (DL-155, step 4). A share still on can be stopped until step 5 ends them. */}
+    {!network.loading && state !== null && !stale && sharedEntries(entries).length > 0 && (
+      <StatusLine actions={!readOnly && (
+        <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={blocked}
+          onClick={() => setSharing(true)}>Stop Sharing</button>
+      )}>{sharedLine(sharedEntries(entries).length, team)}</StatusLine>
     )}
     {results}
-    <TaskDialog title="Share For Matching" open={sharing} onClose={() => { setSharing(false); network.refresh(); onShared?.(); }} retainContents>
+    <TaskDialog title="Stop Sharing" open={sharing} onClose={() => { setSharing(false); network.refresh(); onShared?.(); }} retainContents>
       {sharing && <SavedMatching active={active} synced={synced} compact={false} online={online} onExpired={onExpired}
         fixture={fixture} team={team} readOnly={readOnly} presentation="sharing" visible={sharing} />}
     </TaskDialog>
   </div>;
+  // Beside the Certified suggestions, with nothing still shared, there is nothing to say under them.
+  if (publicResults && !listing) return <>
+    {results}
+    <MatchingFeedback {...network} online={online} readOnly={readOnly} noticeRef={notice} onRetry={command => void network.mutate(command)} />
+  </>;
   return <>
     {publicResults && results}
     <section className="rc-stack" aria-labelledby={presentation === "sharing" ? undefined : heading} aria-label={presentation === "sharing" ? "Sharing for matching" : undefined}>
@@ -210,100 +203,59 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
       {import.meta.env.DEV && fixture && (
         <p className="rc-notice" data-tone="info">Local matching fixture. Changes last until the development server restarts.</p>
       )}
-      <p>You choose which needs and offers people signed in can see.</p>
-      {!synced && !team && (
-        <p className="rc-notice" data-tone="info">Changed on this device since you saved. Save again before you change what you share.</p>
-      )}
+      {listing && <p>Weave no longer shares needs and offers with people signed in. Withdraw any listed here. One still shared stays visible to them until you do.</p>}
       {stale && (
         <p className="rc-notice" data-tone="warning" role="alert">{team ? "This workspace changed. Reload to see the latest entries. Copy any unsaved changes first."
           : "This initiative changed in your account. Load the latest saved version to continue. Loading keeps a backup on this device."}</p>
       )}
-      <div className="rc-action-bar">
-        {!compact && !team && <SaveAction variant="secondary">Save or switch cards</SaveAction>}
+      {listing && <div className="rc-action-bar">
         <button className="rc-button" data-variant="quiet" type="button" disabled={blocked} onClick={network.refresh}>Check Again</button>
-      </div>
-      <MatchingFeedback {...network} online={online} readOnly={readOnly} reviewing={!!reviewing} noticeRef={notice}
+      </div>}
+      <MatchingFeedback {...network} online={online} readOnly={readOnly} noticeRef={notice}
         first={state === null ? <LinesSkeleton label="Checking partners" /> : undefined} onRetry={command => void network.mutate(command)} />
-      {state && !stale && (
-        <>
-          {entries.length ? (
-            <fieldset className="rc-stack">
-              <legend>{readOnly ? "Sharing status" : "Choose what to share"}</legend>
-              <ul className="rc-ask-summary">
-                {entries.map((entry) => {
-                  const selectable = eligible.includes(entry);
-                  const shared = sharedEntries([entry]).length > 0;
-                  const expired = entry.sharing === "expired" || (entry.sharing === "shared" && !shared);
-                  const renewable = !readOnly && entry.classified && entry.status === "open" && (shared || expired);
-                  const withdrawable = !readOnly && (shared || expired || entry.sharing === "needs_review");
-                  return (
-                    <li key={entryKey(entry)}>
-                      {selectable ? (
-                        <label>
-                          <input className="rc-check" type="checkbox" checked={selected === null || selected.includes(selectionKey(entry))} disabled={blocked || !synced}
-                            onChange={(event) => toggle(entry, event.target.checked)} />
-                          <span> {entry.kind === "need" ? "Need" : "Offer"}, {entry.title}</span>
-                        </label>
-                      ) : <strong>{entry.kind === "need" ? "Need" : "Offer"}, {entry.title}</strong>}
-                      <p className="rc-meta">
-                        {entry.status === "open" ? sharingLabels[expired ? "expired" : entry.sharing] : STATUS[entry.status]}
-                        {!entry.classified && entry.status === "open" && ". Choose a kind of support before sharing."}
-                        {shared && entry.expiresAt && <> until <MatchingDate value={entry.expiresAt} /></>}
-                      </p>
-                      {(renewable || withdrawable) && (
-                        <div className="rc-action-bar">
-                          {renewable && (
-                            <button className="rc-button" data-variant="secondary" type="button" disabled={blocked || !synced}
-                              aria-label={`Renew sharing for ${entry.title}`}
-                              onClick={() => void network.review([entryReference(entry)], "renew")}>Renew Sharing</button>
-                          )}
-                          {withdrawable && (
-                            <button className="rc-button" data-variant="quiet" type="button" disabled={blocked}
-                              aria-label={`Withdraw ${entry.title} from matching`}
-                              onClick={() => setWithdrawal(selectionKey(entry))}>Withdraw From Matching</button>
-                          )}
-                        </div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-              {/* Asked in a dialog, so the row's buttons stay where they are. */}
-              <TaskDialog title="Withdraw From Matching?" open={withdrawing !== undefined} onClose={() => setWithdrawal(null)}>
-                {withdrawing && (
-                  <div className="rc-stack">
-                    <p>{withdrawing.title} leaves matching, so people signed in will not see it. You can share it again later.</p>
+      {listing && state && !stale && (stillShared.length ? (
+        <fieldset className="rc-stack">
+          <legend>Shared before</legend>
+          <ul className="rc-ask-summary">
+            {stillShared.map((entry) => {
+              const shared = sharedEntries([entry]).length > 0;
+              const expired = entry.sharing === "expired" || (entry.sharing === "shared" && !shared);
+              return (
+                <li key={entryKey(entry)}>
+                  <strong>{entry.kind === "need" ? "Need" : "Offer"}, {entry.title}</strong>
+                  <p className="rc-meta">
+                    {entry.status === "open" ? sharingLabels[expired ? "expired" : entry.sharing] : STATUS[entry.status]}
+                    {shared && entry.expiresAt && <> until <MatchingDate value={entry.expiresAt} /></>}
+                  </p>
+                  {!readOnly && (
                     <div className="rc-action-bar">
-                      <button className="rc-button" data-variant="danger" type="button" disabled={blocked}
-                        onClick={() => {
-                          setWithdrawal(null);
-                          void network.mutate({ action: "withdraw", input: { entries: [entryReference(withdrawing)], requestId: crypto.randomUUID() } });
-                        }}>Withdraw From Matching</button>
-                      <button className="rc-button" data-variant="quiet" type="button" data-task-focus onClick={() => setWithdrawal(null)}>Cancel</button>
+                      <button className="rc-button" data-variant="quiet" type="button" disabled={blocked}
+                        aria-label={`Withdraw ${entry.title} from matching`}
+                        onClick={() => setWithdrawal(selectionKey(entry))}>Withdraw From Matching</button>
                     </div>
-                  </div>
-                )}
-              </TaskDialog>
-              {!!eligible.length && (
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          {/* Asked in a dialog, so the row's buttons stay where they are. */}
+          <TaskDialog title="Withdraw From Matching?" open={withdrawing !== undefined} onClose={() => setWithdrawal(null)}>
+            {withdrawing && (
+              <div className="rc-stack">
+                <p>{withdrawing.title} leaves matching, so people signed in will not see it.</p>
                 <div className="rc-action-bar">
-                  <button className="rc-button" data-variant="primary" type="button" disabled={blocked || !synced || !selection.length}
-                    onClick={() => void network.review(selection.map(entryReference), "share")}>Review What You’ll Share</button>
+                  <button className="rc-button" data-variant="danger" type="button" disabled={blocked}
+                    onClick={() => {
+                      setWithdrawal(null);
+                      void network.mutate({ action: "withdraw", input: { entries: [entryReference(withdrawing)], requestId: crypto.randomUUID() } });
+                    }}>Withdraw From Matching</button>
+                  <button className="rc-button" data-variant="quiet" type="button" data-task-focus onClick={() => setWithdrawal(null)}>Cancel</button>
                 </div>
-              )}
-            </fieldset>
-          ) : <p>Save an open need or offer to find partners.</p>}
-          {!network.loading && !!entries.length && notSharedLine(entries, { team, readOnly }) && <p>{notSharedLine(entries, { team, readOnly })}</p>}
-        </>
-      )}
-      {visible && !readOnly && reviewing && (
-        <SharingReview review={reviewing.review} action={reviewing.action} busy={network.busy || !online}
-          retry={!!network.pending} error={online ? network.error : "You’re offline. Reconnect to confirm sharing."} onClose={network.cancelReview}
-          onConfirm={() => {
-            void network.mutate(network.pending ?? {
-              action: reviewing.action, input: { reviewId: reviewing.review.reviewId, requestId: crypto.randomUUID() },
-            });
-          }} />
-      )}
+              </div>
+            )}
+          </TaskDialog>
+        </fieldset>
+      ) : <p>Nothing is shared for matching now.</p>)}
       {presentation !== "sharing" && !publicResults && results}
     </section>
   </>;

@@ -80,10 +80,10 @@ test("coming back from Certified opens a dialog only to finish saving or to say 
   assert.equal(doorOnReturn("anything-else", false, false), null);
 });
 
-test("the account dialog offers Save only to the account the card belongs to (DL-055)", () => {
-  // Back from a sign-in that began at Save, as account B on a device holding account A's card.
+test("the account dialog says another account's card is theirs, and offers no Save at all (DL-055, DL-155)", () => {
+  // Signed in as account B on a device holding account A's card.
   assert.equal(doorShows("keep", true, true), "another-accounts-card");
-  assert.equal(doorShows("keep", true, false), "save");
+  assert.equal(doorShows("keep", true, false), "sign-in", "the account's own card shows the account, with nothing to save");
   // Signed out, nothing is set aside and nothing is offered but the sign-in.
   assert.equal(doorShows("keep", false, false), "sign-in");
   for (const intent of ["sign-in", "certified"] as const)

@@ -38,7 +38,9 @@ test("the copy never says sign-in sends an email to Regen Commons, or that shari
   assert.doesNotMatch(everything, /not connected/u);
   assert.match(policy, /Certified handles your email address and the code/u);
   assert.match(policy, /Weave does not keep your email address/u);
-  assert.match(policy, /Sharing for matching shows the needs and offers you pick/u);
+  // DL-155, step 4: nothing new is shared for matching or saved privately, and the policy says so (D49).
+  assert.match(policy, /Weave no longer shares needs and offers with other signed-in people for matching/u);
+  assert.match(policy, /Weave no longer saves initiatives privately\. Saves made before are kept .* for at least 60 days after private saving ended/u);
   assert.match(policy, /Publishing on Certified creates a public record/u);
   // The session really renews for up to 30 days and ends after 14 idle ones, as the policy says.
   assert.match(read("../api/src/account-session.ts"), /SESSION_CAP_SECONDS = 30 \* 24 \* 60 \* 60;/u);
@@ -72,18 +74,19 @@ test("the copy never says sign-in sends an email to Regen Commons, or that shari
   assert.match(read("../api/src/account.ts"), /onSignOut: forgetProjectGrants/u);
   assert.match(grants, /async forget\(request: Request/u);
   assert.match(policy, /such as creating a project, adding a member, or publishing or withdrawing a listing/u);
-  // Every sign-in but one to save goes on to that question (DL-137). The policy says so, and the pages
-  // with room for a line say it before the press, in one shared sentence.
-  assert.match(policy, /Signing in goes on to that question, except a sign-in to save a card/u);
+  // Every sign-in goes on to that question (DL-137); none begins at Save any more (DL-155). The policy says
+  // so, and the pages with room for a line say it before the press, in one shared sentence.
+  assert.match(policy, /Signing in goes on to that question\. With it/u);
+  assert.doesNotMatch(policy, /except a sign-in to save/u);
   assert.match(SIGN_IN.projectsNext, /Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in/u);
   assert.match(SIGN_IN.withProjects, /Certified then asks to let Weave read your projects for as long as you stay signed in/u);
   for (const file of ["src/pages/YourInitiatives.tsx", "src/pages/Settings.tsx"]) assert.match(read(file), /SIGN_IN\.projectsNext/u, file);
   assert.match(read("src/account/SignInButton.tsx"), /expectProjectAccess\(tab, window\.location\.pathname\)/u);
-  // A sign-in to save returns to its card and says only that signing in identifies the person.
+  // The account dialog's sign-in goes on to project access too, and says so before the press.
   const door = read("src/account/AccountSection.tsx");
-  assert.match(door, /if \(forSaving\) forgetProjectAccess/u);
-  assert.match(door, /forSaving \? SIGN_IN\.effect : SIGN_IN\.withProjects/u);
-  assert.match(read("src/account/door.tsx"), /forSaving=\{intent === "keep"\}/u);
+  assert.match(door, /expectProjectAccess\(\(\) => window\.sessionStorage, window\.location\.pathname\);/u);
+  assert.match(door, /\{SIGN_IN\.withProjects\}/u);
+  assert.doesNotMatch(door + read("src/account/door.tsx"), /forSaving/u, "no sign-in begins at Save (DL-155, step 4)");
   assert.match(read("src/describe/cloud.ts"), /throw/u);
   assert.match(policy, /The assistant sends no words to a cloud model/u);
 });
@@ -93,12 +96,14 @@ test("what the copy says is saved is what a save sends", () => {
   const builder = read("src/account/document.ts");
   // Conversations, files and assistant records are not in the saved document.
   for (const kept of ["turns", "attachments", "runs", "composer"]) assert.doesNotMatch(builder.match(/export function accountDocument[\s\S]*?\n\}/u)?.[0] ?? "", new RegExp(`\\b${kept}\\b`, "u"), kept);
-  assert.match(summary.get("When you save")!, /Conversations and files are not sent/u);
+  assert.match(summary.get("When you save")!, /Only to a team workspace now: .*Conversations and files are not sent\. Private saves made before are kept at least 60 days/u);
 });
 
 test("deletion is promised only as far as it exists", () => {
   assert.match(summary.get("Leaving")!, /Deleting a whole account is not available yet/u);
-  assert.match(policy, /Deleting a whole account and downloading the copies saved in it are not available in Weave yet/u);
+  assert.match(policy, /Deleting a whole account is not available in Weave yet/u);
+  assert.match(policy, /download your private saves or delete one in Your Initiatives/u, "download is offered, so the policy says so (D49)");
+  assert.match(read("src/pages/YourInitiatives.tsx"), />Download Private Saves<\/button>/u);
   assert.match(read("src/account/delete-card.ts"), /deletableCards/u, "one saved card can be deleted");
   assert.match(read("src/describe/device-removal.ts"), /backupDeleteWarning/u, "one device backup can be deleted");
 });
@@ -110,7 +115,7 @@ test("the Certified explanation says what Weave learns, and that reading project
   assert.match(facts.get("Your projects")!, /separate permission/u);
 });
 
-test("what sign-in and saving do is written once and agrees with the policy", () => {
+test("what sign-in does and what leaves the device is written once and agrees with the policy", () => {
   // The sentences live in one place, and no page keeps a copy of its own that could drift.
   for (const file of ["src/account/AccountSection.tsx", "src/social/Door.tsx", "src/pages/YourInitiatives.tsx", "src/pages/Settings.tsx"]) {
     const source = read(file);
@@ -121,15 +126,20 @@ test("what sign-in and saving do is written once and agrees with the policy", ()
   for (const file of ["src/account/AccountSection.tsx", "src/social/Door.tsx", "src/pages/YourInitiatives.tsx"])
     assert.match(read(file), /SIGN_IN\./u, file);
   // The same reader the policy names, in the same words, with no bare "private".
-  assert.match(SIGN_IN.offer, /only you can open what you save/u);
-  assert.match(policy, /only you can open a saved copy/u);
+  assert.match(SIGN_IN.offer, /Your draft stays on this device/u);
+  assert.doesNotMatch(Object.values(SIGN_IN).join(" "), /save your work|what you save/u, "signing in offers no private save (DL-155)");
+  assert.match(policy, /only you can open a saved copy/u, "the private saves made before stay readable only by their account");
   assert.doesNotMatch(Object.values(SIGN_IN).join(" "), /\bprivate\b/u);
   // Signing in moves nothing: the step that starts it saves no card and sends no document.
   assert.doesNotMatch(read("src/account/sign-in.ts"), /accountDocument|saveAccountCard/u);
-  assert.match(SIGN_IN.effect, /Nothing is saved, loaded or shared until you choose it/u);
-  // Saving sends the same things the summary lists, and the session is as long as the policy states.
-  for (const kept of ["checked card", "needs", "offers", "funding details"]) assert.match(SIGN_IN.saved, new RegExp(kept, "u"), kept);
+  assert.match(SIGN_IN.effect, /Nothing is published or loaded until you choose it/u);
+  // What leaves the device is only what is made public; a private save made before holds what the policy lists.
   assert.match(SIGN_IN.saved, /Conversations, files, unfinished edits and assistant records stay on this device/u);
+  assert.match(SIGN_IN.saved, /Making it public sends the needs and offers you choose and your project's details/u);
+  // A team workspace still takes a save until step 6, so the line names it rather than claim only public things leave.
+  assert.match(SIGN_IN.saved, /Saving to a team workspace sends the checked card, needs, offers and funding details/u);
+  for (const kept of ["checked card", "needs and offers you kept", "funding details"]) assert.match(policy, new RegExp(kept, "u"), kept);
+  // The session is as long as the policy states.
   assert.match(SIGN_IN.session, /up to 30 days\. If you do not open Weave for 14 days, you are signed out sooner/u);
   assert.match(CERTIFIED_FACTS.map(([, answer]) => answer).join(" "), /separate permission on Certified\. It lasts for as long as you stay signed in/u);
 });

@@ -148,7 +148,7 @@ test("opening the saved version over a working copy keeps the copy, and the entr
   calls.length = 0;
   assert.equal(await openSavedOver({ id: "copy" }, { id: "card" }, open, retire(true)), true);
   assert.deepEqual(calls, ["open", "retire copy"]);
-  // A copy still waiting for a save's answer is left where it is, and the page must not claim otherwise.
+  // A copy that could not be moved, because it changed meanwhile, is left where it is, and the page must not claim otherwise.
   assert.equal(await openSavedOver({ id: "copy" }, { id: "card" }, open, retire(false)), false);
   // The page leaves for the card on success, so the entry says the copy is kept before the press,
   // in words true whichever way it is kept.
@@ -186,7 +186,7 @@ test("every card says what it is, so a draft and a Certified project with one na
   // Each kind has its own words and an icon, so colour is never the only sign.
   const labels = Object.values(ENTRY_KINDS).map((kind) => kind.label);
   assert.equal(new Set(labels).size, labels.length);
-  assert.deepEqual(labels, ["Not saved yet", "Saved privately", "Personal project", "Group project", "Team workspace"]);
+  assert.deepEqual(labels, ["On this device", "Saved privately", "Personal project", "Group project", "Team workspace"]);
   for (const kind of Object.values(ENTRY_KINDS)) assert.ok(kind.icon);
 });
 

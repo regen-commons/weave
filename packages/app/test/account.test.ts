@@ -203,13 +203,14 @@ test("project choices are kept in the device's storage alone, and never read fro
   assert.deepEqual(deviceChoosers(card.id), []);
 });
 
-test("another account's card is set aside in Settings too: no Save for it, and no removal or backups of it (DL-055)", async () => {
+test("another account's card is set aside in Settings too: no Save for any card, and no removal or backups of it (DL-055)", async () => {
   const { readFileSync } = await import("node:fs");
   const { fileURLToPath } = await import("node:url");
   const source = (path: string) => readFileSync(fileURLToPath(new URL(`../src/${path}`, import.meta.url)), "utf8");
   const section = source("account/AccountSection.tsx");
   assert.match(section, /const setAside = useSetAside\(\);/u);
-  assert.match(section, /\{!currentSaved && !setAside && \(\s*<button/u, "Save is not offered for a card this account does not own");
+  assert.match(section, /\{setAside && <p>A card from another account is on this device\./u, "the card is said to be another account's");
+  assert.doesNotMatch(section, /Save Privately|saveAccountCard|"save"/u, "and no card is offered a private save (DL-155, step 4)");
   const backups = source("data/DeviceBackups.tsx");
   assert.match(backups, /const current = manage && hasDraft\(draft\) && !setAside;/u, "nor is removing it from the device");
   assert.match(backups, /stored\.filter\(\(item\) => !belongsToAnotherAccount\(item\.draft, account\.state\?\.user\?\.id\)\)/u);

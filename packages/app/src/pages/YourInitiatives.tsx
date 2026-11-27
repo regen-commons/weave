@@ -44,7 +44,7 @@ import { backUpCopies, deletableCards, type DeviceCopy } from "../account/delete
 import { exportedMessage, privateSavesExport } from "../account/export-saves.ts";
 import { downloadJson } from "../data/download.ts";
 import { RemoveDeviceDraft } from "../data/RemoveDeviceDraft.tsx";
-import { readPlan } from "../initiative/publish-plan.ts";
+import { askToMakePublic, readPlan } from "../initiative/publish-plan.ts";
 import { SIGN_IN } from "../data/privacy.ts";
 import { SignInReturnNotice } from "../account/SignInReturnNotice.tsx";
 import { Tag } from "../ui/Tag.tsx";
@@ -85,8 +85,9 @@ function PhoneSettings() {
 /**
  * Everything a person can open, in one list (DL-112): the initiatives in this browser, their
  * private saves and their team workspaces, then their Certified projects. One that exists only
- * in this browser carries a "Not saved yet" badge. Each card opens from its name, so no card
- * carries a button. Starting an initiative always makes a new one and asks nothing.
+ * in this browser carries an "On this device" badge. Each card opens from its name; only a private
+ * save also carries buttons, to open it here or make it public (D49). Starting an initiative always
+ * makes a new one and asks nothing.
  * The live adapter reads projects and granted workspaces; development examples use the same layout.
  */
 export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
@@ -406,6 +407,12 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
     go(pathTo(cardRoute(next)));
     }
   }
+  /** Opens a private save on this device, then its page with Make It Public open (D49). */
+  async function makePublic(card: SavedCard) {
+    await service.openCard(card.id, null);
+    try { askToMakePublic(window.sessionStorage, card.id); } catch { /* The card's page has Make It Public too. */ }
+    go(pathTo("your-initiative"));
+  }
   async function openRecord(record: CertifiedRecord) {
     const opening = projectOpening(record, { card: onDevice, linked: !!project });
     if (opening === "workspace" && live) {
@@ -539,10 +546,16 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
             {noProjectYet && <p className="rc-meta">You have no project on Certified yet.</p>}
           </Section>
         )}
-        {/* Saved in the Weave account before. Opened, downloaded or deleted here; never moved or published. */}
+        {/* Saved in the Weave account before. Opened, made public from this device, downloaded or deleted here; never changed. */}
         {(privateEntries.length > 0 || moreSaves || removable.length > 0) && (
           <Section id="initiatives-private" title="Private Weave Saves"
-            note="Copies saved in your Weave account. Only you can see them, when signed in. Nothing here is public or shared for matching.">
+            note="Saved in your Weave account before private saving ended. Only you can see them, when signed in, and they no longer change.">
+            {/* D49: kept read-only for at least 60 days after new saves stopped. These accounts have no contact address,
+                so this page is where anyone is told before any are removed. */}
+            <p className="rc-notice" data-tone="info">
+              Open one on this device to keep working on it, make it public, download your saves or delete one. Weave keeps them
+              for at least 60 days after private saving ended, and says so here before any are removed.
+            </p>
             {privateEntries.length > 0 && (
               <CardGrid>
                 {privateEntries.map((entry) => (
@@ -555,6 +568,19 @@ export function YourInitiatives({ fixture }: { fixture?: FixtureContext }) {
                       </h3>
                       {kindTags(["private"])}
                       <p className="rc-card-meta">Saved on {fullDate(entry.card.savedOn)}.</p>
+                      {/* A private save no longer changes (D49): it opens on this device, or goes public from there. */}
+                      <div className="rc-action-bar">
+                        <button className="rc-button" data-variant="quiet" data-size="sm" type="button" disabled={busy}
+                          onClick={() => void run(() => openCard(entry.card))}>
+                          Open On This Device
+                        </button>
+                        {live && (
+                          <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={busy}
+                            onClick={() => void run(() => makePublic(entry.card))}>
+                            Make It Public
+                          </button>
+                        )}
+                      </div>
                     </Card>
                   </li>
                 ))}

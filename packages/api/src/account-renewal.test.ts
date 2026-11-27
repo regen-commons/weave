@@ -137,19 +137,28 @@ test("a failure after renewal still delivers the rotated cookies", async () => {
   assert.deepEqual(setCookies(response), renewedCookies);
 });
 
-test("saving near expiry renews first and writes with the new token", async () => {
+test("a write near expiry renews first and writes with the new token", async () => {
   const { handlers, provider, calls } = fixture();
-  let saved = "";
-  provider.save = async (token, command) => {
-    saved = token === fresh ? "fresh" : "old";
-    return { id: command.id, revision: 1, updatedAt: "2026-11-20T12:00:00Z", document: command.document };
+  let deletedWith = "";
+  provider.deleteInitiative = async (token, command) => {
+    deletedWith = token === fresh ? "fresh" : "old";
+    return { id: command.id, deleted: true, revision: command.expectedRevision, removed: [command.id], kept: 0 };
   };
-  const response = await handlers.POST(post({ action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document },
-    cookie(undefined, "first-refresh")));
+  const response = await handlers.POST(post({ action: "delete", id, requestId, expectedRevision: 1 }, cookie(undefined, "first-refresh")));
   assert.equal(response.status, 200);
-  assert.equal(saved, "fresh");
+  assert.equal(deletedWith, "fresh");
   assert.deepEqual(calls, ["renew:first-refresh", "authorize:fresh"]);
   assert.deepEqual(setCookies(response), renewedCookies);
+});
+
+test("a private save is refused by name before any session work, since saves retired (DL-155)", async () => {
+  const { handlers, provider, calls } = fixture();
+  provider.save = async () => assert.fail("nothing is saved privately");
+  const response = await handlers.POST(post({ action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document },
+    cookie(undefined, "first-refresh")));
+  assert.equal(response.status, 410);
+  assert.deepEqual(await response.json(), { error: "private_saves_retired" });
+  assert.deepEqual(calls, [], "no renewal and no account read");
 });
 
 test("sign-out revokes the session, renewing an expired token first, and clears every session cookie", async () => {

@@ -542,7 +542,7 @@ export function exampleOutcome(example: SpeechExample): string | null {
 
 /**
  * Two more initiatives in the example browser, beside the one on screen: one barely started and
- * one finished. Neither is saved to an account, so each shows the "Not saved yet" badge.
+ * one finished. Neither is saved to an account, so each shows the "On this device" badge.
  */
 export function otherDraftFixtures(): DeviceDraft[] {
   const started = revise(newDraft(), {

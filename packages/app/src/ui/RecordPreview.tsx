@@ -43,7 +43,7 @@ export function RecordPreview({
       {!team && <p className="rc-draft-status">
         {confirmed
           ? "Your source words and files stay on this device."
-          : "Not saved yet. Nothing here has been shared."}
+          : "Only on this device. Nothing here is public."}
       </p>}
     </article>
   );

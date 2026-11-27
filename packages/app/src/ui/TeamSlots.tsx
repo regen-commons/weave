@@ -1,4 +1,3 @@
-import { ShareAction } from "../social/Share.tsx";
 import { useEffect, useId, useState } from "react";
 import type { TeamAsk } from "../funding/team.ts";
 import { teamCoverage } from "../funding/team.ts";
@@ -96,12 +95,9 @@ export function TeamSlots({ asks, shared }: { asks: TeamAsk[] | null; shared: bo
               </p>
             </div>
           ) : (
-            <div className="rc-stack">
-              <ShareAction />
-              <p className="rc-meta">
-                Other teams' names stay hidden until you share a need or an offer for matching.
-              </p>
-            </div>
+            <p className="rc-meta">
+              Other teams' names stay hidden. Weave no longer shares needs and offers for matching.
+            </p>
           )}
         </>
       )}

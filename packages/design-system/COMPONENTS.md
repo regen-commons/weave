@@ -328,7 +328,7 @@ in with Certified and says what Certified is. Signed in, it shows the handle, Si
 and Settings, and lists what the person can open in two sections (DL-134): Drafts And
 Private Saves, for what exists only in Weave, then On Certified, for Certified projects
 and any draft linked to one, which is listed once, there. Every card carries a Tag that
-says what it is: Not saved yet, Saved privately, Personal project, Group project or Team
+says what it is: On this device, Saved privately, Personal project, Group project or Team
 workspace. A draft that looks like one of the person's Certified projects offers Use That
 Project, which opens the same reviewed link step as anywhere else, and It's A Different
 Initiative, which ends the offer for the visit. Each card opens from its name.

@@ -1,7 +1,7 @@
 import { observeApi } from "./usage.ts";
 import { boundedJson, sessionCookies } from "./account-http.ts";
 import { accountRuntime } from "./account-runtime.ts";
-import { parseDocument, uuid } from "./account-contract.ts";
+import { uuid } from "./account-contract.ts";
 import { AccountError, type AccountProvider } from "./account-provider.ts";
 import { RENEW_BEFORE_SECONDS, resolveSession, withAccessToken, type Session } from "./account-session.ts";
 export { RENEW_BEFORE_SECONDS, secondsLeft } from "./account-session.ts";
@@ -119,6 +119,9 @@ export function createAccountHandlers({
         if (!provider) throw new AccountError(503, "accounts_not_configured");
         const body = await boundedJson(request);
         if (!["sign_out", "save", "delete"].includes(String(body.action))) throw new AccountError(400, "invalid_action");
+        // DL-155, step 4: a need or offer lives on the device and, once published, in public listings. Nothing new
+        // is saved privately; the saves already here stay readable and deletable until the user decides (D49).
+        if (body.action === "save") throw new AccountError(410, "private_saves_retired");
         if (body.action === "sign_out") {
           // Logout revokes the whole Supabase session, its refresh tokens included. An expired access token
           // is renewed first so the revocation can be sent; a session Supabase already refuses has ended.
@@ -166,38 +169,6 @@ export function createAccountHandlers({
           if (deleted.id !== body.id || deleted.revision !== body.expectedRevision)
             throw new AccountError(503, "account_unavailable");
           return response(200, { deleted }, current.setCookies);
-        }
-        const user = await authorized(provider, { ...current, access });
-        if (body.action === "save") {
-          if (!uuid(body.accountId)) throw new AccountError(400, "invalid_data");
-          if (body.accountId !== user.id) throw new AccountError(409, "account_changed");
-          if (
-            !uuid(body.id) ||
-            !uuid(body.requestId) ||
-            !Number.isSafeInteger(body.expectedRevision) ||
-            Number(body.expectedRevision) < 0 ||
-            Number(body.expectedRevision) >= 2147483647
-          )
-            throw new AccountError(400, "invalid_data");
-          let document;
-          try {
-            document = parseDocument(body.document);
-          } catch (error) {
-            throw new AccountError(
-              400,
-              error instanceof Error && error.message === "document_too_large"
-                ? "document_too_large"
-                : "invalid_data",
-            );
-          }
-          return response(200, {
-            saved: await provider.save(access, {
-              id: body.id,
-              requestId: body.requestId,
-              expectedRevision: Number(body.expectedRevision),
-              document,
-            }),
-          }, current.setCookies);
         }
         throw new AccountError(400, "invalid_action");
       } catch (error) {

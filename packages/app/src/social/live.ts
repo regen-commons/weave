@@ -8,7 +8,6 @@ import { withConfirmedSession } from "../account/session-end.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { hasDraft } from "../describe/view.ts";
 import { projectLocations, projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
-import { saveForProject } from "../initiative/project-save.ts";
 import { chosenProjectUri, projectChoiceKey, projectChoosers } from "./project-choice.ts";
 import { linkedProject } from "../initiative/list.ts";
 import { submitProjectCreate } from "../initiative/project-creation.ts";
@@ -17,7 +16,7 @@ import { finishEditorHandoff } from "../initiative/editor-handoff.ts";
 import type { CertifiedRecord, ProjectLink, SocialService, SocialState } from "./fixture.ts";
 
 export type LiveSocialService = Pick<SocialService,
-  "snapshot" | "signIn" | "signOut" | "save" | "linkProject" | "openWorkspace" | "openCard" |
+  "snapshot" | "signIn" | "signOut" | "linkProject" | "openWorkspace" | "openCard" |
   "createProject" | "requestWorkspace" | "checkAgain" | "clearCard" | "approveSetup" | "recoverWorkspace" | "moreCards" | "deleteCard"> & {
   reload(): Promise<void>;
   subscribe(listener: () => void): () => void;
@@ -235,38 +234,6 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     },
     signIn: options.signIn,
     async signOut() { await request("", { action: "sign_out" }); checked(); options.signedOut(); },
-    async save(_name, place = "private") {
-      checked();
-      if (place === "workspace") throw Error("Open the team workspace to review and save this card for your teammates.");
-      const project = state.project;
-      const receipt = await saveForProject(options.controller, owner!, lifetime.signal);
-      if (state.project?.uri !== project?.uri) throw Error("The checked card was saved privately. Your project choice changed; review the link again before sharing.");
-      if (project && !project.group) {
-        const linked = await post({ action: "link", projectUri: project.uri, ...receipt });
-        // A project made public from a draft keeps the link it was published through, which no saved card can
-        // take (DL-155). The card is then saved privately on its own and is not the project's workspace. The
-        // account says whether the link is another saved card's, since the workspace list may not have loaded.
-        const another = linked.status === "linked" && uuid(linked.workspaceId) && linked.workspaceId !== receipt.initiativeId
-          && linked.projectUri === project.uri && linked.accessRole === "admin";
-        const publishedFromDraft = another && await request(`?id=${encodeURIComponent(String(linked.workspaceId))}`, undefined, "/api/account", lifetime.signal)
-          .then(() => false, (error: unknown) => { if (error instanceof AccountFailure && error.code === "not_found") return true; throw error; });
-        checked();
-        if (publishedFromDraft) {
-          const account = await options.refreshAccount(); checked();
-          service.syncAccount(account);
-          return;
-        }
-        if (linked.status !== "linked" || linked.workspaceId !== receipt.initiativeId || linked.projectUri !== project.uri || linked.accessRole !== "admin")
-          throw Error("Your card was saved privately. This Certified project already has another workspace; open it from Your Initiatives before sharing.");
-        const record = find(project.uri);
-        if (!record) throw Error("Your card was saved privately. Refresh your projects before sharing.");
-        const workspace = { ...record, workspace: true, workspaceId: linked.workspaceId, accessRole: "admin" as const };
-        state = { ...state, project: { ...project, workspaceId: linked.workspaceId }, records: state.records.filter(p => p.uri !== project.uri),
-          workspaces: [...(state.workspaces ?? []).filter(p => p.uri !== project.uri), workspace] };
-      }
-      const account = await options.refreshAccount(); checked();
-      service.syncAccount(account);
-    },
     async linkProject(uri, signal, linkOptions) {
       signal?.throwIfAborted();
       // Linking writes the project's details into the tab's card, so another account's card is refused before anything is asked.
@@ -330,7 +297,8 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (!options.storage) throw Error("Device storage is needed to keep this creation request safe.");
       const { result } = await submitProjectCreate({ owner: owner!, draftId: options.controller.getSnapshot().draft.id, groupLabel,
         profile: { title: card.name, description: card.description }, storage: options.storage,
-        save: () => saveForProject(options.controller, owner!, lifetime.signal), request: post, signal: lifetime.signal, resumeOnly: true });
+        // Only an earlier request is reconciled, so nothing here saves privately (DL-155, step 4).
+        save: async () => { throw Error("Only the earlier request can be resumed."); }, request: post, signal: lifetime.signal, resumeOnly: true });
       if (result.status !== "linked" || !uuid(result.workspaceId) || typeof result.projectUri !== "string")
         throw Error("Certified is still confirming creation. Check again with the same request.");
       select(result.projectUri);

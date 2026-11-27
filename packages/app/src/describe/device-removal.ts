@@ -86,8 +86,8 @@ export function backUpWarning(draft: DeviceDraft, savedInAccount: boolean): stri
   return `This moves ${draftTitle(draft)}${count ? `, with its ${files(count)},` : ""} from Your Initiatives to the device backups in Settings, where you can restore it or delete it for good.${
     savedInAccount ? " Its saved copy in your account is not changed." : " It is not saved anywhere else."}`;
 }
-/** Said when a draft other than the tab's could not be moved: it changed meanwhile, or a save of it waits for its answer. */
-export const NOT_BACKED_UP = "This draft changed, or a save of it is not confirmed yet. Nothing was removed. Try again in a moment.";
+/** Said when a draft other than the tab's could not be moved: it changed or left meanwhile. */
+export const NOT_BACKED_UP = "This draft changed on this device meanwhile. Nothing was removed. Try again in a moment.";
 /** Said after a draft moved to the backups: where it went. */
 export const backedUpMessage = (draft: DeviceDraft) =>
   `Moved ${draftTitle(draft)} to the device backups. Restore it or delete it for good in Settings, under Device Backups.`;

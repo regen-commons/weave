@@ -69,10 +69,12 @@ production. Account saving uses the same-origin API and stays unavailable until 
 - The theme follows the system until a person chooses one: in Settings, with the header's switch
   on a wide screen (DL-079), or on a phone's You tab (DL-086). All three read and write it through
   `src/theme.ts`, which also says which of index.html's two `theme-color` tags applies (DL-087).
-- Signing in only identifies the person. Saving, sharing for matching and publishing are
-  separate taps with their own rows. Sharing and publishing first show what leaves and
-  who sees it, and a refusal changes nothing (DL-032).
-- Drafts stay on the device until the person saves. The browser uses same-origin account endpoints; the server calls Supabase only after configuration. The content security policy in `vercel.json` allows only this origin. Widen it only
+- Signing in only identifies the person. Publishing is its own tap with its own row, shows
+  what leaves and who sees it first, and a refusal changes nothing (DL-032). Nothing is saved
+  privately or shared for matching any more (DL-155, step 4): the server refuses both by name.
+  Private saves made before stay in Your Initiatives to open, download, make public or delete,
+  and a share still on can only be withdrawn. Only a team's open workspace still takes a save.
+- Drafts stay on the device until the person makes them public. The browser uses same-origin account endpoints; the server calls Supabase only after configuration. The content security policy in `vercel.json` allows only this origin. Widen it only
   with the change that needs it, such as the Supabase project or model files.
 - Keep the words a person said or typed, their files and unfinished edits in the device draft. A
   browser keeps several drafts, each under its own ID, and Start An Initiative never replaces

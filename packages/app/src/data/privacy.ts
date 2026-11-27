@@ -5,10 +5,11 @@
  * Every sentence states what the code does today and nothing it does not guarantee:
  * - Sign-in is Certified's. Weave receives an identifier, never the email address, unless the
  *   person adds one for Certified, which Weave passes on and does not keep (`@weave/api` sign-in).
- * - Saving sends the checked card, kept needs and offers and kept funding details, and nothing
- *   else (`src/account/document.ts`). Saved copies are not encrypted in the database.
- * - Team workspaces, sharing for matching and publishing are separate choices with their own
- *   readers (`src/social/LiveExposure.tsx`).
+ * - A team save, like each private save made before, holds the checked card, kept needs and offers
+ *   and kept funding details, and nothing else (`src/account/document.ts`). Saved copies are not
+ *   encrypted in the database. Nothing new is saved privately or shared for matching (DL-155, step 4).
+ * - Team workspaces and publishing are separate choices with their own readers, and a share made
+ *   before can be withdrawn (`src/social/LiveExposure.tsx`).
  * - The assistant sends no words to a cloud model. When usage analytics are enabled, Weave's server
  *   sends limited events to PostHog (`src/usage.ts`, `@weave/api` usage).
  * - Talking uses speech on the device where the browser has it; elsewhere the browser's own speech
@@ -38,7 +39,7 @@
  *   does not include it (`src/shortlist/store.ts`). To show a shortlisted initiative, the page asks
  *   Weave's server for that one public project, as any list page does, with nothing of the person's
  *   attached (`src/shortlist/use-initiative-lookups.ts`). Exports are made on the device (DL-152, DL-153).
- * - One saved card and one device backup can be deleted. A whole account cannot, yet.
+ * - One saved card and one device backup can be deleted, and private saves downloaded. A whole account cannot be deleted, yet.
  * Change a sentence here only with the code that makes it true.
  */
 export type Term = readonly [question: string, answer: string];
@@ -46,11 +47,11 @@ export type Term = readonly [question: string, answer: string];
 export const STORAGE_SUMMARY: readonly Term[] = [
   [
     "On this device",
-    "Your draft, conversations, files and backups stay in this browser until you save. Your shortlist of funds and initiatives stays in this browser only.",
+    "Your draft, conversations, files and backups stay in this browser. Only what you make public, or save to a team, leaves it. Your shortlist of funds and initiatives stays in this browser only.",
   ],
   [
     "When you save",
-    "Your checked card, the needs and offers you kept and your funding details go to the Regen Commons database, linked to your Certified sign-in. Conversations and files are not sent.",
+    "Only to a team workspace now: your checked card, the needs and offers you kept and your funding details. Conversations and files are not sent. Private saves made before are kept at least 60 days.",
   ],
   [
     "Who can read a saved copy",
@@ -58,7 +59,7 @@ export const STORAGE_SUMMARY: readonly Term[] = [
   ],
   [
     "Sharing and publishing",
-    "Nothing is shared until you choose it, and you see what leaves first. Sharing for matching reaches signed-in people whose entries fit yours. Publishing on Certified is public.",
+    "Nothing is published until you choose it, and you see what leaves first. Publishing on Certified is public. Weave no longer shares for matching; a share made before stays until you withdraw it.",
   ],
   [
     "Talking and the assistant",
@@ -66,7 +67,7 @@ export const STORAGE_SUMMARY: readonly Term[] = [
   ],
   [
     "Leaving",
-    "Signing out keeps what is on this device. You can download it and delete backups in Settings, and delete a saved card in Your Initiatives. Deleting a whole account is not available yet.",
+    "Signing out keeps what is on this device. You can download it and delete backups in Settings, and download or delete your private saves in Your Initiatives. Deleting a whole account is not available yet.",
   ],
 ];
 
@@ -74,8 +75,8 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
   {
     title: "What Stays On This Device",
     body: [
-      "Your draft, conversations, files, unfinished edits, assistant records, backups and shortlist are kept in this browser. Settings can download all of it, including files. Saving does not include the shortlist. To show a shortlisted initiative, Weave asks for that public project only, with nothing of yours.",
-      "Clearing this site's data in your browser removes them. Work you have not saved cannot be recovered after that.",
+      "Your draft, conversations, files, unfinished edits, assistant records, backups and shortlist are kept in this browser. Settings can download all of it, including files. To show a shortlisted initiative, Weave asks for that public project only, with nothing of yours.",
+      "Clearing this site's data in your browser removes them. Work you have not downloaded or made public cannot be recovered after that.",
     ],
   },
   {
@@ -86,9 +87,9 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     ],
   },
   {
-    title: "Saving",
+    title: "Private Saves",
     body: [
-      "Saving sends your checked card, the needs and offers you kept and your funding details to the Regen Commons database, linked to your Certified account. Conversations, files, unfinished edits and assistant records are not sent.",
+      "Weave no longer saves initiatives privately. Saves made before are kept in the Regen Commons database, linked to your Certified account, for at least 60 days after private saving ended. Each holds a checked card, the needs and offers you kept and your funding details, and you can open, download or delete it from Your Initiatives.",
       "In Weave, only you can open a saved copy. Saved copies are not encrypted in the database, so the people who administer it for Regen Commons could read them.",
     ],
   },
@@ -96,8 +97,8 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     title: "Teams, Sharing And Publishing",
     body: [
       "Each of these is its own choice, and each shows what leaves before you confirm.",
-      "A team workspace can be read by the teammates who are given access to it. Sharing for matching shows the needs and offers you pick, with your initiative's name, description, places and themes, to other signed-in people whose own shared entries fit. Publishing on Certified creates a public record that anyone, and other apps, can read.",
-      "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in goes on to that question, except a sign-in to save a card. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in.",
+      "A team workspace can be read by the teammates who are given access to it. Publishing on Certified creates a public record that anyone, and other apps, can read. Weave no longer shares needs and offers with other signed-in people for matching; those shared before stay visible to them, with your initiative's name, description, places and themes, until you withdraw them or matching moves to public listings.",
+      "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in goes on to that question. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in.",
       "Weave also uses that permission to check that you still belong to a group whenever you open or change its team workspace, its sharing, its invitations or who has access. If Certified says you have left the group, Weave stops your access to that workspace.",
       "Weave stores that permission encrypted on its server and can use it for up to 30 days. Signing out ends it: Weave can no longer use it and deletes its stored copy. If that deletion fails, the copy stays encrypted and unusable until it expires.",
       "Two things ask Certified again, for up to one hour each time: reading who else belongs to your group, and changing Certified itself, such as creating a project, adding a member, or publishing or withdrawing a listing.",
@@ -153,8 +154,8 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
   {
     title: "Deleting And Leaving",
     body: [
-      "Signing out ends your session and keeps this device's draft and backups. You can delete device backups in Settings and delete a saved card in Your Initiatives. A card that is still shared or linked to a project is not deleted, and Weave says why.",
-      "Deleting a whole account and downloading the copies saved in it are not available in Weave yet.",
+      "Signing out ends your session and keeps this device's draft and backups. You can delete device backups in Settings, and download your private saves or delete one in Your Initiatives. A saved card that is linked to a project, or still used to set one up, is not deleted, and Weave says why. A card still shared for matching is deleted with its sharing.",
+      "Deleting a whole account is not available in Weave yet.",
     ],
   },
 ];
@@ -167,15 +168,16 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
  * use (`SESSION_CAP_SECONDS` and `RENEWAL_SECONDS` in `@weave/api`).
  */
 export const SIGN_IN = {
-  offer: "Sign in with Certified to save your work and open it on another device. In Weave, only you can open what you save.",
-  effect: "Signing in only says who you are. Nothing is saved, loaded or shared until you choose it.",
+  offer: "Sign in with Certified to make your initiative public, or to link a project you already have there. Your draft stays on this device.",
+  effect: "Signing in only says who you are. Nothing is published or loaded until you choose it.",
   /** Said before a sign-in that goes on to project access (DL-137). */
   projectsNext: "Certified will ask to confirm it is you, then to let Weave read your projects for as long as you stay signed in.",
   /** The same, where the page has just said the initiatives are only in this browser. */
   withProjects:
-    "Signing in says who you are, and Certified then asks to let Weave read your projects for as long as you stay signed in. Nothing of yours is saved or shared until you choose it.",
+    "Signing in says who you are, and Certified then asks to let Weave read your projects for as long as you stay signed in. Nothing of yours is published until you choose it.",
+  /** DL-155: nothing is saved privately in Weave any more. A draft leaves the device only as what is made public. */
   saved:
-    "Saving keeps your checked card, needs, offers and kept funding details. Conversations, files, unfinished edits and assistant records stay on this device.",
+    "Conversations, files, unfinished edits and assistant records stay on this device. Making it public sends the needs and offers you choose and your project's details. Saving to a team workspace sends the checked card, needs, offers and funding details.",
   session: "You stay signed in on this browser for up to 30 days. If you do not open Weave for 14 days, you are signed out sooner.",
 } as const;
 

@@ -7,16 +7,16 @@ import { backUpCopies, CardReferenced, cardReferences, deletableCards, deleteFai
 import { privateSavesExport, exportedMessage } from "../src/account/export-saves.ts";
 import { backUpDraft, backUpWarning, NOT_BACKED_UP } from "../src/describe/device-removal.ts";
 import { parseMatchingSearch } from "@weave/api/matching-contract";
-import { matchingFixture } from "../dev/matching-fixture.ts";
+import { matchingFixture, seedFixtureShare } from "../dev/matching-fixture.ts";
 import { EMPTY_ASK } from "../src/intake/contracts.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
 import { loadedDraft, saveCommand } from "../src/account/document.ts";
 import { DraftController } from "../src/describe/controller.ts";
-import { MemoryDraftRepository, RemovalNotice } from "../src/describe/repository.ts";
+import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
 import { SaveDetached, saveAccountCard } from "../src/account/actions.ts";
 import { createLiveSocialService } from "../src/social/live.ts";
-import { accountFixture, fixtureSession } from "../dev/account-fixture.ts";
+import { accountFixture, fixtureSession, seedFixtureSave } from "../dev/account-fixture.ts";
 
 const owner = "b1000000-0000-4000-8000-000000000001";
 const document = parseDocument(JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8")));
@@ -64,7 +64,7 @@ test("deleting sends the exact ID, listed revision and request, then unbinds the
   assert.equal(stored.composer, "Synthetic device words");
   assert.equal(stored.id, saved.id, "the draft keeps its ID and retires it");
   assert.equal(deletedMessage("Seed library", result),
-    "Removed Seed library from your account. 2 saved cards kept. Its copy on this device keeps its words and stays in Your Initiatives, marked Not saved yet.");
+    "Removed Seed library from your account. 2 saved cards kept. Its copy on this device keeps its words and stays in Your Initiatives, marked On this device.");
   assert.equal(deletedMessage("Seed library", { deleted: { ...result.deleted, kept: 1 }, device: "unrelated" }),
     "Removed Seed library from your account. 1 saved card kept.");
   assert.equal(deletedMessage("Seed library", { deleted: { ...result.deleted, kept: 0 }, device: "unrelated" }),
@@ -134,8 +134,8 @@ test("the live adapter deletes through the account handlers, retries with one re
     return result;
   };
   const id = crypto.randomUUID(), keep = crypto.randomUUID();
-  for (const card of [id, keep])
-    await request("", { action: "save", accountId: owner, id: card, expectedRevision: 0, requestId: crypto.randomUUID(), document });
+  // Saves made before private saving ended (DL-155): the account endpoint no longer takes new ones.
+  for (const card of [id, keep]) await seedFixtureSave(token, { id: card, document });
   const draft = revise(loadedDraft({ ...saved, id, revision: 1 }, owner), { composer: "Unfinished words on this device" });
   const repository = new MemoryDraftRepository(draft), controller = new DraftController(repository);
   await controller.initialize();
@@ -157,8 +157,9 @@ test("the live adapter deletes through the account handlers, retries with one re
   assert.deepEqual((await request("", { action: "delete", id, expectedRevision: 1, requestId })).deleted, result.deleted,
     "a lost response retried with its request ID reports the same deletion");
   await assert.rejects(request("", { action: "delete", id, expectedRevision: 1, requestId: crypto.randomUUID() }), { code: "not_found" });
-  await assert.rejects(request("", { action: "save", accountId: owner, id, expectedRevision: 0, requestId: crypto.randomUUID(), document }),
-    { code: "initiative_deleted" }, "a stale first save cannot bring the card back");
+  await assert.rejects(seedFixtureSave(token, { id, document }), { code: "initiative_deleted" }, "a stale first save cannot bring the card back");
+  await assert.rejects(request("", { action: "save", accountId: owner, id: crypto.randomUUID(), expectedRevision: 0, requestId: crypto.randomUUID(), document }),
+    { code: "private_saves_retired" }, "and the account endpoint takes no new save at all");
   const again = saveCommand(controller.getSnapshot().draft, owner);
   assert.notEqual(again.command.id, id);
   assert.equal(again.command.expectedRevision, 0);
@@ -177,18 +178,24 @@ function heldSave() {
   return { release, restore: () => { globalThis.fetch = original; } };
 }
 
-test("a draft with an unconfirmed save is never removed, so a save answer cannot bind the next blank draft", async () => {
-  const { controller } = await device({ composer: "Edited words" });
+// DL-155, step 4: nothing saves privately now, so a draft's mark of a save waiting for its answer may never
+// be answered. Removing the draft is no longer refused for it; the answer is bound by the draft's ID, so a
+// late one finds no draft and binds no other.
+test("a draft with an unconfirmed save can be removed, and a late answer binds no other draft", async () => {
+  const { controller, repository, draft } = await device({ composer: "Edited words" });
   const held = heldSave();
   try {
     const saving = saveAccountCard(controller, owner, async () => {});
     await new Promise((resolve) => setTimeout(resolve, 20));
     assert.ok(controller.getSnapshot().draft.account.pending, "the save is waiting for its answer");
-    await assert.rejects(controller.discardCurrent(), RemovalNotice);
+    await controller.discardCurrent();
+    assert.equal(repository.drafts.has(draft.id), false, "the draft left the device");
+    const next = controller.getSnapshot().draft;
+    assert.notEqual(next.id, draft.id);
     held.release();
-    await saving;
-    assert.equal(controller.getSnapshot().draft.composer, "Edited words");
-    assert.equal(controller.getSnapshot().draft.account.saved?.revision, 4);
+    await assert.rejects(saving, SaveDetached);
+    assert.equal(controller.getSnapshot().draft.account.saved, null, "the blank draft that followed is never bound");
+    assert.equal(controller.getSnapshot().draft.account.pending, null);
   } finally { held.restore(); }
 });
 
@@ -290,12 +297,18 @@ test("a deleted card's copies on this device move to the backups when chosen, th
 test("a copy that cannot be moved stays listed, and the message says so instead of claiming it left", async () => {
   const pendingCopy = revise(loadedDraft(saved, owner), { composer: "Waiting for a save" });
   const waiting = revise(pendingCopy, { id: crypto.randomUUID(), account: { saved: null, pending: { ...pendingCopy.account.saved!, requestId: crypto.randomUUID() } } });
-  const repository = new MemoryDraftRepository(newDraft(), [waiting]), controller = new DraftController(repository);
+  // DL-155, step 4: a draft still marked as waiting for a private save is moved, since no answer can come now.
+  const stranded = new DraftController(new MemoryDraftRepository(newDraft(), [waiting]));
+  await stranded.initialize();
+  assert.equal(await backUpDraft(stranded, waiting.id), true, "the mark of an unanswered save does not keep a draft here");
+  // A copy another tab removed meanwhile cannot be moved, and stays as the list last showed it.
+  const gone = crypto.randomUUID();
+  const repository = new MemoryDraftRepository(newDraft(), []), controller = new DraftController(repository);
   await controller.initialize();
-  assert.equal(await backUpDraft(controller, waiting.id), false, "a draft waiting for a save's answer is never moved");
-  const result = await backUpCopies(controller, { deleted: deleted().deleted, device: "unbound" }, [waiting.id]);
+  assert.equal(await backUpDraft(controller, gone), false);
+  const result = await backUpCopies(controller, { deleted: deleted().deleted, device: "unbound" }, [gone]);
   assert.equal(result.device, "backup_failed");
-  assert.match(deletedMessage("Seed library", result), /could not be moved to the backups, so it stays in Your Initiatives, marked Not saved yet\.$/u);
+  assert.match(deletedMessage("Seed library", result), /could not be moved to the backups, so it stays in Your Initiatives, marked On this device\.$/u);
   assert.match(NOT_BACKED_UP, /Nothing was removed\./u);
   assert.equal(backUpWarning(waiting, true),
     "This moves Synthetic river circle from Your Initiatives to the device backups in Settings, where you can restore it or delete it for good. Its saved copy in your account is not changed.");
@@ -324,16 +337,9 @@ test("a card shared for matching is deleted with its sharing, and a refusal name
   const offer = ask("GPS mapping training");
   const offering = { ...document, needs: [], offers: [offer] }, needing = { ...document, needs: [ask("GPS watershed mapping")], offers: [] };
   for (const [id, doc] of [[shared, offering], [plain, document]] as const)
-    await request("", { action: "save", accountId: owner, id, expectedRevision: 0, requestId: crypto.randomUUID(), document: doc });
-  // Share every entry of a card for matching, as Share For Matching does.
-  const shareAll = async (send: typeof request, initiativeId: string) => {
-    const state = await send("", { action: "state", initiativeId }, "/api/matching");
-    const entries = (state.entries as { kind: string; entryId: string; revision: number; shareVersion: number }[])
-      .map(({ kind, entryId, revision, shareVersion }) => ({ kind, entryId, revision, shareVersion }));
-    const preview = await send("", { action: "preview", initiativeId, initiativeRevision: state.initiativeRevision, entries }, "/api/matching");
-    await send("", { action: "share", initiativeId, reviewId: preview.reviewId, requestId: crypto.randomUUID() }, "/api/matching");
-  };
-  await shareAll(request, shared);
+    await seedFixtureSave(token, { id, document: doc });
+  // Shared for matching before Weave stopped taking new shares.
+  await seedFixtureShare(token, shared);
 
   const draft = revise(newDraft(), { composer: "Unrelated words" });
   const repository = new MemoryDraftRepository(draft), controller = new DraftController(repository);
@@ -344,9 +350,9 @@ test("a card shared for matching is deleted with its sharing, and a refusal name
     openWorkspace: () => {}, signIn: async () => {}, signedOut: () => {} });
   const revision = (id: string) => service.snapshot().cards.find((card) => card.id === id)!.revision!;
   // Someone else searching for partners can find the shared card until it is deleted.
-  const searcher = crypto.randomUUID(), theirs = crypto.randomUUID(), theirRequest = fixtureRequest(fixtureSession(searcher));
-  await theirRequest("", { action: "save", accountId: searcher, id: theirs, expectedRevision: 0, requestId: crypto.randomUUID(), document: needing });
-  await shareAll(theirRequest, theirs);
+  const searcher = crypto.randomUUID(), theirs = crypto.randomUUID(), theirToken = fixtureSession(searcher), theirRequest = fixtureRequest(theirToken);
+  await seedFixtureSave(theirToken, { id: theirs, document: needing });
+  await seedFixtureShare(theirToken, theirs);
   const found = async () => parseMatchingSearch(await theirRequest("", { action: "search", initiativeId: theirs }, "/api/matching"))
     .results.some(({ evidence }) => evidence.type === "shared" && evidence.entryId === offer.id);
   assert.ok(await found(), "the shared card is a candidate before it is deleted");
@@ -372,7 +378,7 @@ test("private saves download in full, page by page, for this account only", asyn
   const ids: string[] = [];
   for (let n = 0; n < 23; n++) {
     const id = crypto.randomUUID(); ids.push(id);
-    await request("", { action: "save", accountId: exporter, id, expectedRevision: 0, requestId: crypto.randomUUID(), document });
+    await seedFixtureSave(token, { id, document });
   }
   const result = await privateSavesExport(exporter, request, undefined, () => new Date("2026-11-25T12:00:00Z"));
   assert.equal(result.kind, "weave-private-saves");

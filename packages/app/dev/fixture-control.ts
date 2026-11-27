@@ -1,6 +1,8 @@
 /** Local fixture identities only. This module has no production API entry. */
 import { sessionCookies } from "../../api/src/account-http.ts";
-import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureSession } from "./account-fixture.ts";
+import { parseDocument } from "@weave/api/account-contract";
+import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureSession, seedFixtureSave } from "./account-fixture.ts";
+import accountExample from "../../api/src/test-data/account.json" with { type: "json" };
 import { FIXTURE_TEAM_ADMIN, FIXTURE_TEAM_EDITOR, FIXTURE_GROUP_MEMBER, FIXTURE_UNAVAILABLE, FIXTURE_PROJECT_STARTER, publishFixtureProject, refreshFixturePublicList, setFixturePublishPermission } from "./matching-fixture.ts";
 const profiles = { viewer: FIXTURE_ACCOUNT_ID, editor: FIXTURE_TEAM_EDITOR, admin: FIXTURE_TEAM_ADMIN,
   member: FIXTURE_GROUP_MEMBER, unavailable: FIXTURE_UNAVAILABLE, creator: FIXTURE_PROJECT_STARTER } as const;
@@ -10,7 +12,7 @@ export async function fixtureControl(request: Request) {
   const headers = { "Cache-Control": "no-store", "Content-Type": "text/html; charset=utf-8", "X-Content-Type-Options": "nosniff" };
   if (request.method === "GET" && ["maearth", "certified"].includes(url.searchParams.get("editor") ?? ""))
     return new Response(`<!doctype html><html lang="en"><meta name="viewport" content="width=device-width"><title>External editor fixture</title><h1>External editor fixture</h1><p>This stands in for the chosen editor. No draft was sent and no public project is created.</p><form method="post" action="/__fixture"><input type="hidden" name="action" value="publish-project"><button>Publish synthetic project and return</button></form><p><a href="/your-initiatives">Return without publishing</a></p></html>`, { headers });
-  if (request.method === "GET") return new Response(`<!doctype html><html lang="en"><meta name="viewport" content="width=device-width"><title>Local fixture controls</title><h1>Local fixture controls</h1><p>Synthetic accounts only. These controls are absent from deployed builds.</p><form method="post" action="/__fixture"><label>Account <select name="profile">${Object.keys(profiles).map(profile => `<option>${profile}</option>`).join("")}</select></label><button>Open fixture account</button></form></html>`, { headers });
+  if (request.method === "GET") return new Response(`<!doctype html><html lang="en"><meta name="viewport" content="width=device-width"><title>Local fixture controls</title><h1>Local fixture controls</h1><p>Synthetic accounts only. These controls are absent from deployed builds.</p><form method="post" action="/__fixture"><label>Account <select name="profile">${Object.keys(profiles).map(profile => `<option>${profile}</option>`).join("")}</select></label><button>Open fixture account</button></form><form method="post" action="/__fixture"><input type="hidden" name="action" value="seed-private-save"><button>Add a private save made before (signed-in account)</button></form></html>`, { headers });
   if (request.method !== "POST" || request.headers.get("origin") !== url.origin) return new Response(null, { status: 403 });
   if (Number(request.headers.get("content-length") ?? 0) > 1024) return new Response(null, { status: 413 });
   const body = new URLSearchParams(await request.text());
@@ -25,6 +27,14 @@ export async function fixtureControl(request: Request) {
     if (value !== "granted" && value !== "missing") return new Response(null, { status: 400 });
     setFixturePublishPermission(value);
     return new Response(null, { status: 204, headers });
+  }
+  // A private save as one made before Weave stopped taking them (DL-155, step 4), for the signed-in fixture account.
+  if (body.get("action") === "seed-private-save") {
+    const token = sessionCookies(false).token(request);
+    if (!token) return new Response(null, { status: 401 });
+    try { await seedFixtureSave(token, { id: crypto.randomUUID(), document: parseDocument(accountExample) }); }
+    catch { return new Response(null, { status: 403 }); }
+    return new Response(null, { status: 303, headers: { ...headers, Location: "/your-initiatives" } });
   }
   // Weave's daily refresh of the public list, which is when a project made from a draft gets its public page.
   if (body.get("action") === "refresh-public-list") {
