@@ -19,7 +19,7 @@ import { possibleDuplicate, type PossibleDuplicate } from "./possible-duplicate.
 import { ConsentButton } from "./ProjectConsent.tsx";
 import {
   adoptPlan, clearPlan, needsPermission, newPlan, nextStep, PROJECT_NAME_LIMIT, projectFromDraft, projectNameFits, publishPreview, readPlan,
-  resultLine, resultsSummary, sameEntry, unfinished, writePlan, type PublishPlan, type PublishStep,
+  resultLine, resultsSummary, sameEntry, settledResults, unfinished, writePlan, type PublishPlan, type PublishStep,
 } from "./publish-plan.ts";
 import { browserRequests, checkListings, createProject, linkForPublishing, prepareListings, PreviewProblem, publishListings } from "./publish-run.ts";
 import { newTid } from "./tid.ts";
@@ -196,10 +196,13 @@ export function PublishInitiative({ open, onClose, onPublished }: { open: boolea
           </>
         ) : step === "done" && plan ? (
           <>
-            <p role="status"><strong>{`${card?.name ?? "Your initiative"} is public on Certified.`}</strong> {resultsSummary(plan.results, plan.prepared.length)}</p>
+            <p role="status"><strong>{`${card?.name ?? "Your initiative"} is public on Certified.`}</strong> {resultsSummary(settledResults(plan), plan.prepared.length + plan.unchanged.length)}</p>
             {/* Weave's public pages come from its list of public projects, which takes in new ones once a day. */}
             {plan.creation && <p>Anyone can read it on Certified now. Its page in Weave's list of initiatives appears after the list's next daily update.</p>}
             <ul className="rc-ask-summary" aria-label="Each listing">
+              {plan.preview.filter((item) => plan.unchanged.some((entry) => sameEntry(entry, item))).map((item) => (
+                <li key={`${item.kind}/${item.entryId}`}><strong>{item.title}</strong><p>Already public as shown here, so nothing was sent.</p></li>
+              ))}
               {plan.prepared.map((item) => {
                 const result = plan.results.find((entry) => sameEntry(entry, item));
                 return <li key={`${item.kind}/${item.entryId}`}><strong>{item.review.record.title}</strong><p>{result ? resultLine(result) : "Not sent yet."}</p></li>;
@@ -302,6 +305,9 @@ export function PublishInitiative({ open, onClose, onPublished }: { open: boolea
             </section>
             {preview.withoutKind.length > 0 && (
               <p className="rc-meta">{`${preview.withoutKind.length} ${preview.withoutKind.length === 1 ? "entry is" : "entries are"} left out until ${preview.withoutKind.length === 1 ? "it has" : "they have"} a kind of support.`}</p>
+            )}
+            {preview.closed.length > 0 && (
+              <p className="rc-meta">{`${preview.closed.length} ${preview.closed.length === 1 ? "entry is" : "entries are"} left out because ${preview.closed.length === 1 ? "it is" : "they are"} no longer open.`}</p>
             )}
             <p className="rc-meta">Your card stays on this device. Weave keeps a copy of each listing and where it is published, so you can withdraw it later. Certified asks you once to allow it.</p>
             <div className="rc-action-bar">

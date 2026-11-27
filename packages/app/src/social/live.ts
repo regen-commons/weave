@@ -243,6 +243,15 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (state.project?.uri !== project?.uri) throw Error("The checked card was saved privately. Your project choice changed; review the link again before sharing.");
       if (project && !project.group) {
         const linked = await post({ action: "link", projectUri: project.uri, ...receipt });
+        // A project made public from a draft keeps the link it was published through, which no saved card can
+        // take (DL-155). The card is then saved privately on its own and is not the project's workspace.
+        const publishedFromDraft = linked.status === "linked" && uuid(linked.workspaceId) && linked.workspaceId !== receipt.initiativeId
+          && linked.projectUri === project.uri && !(state.workspaces ?? []).some(p => p.workspaceId === linked.workspaceId);
+        if (publishedFromDraft) {
+          const account = await options.refreshAccount(); checked();
+          service.syncAccount(account);
+          return;
+        }
         if (linked.status !== "linked" || linked.workspaceId !== receipt.initiativeId || linked.projectUri !== project.uri || linked.accessRole !== "admin")
           throw Error("Your card was saved privately. This Certified project already has another workspace; open it from Your Initiatives before sharing.");
         const record = find(project.uri);

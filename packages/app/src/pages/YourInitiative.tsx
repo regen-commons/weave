@@ -23,6 +23,7 @@ import { pathTo } from "../routes.ts";
 import { FUNDING_COMMONS } from "../links.ts";
 import { ExampleSave } from "../social/Door.tsx";
 import { PublishInitiative } from "../initiative/PublishInitiative.tsx";
+import { ProjectListings } from "../initiative/ProjectListings.tsx";
 import { adoptPlan, readPlan } from "../initiative/publish-plan.ts";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
 import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
@@ -309,6 +310,10 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                   {!example && project?.workspaceId && !project.group && project.workspaceId !== active?.id && <StatusLine actions={<ButtonLink href={pathTo("your-initiatives")} variant="secondary">Open Saved Initiative</ButtonLink>}>This project already has a saved initiative. Your device work stays here until you choose to open it.</StatusLine>}
                   {!example && project && !project.group && active && project.workspaceId === active.id && <LiveExposure saved={{ id: active.id, revision: active.revision, document: active.document, updatedAt: new Date().toISOString() }} owner={active.owner}
                     readOnly={status.unsaved} onChanged={() => setMatchVersion(v => v + 1)} refreshVersion={sharedVersion} />}
+                  {/* Listings made public from the draft have no saved card behind them (DL-155), so they are found by the project. */}
+                  {!example && project && !project.group && !(active && project.workspaceId === active.id) && (
+                    <ProjectListings projectUri={project.uri} refreshVersion={sharedVersion} />
+                  )}
                   {project && <WorkspaceRow primary={steps.lead === "workspace"} />}
                   {steps.sharing && (
                     <StatusLine

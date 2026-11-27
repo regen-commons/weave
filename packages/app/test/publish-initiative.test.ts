@@ -14,6 +14,7 @@ import {
   publishCommand, publishPreview, readPlan, resultLine, resultsSummary, reviewCommand, settledResults, writePlan, type PreviewListing, type PublishPlan,
 } from "../src/initiative/publish-plan.ts";
 import { newTid, TID } from "../src/initiative/tid.ts";
+import { projectListings } from "../src/initiative/project-listings.ts";
 import { possibleDuplicate } from "../src/initiative/possible-duplicate.ts";
 import {
   checkListings, createProject, linkForPublishing, prepareListings, PreviewProblem, publishListings, type PublishRequests,
@@ -28,6 +29,8 @@ const document = parseDocument(JSON.parse(readFileSync(new URL("../../api/src/te
 const needId = document.needs[0]!.id, offerId = document.offers[0]!.id;
 const projectUri = "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/3mfixturegard";
 const groupProjectUri = "at://did:plc:bbbbbbbbbbbbbbbbbbbbbbbb/org.hypercerts.collection/watershed";
+/** A personal fixture project no account here has linked in Weave. */
+const grouplessUnlinked = "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/water-notes";
 /** The account example's need and offer as the preview shows them, from a card whose type of work is place-based. */
 const preview: PreviewListing[] = [
   { kind: "need", entryId: needId, title: "Seedlings and tools", description: null,
@@ -395,4 +398,25 @@ test("a need or offer already public as shown is kept as it is, one added beside
     requests, signal);
   assert.equal(nothing.prepared.length, 0);
   assert.equal(nextStep(nothing, { signedIn: true, linked: projectUri }), "done");
+});
+
+test("a draft's public listings are found by the project alone, withdrawn from another browser, and then show no row", async () => {
+  setFixturePublishPermission("granted");
+  let { plan, requests, signal, workspaceId } = await linkedDraft();
+  const request = (body: Record<string, unknown>, abort: AbortSignal) => requests.project(body, abort);
+  assert.equal(await projectListings(grouplessUnlinked, request, signal), null, "a project Weave has no link to shows nothing");
+  assert.equal(await projectListings(projectUri, request, signal), null, "nor one with nothing public yet");
+  plan = await publishListings(await prepareListings(plan, requests, signal), requests, signal, () => {});
+  assert.deepEqual(await projectListings(projectUri, request, signal), { workspaceId, line: "2 needs and offers public on Certified." });
+  // Another browser signed in to the same account needs no draft and no saved card: the project finds the listings.
+  const elsewhere = fixtureRequests(fixtureSession(plan.owner!)).requests;
+  const there = await projectListings(projectUri, (body, abort) => elsewhere.project(body, abort), signal);
+  assert.equal(there?.workspaceId, workspaceId);
+  await elsewhere.project({ action: "support_withdraw", workspaceId, kind: "need", entryId: needId, requestId: crypto.randomUUID() }, signal);
+  assert.equal((await projectListings(projectUri, request, signal))?.line, "1 need or offer public on Certified.");
+  await elsewhere.project({ action: "support_withdraw", workspaceId, kind: "offer", entryId: offerId, requestId: crypto.randomUUID() }, signal);
+  assert.equal(await projectListings(projectUri, request, signal), null, "with everything withdrawn the row goes");
+  // Someone else's account has its own link to the shared fixture project and sees none of these.
+  const stranger = fixtureRequests(fixtureSession(crypto.randomUUID())).requests;
+  assert.equal(await projectListings(projectUri, (body, abort) => stranger.project(body, abort), signal), null);
 });
