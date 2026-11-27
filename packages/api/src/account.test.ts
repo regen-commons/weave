@@ -60,22 +60,27 @@ test("private account reads use the session and email-code sign-in is unavailabl
   const listed = (await list.json()) as { items: unknown[] };
   assert.equal(listed.items.length, 1);
 });
-test("writes reject cross-site, oversized, missing-session and invalid unchecked data", async () => {
-  const { handlers } = fixture();
-  const command = { action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document };
+test("writes reject cross-site, oversized, missing-session and invalid unchecked data, and saves are retired by name", async () => {
+  const { handlers, calls } = fixture();
+  const command = { action: "delete", id, requestId, expectedRevision: 1 };
+  const save = { action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document };
   for (const [body, headers, status] of [
     [command, { origin: "https://other.test" }, 403],
     [command, { "content-type": "text/plain" }, 415],
     [command, { cookie: "" }, 401],
-    [{ ...command, document: { ...document, attachments: [] } }, {}, 400],
-    [{ ...command, expectedRevision: -1 }, {}, 400],
+    [{ ...command, expectedRevision: 0 }, {}, 400],
     [{ ...command, expectedRevision: 2147483647 }, {}, 400],
     [{ action: "request_code", email: "invalid" }, {}, 400],
     [{ action: "verify_code", email: user.email, code: "123456" }, {}, 400],
     [{ action: "nope" }, {}, 400],
     [{ ...command, padding: "x".repeat(65536) }, {}, 413],
+    [save, { origin: "https://other.test" }, 403],
+    [save, {}, 410],
+    [{ ...save, document: { ...document, attachments: [] } }, {}, 410],
   ] as const)
     assert.equal((await handlers.POST(post(body, headers))).status, status);
+  assert.deepEqual(await (await handlers.POST(post(save))).json(), { error: "private_saves_retired" });
+  assert.equal(calls.length, 0, "nothing reached the provider");
   assert.equal((await handlers.POST(post(command))).status, 200);
   const duplicateCookie = await handlers.POST(
     post(command, {
@@ -91,7 +96,7 @@ test("revocation clears the cookie; unavailable providers and failed remote sign
   };
   const handlers = createAccountHandlers({ provider });
   const expired = await handlers.POST(
-    post({ action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document }),
+    post({ action: "delete", id, requestId, expectedRevision: 1 }),
   );
   assert.equal(expired.status, 401);
   assert.match(expired.headers.get("set-cookie")!, /Max-Age=0/);
@@ -246,7 +251,7 @@ test("only Supabase's expired-flow code reports an expired sign-in; its message 
   await assert.rejects(exchange(500, { code: 500, error_code: "flow_state_expired", msg: detail }), rejected("account_unavailable"));
 });
 
-test("a cookie changed by another tab cannot save under a different account", async () => {
+test("a private save is refused by name whichever account the cookie names, and nothing is written", async () => {
   const { provider } = fixture();
   let writes = 0;
   provider.authorize = async () => ({ ...user, id: "b1000000-0000-4000-8000-000000000002" });
@@ -257,8 +262,8 @@ test("a cookie changed by another tab cannot save under a different account", as
   const result = await createAccountHandlers({ provider }).POST(
     post({ action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document }),
   );
-  assert.equal(result.status, 409);
-  assert.deepEqual(await result.json(), { error: "account_changed" });
+  assert.equal(result.status, 410);
+  assert.deepEqual(await result.json(), { error: "private_saves_retired" });
   assert.equal(writes, 0);
 });
 
@@ -283,7 +288,7 @@ test("private save and load round-trip unclassified entries while matching still
   assert.throws(() => parseSavedAsk(need), /invalid_data/u);
 });
 
-test("a card saved under the earlier limits stays saveable: five needs, five offers, six links and long answers", async () => {
+test("a card saved under the earlier limits stays readable: five needs, five offers, six links and long answers", async () => {
   assert.equal(ASK_LIMIT, 4);
   assert.equal(STORED_ASK_LIMIT, 5);
   const need = document.needs[0];
@@ -304,10 +309,7 @@ test("a card saved under the earlier limits stays saveable: five needs, five off
   assert.equal(checked.needs.length, 5);
   assert.equal(checked.offers.length, 5);
   assert.deepEqual(checked.initiative.links, links);
-  // The save handler accepts the same document, so the card can be saved again unchanged.
-  const { handlers } = fixture();
-  const result = await handlers.POST(post({ action: "save", accountId: user.id, id, requestId, expectedRevision: 1, document: older }));
-  assert.equal(result.status, 200);
+  // A saved card read back keeps parsing, so it still opens on a device and downloads.
   // One past the stored limit is refused, for lists and for links.
   assert.throws(() => parseDocument({ ...older, needs: many(6) }), /invalid_data/u);
   assert.throws(() => parseDocument({ ...older, offers: many(6) }), /invalid_data/u);

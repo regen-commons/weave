@@ -33,6 +33,10 @@ export function createMatchingHandlers({ provider, secureCookies = true, origin 
         let command;
         try { command = parseMatchingCommand(body); }
         catch { throw new AccountError(400, "invalid_data"); }
+        // DL-155, step 4: nothing new is shared with signed-in Weave users. Withdrawing a share, partner
+        // suggestions and saved partners go on until published listings take over matching (step 5, D49).
+        if (command.action === "preview" || command.action === "share" || command.action === "renew")
+          throw new AccountError(410, "matching_shares_retired");
         return response(200, await provider.execute(token, command));
       } catch (error) {
         const known = error instanceof AccountError ? error : new AccountError(503, "matching_unavailable");
