@@ -32,15 +32,15 @@ Nothing else holds a need or offer. Weave keeps a working record of what it
 publishes: a copy of each public record with its address, version and read-back
 state, plus the account, request and state data it needs to publish and withdraw
 safely, such as a pending withdrawal. A review holds the exact record for ten
-minutes before it is confirmed. The record keeps no unpublished draft beyond that
-review, and nobody saves to it. As built, it hangs off a project link that a
+minutes before it is confirmed, and stays until the next review purges it. The
+record keeps no unpublished draft beyond such reviews, and nobody saves to it. As built, it hangs off a project link that a
 personal save owns; step 3 detaches it.
 
 Being retired, under the [removal plan](#retiring-private-saves-and-weave-only-sharing):
 
 | State | Where it is today | Until it goes |
 |---|---|---|
-| Saved privately | `weave.initiatives` with `weave.needs` and `weave.offers` in Platform | Existing saves stay readable and downloadable until D49 is decided, and deletable unless they have a project link or a published listing, which the server refuses today. New saves stop. |
+| Saved privately | `weave.initiatives` with `weave.needs` and `weave.offers` in Platform | Existing saves stay readable and downloadable until D49 is decided, and deletable unless the server's delete guard refuses them, as it does for a card with a project link, a published listing or a project setup in progress. New saves stop. |
 | Saved to a team workspace | The same tables, with `team_workspace_id` set | As above. A team prepares a draft on one device or passes it on as a downloaded file (D48). |
 | Shared for matching | The `matching_*` columns on those rows, read through `private.weave_matching_current` | New shares stop, and existing ones end when published listings take over matching. |
 | Saved or dismissed partners | `private.weave_matching_leads` and `private.weave_matching_reviews` | They move to the shortlist on the device (DL-153). |

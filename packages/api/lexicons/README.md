@@ -37,13 +37,15 @@ and a test keeps the Lexicon's lists equal to the ones the publisher accepts.
 Readers must tolerate values they do not recognize. Treat a listing whose
 `status` is anything other than `open` as inactive, and ignore unrecognized forms
 of capital or lenses rather than rejecting the listing. Weave's own readers are not
-there yet: the public initiative page and the browser run the strict
-`parseSupportListing` and leave out a listing with any value it does not know.
+there yet: the public initiative page runs the strict `parseSupportListing`, the
+browser's `publicListingReview` is as strict, and both leave out a listing with
+any value they do not know.
 That is safe while only Weave writes these records. They must become tolerant
 before Weave reads listings other apps write (D47) or adds a value.
 
-Records under this name are already public, so change the schema only by adding
-optional fields or new known values, and leave every length limit as it is.
+Records under this name are already public, so from this change on, change the
+schema only by adding optional fields or new known values, and leave every length
+limit as it is.
 
 Example public record with fictional data:
 
