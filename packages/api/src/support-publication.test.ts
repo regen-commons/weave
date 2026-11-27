@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFile } from "node:fs/promises";
+import { CAPITALS, LENSES } from "./account-contract.ts";
 import { AccountError } from "./account-provider.ts";
 import type { CertifiedGroupRole, CertifiedProjectProvider } from "./certified-project-provider.ts";
 import { createSupportPublicationAdapter } from "./support-publication-provider.ts";
@@ -178,6 +179,25 @@ test("listing validation rejects missing forms, duplicate forms, private fields,
   assert.deepEqual(parseSupportPublicationCommand(base), base);
   for (const changed of [{ audience: "weave-users" }, { confirmPublic: false }, { actorDid: alice }, { expectedRevision: 1 }])
     assert.throws(() => parseSupportPublicationCommand({ ...base, ...changed }));
+});
+
+test("the Lexicon lists exactly the values Weave publishes, and only kind is a closed set", async () => {
+  const schema = JSON.parse(await readFile(new URL("../lexicons/com/regencommons/weave/supportListing.json", import.meta.url), "utf8"));
+  const props = schema.defs.main.record.properties;
+  assert.deepEqual(props.kind.enum, ["need", "offer"]);
+  for (const open of [props.capitalForms.items, props.lenses.items, props.status]) assert.equal(open.enum, undefined);
+  assert.deepEqual(props.capitalForms.items.knownValues, CAPITALS);
+  assert.deepEqual(props.lenses.items.knownValues, LENSES);
+  assert(props.status.knownValues.includes("open"));
+  // Lexicon limits cannot change once records exist, so the open lists keep room to grow.
+  for (const open of [props.capitalForms.items, props.lenses.items, props.status]) assert.equal(open.maxLength, 64);
+  assert(props.capitalForms.maxLength > CAPITALS.length);
+  // Readers must tolerate unknown values, but Weave itself still publishes only the listed ones.
+  assert.deepEqual(parseSupportListing({ ...listing(), capitalForms: CAPITALS }).capitalForms, CAPITALS);
+  for (const lenses of [LENSES.slice(0, 5), LENSES.slice(-5)])
+    assert.deepEqual(parseSupportListing({ ...listing(), lenses }).lenses, lenses);
+  for (const changed of [{ capitalForms: ["unlisted"] }, { lenses: ["unlisted"] }, { status: "met" }, { status: "paused" }])
+    assert.throws(() => parseSupportListing({ ...listing(), ...changed }), /invalid_support_listing/);
 });
 
 test("support state pages retain historical entries and bind their bounded cursor to the workspace", async () => {

@@ -6,11 +6,13 @@ what someone is seeking or offering before a match or partnership exists.
 The `kind` field distinguishes the two. Each listing points back to a Certified
 project with `projectUri`. The project record needs no schema change.
 
-`capitalForms` requires one to eight of Weave's existing values. More than one
-can apply, and order does not indicate priority. Publishers must reject duplicate
-values, as the [Weave account contract](../src/account-contract.ts) does. The
-Lexicon constrains the array and its item values. The publishing service also
-checks uniqueness and, when `expiresAt` is present, that expiry follows creation.
+`capitalForms` names one or more forms of capital, and the Lexicon allows up to
+16 so the list can grow. Weave publishes one to eight of its existing values. More
+than one can apply, and order does not indicate priority. Publishers must reject
+duplicate values, as the [Weave account contract](../src/account-contract.ts) does.
+The Lexicon limits the array's length and each value to 64 bytes. The publishing
+service also checks each value, uniqueness and, when `expiresAt` is present, that
+expiry follows creation.
 Omit `expiresAt` for an undated listing. It stays open until someone closes or
 withdraws it, subject to the project's eligibility.
 
@@ -23,6 +25,27 @@ listing and requires a fresh review before republication.
 Weave includes a later `updatedAt` in each new reviewed publication. The timestamp
 advances even when someone republishes the same details, giving the replacement
 a different CID so a delayed conditional delete cannot remove it.
+
+## Closed and open value sets
+
+`kind` is a closed `enum`: a listing is a need or an offer, and nothing else.
+`capitalForms`, `lenses` and `status` use `knownValues`, following the
+[Lexicon style guide](https://atproto.com/guides/lexicon-style-guide), so the lists
+can grow without a new record type. Weave still publishes only the listed values,
+and a test keeps the Lexicon's lists equal to the ones the publisher accepts.
+
+Readers must tolerate values they do not recognize. Treat a listing whose
+`status` is anything other than `open` as inactive, and ignore unrecognized forms
+of capital or lenses rather than rejecting the listing. Weave's own readers are not
+there yet: the public initiative page runs the strict `parseSupportListing`, the
+browser's `publicListingReview` is as strict, and both leave out a listing with
+any value they do not know.
+That is safe while only Weave writes these records. They must become tolerant
+before Weave reads listings other apps write (D47) or adds a value.
+
+Records under this name are already public, so from this change on, change the
+schema only by adding optional fields or new known values, and leave every length
+limit as it is.
 
 Example public record with fictional data:
 
@@ -59,6 +82,12 @@ Example public record with fictional data:
   and index behavior still need that pilot.
 
 ## Local publication lifecycle
+
+DL-155 changes this lifecycle. Publishing will start from the device draft with no
+private save, and an edit on the device will leave a published listing as it is
+until the person publishes again or withdraws it. Until step 3 of the
+[removal plan](../../../docs/platform/08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing)
+lands, this section describes the code as built.
 
 `support_review` returns the exact public record, repository DID, audience
 `public-atproto`, saved revision, entry revision and a ten-minute review expiry.

@@ -14,6 +14,12 @@ for API and data contracts and the
 [build plan](05-technical-spec.md#76-build-plan-and-ui-handoff) for preview
 evidence and release checks.
 
+**Revised 26 November 2026 (DL-155):** needs and offers live in two places, the
+device and public listings in the project's AT repository. The private save, the
+team workspace's needs and offers and sharing for matching in these diagrams are
+being retired, and the diagrams are redrawn in step 8 of the
+[removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
+
 ### System and data ownership
 
 ```mermaid

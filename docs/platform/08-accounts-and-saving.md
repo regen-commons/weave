@@ -1,58 +1,96 @@
 # Saving initiatives and accounts
 
-Status: public project creation policy revised 12 November 2026; the editor handoff was added locally on 13 November, with hosted validation pending. See [journey coverage](prototype/journey-coverage.md#external-editor-handoff-13-november-2026) for its proof and limits. The earlier matching flows and their evidence remain below. Certified sign-in and private Save/Load have local and limited hosted proof, including return after a bridge redeploy. Shared-entry matching and the external-evidence index are implemented, and the matching migrations and preview rollout are complete. The live public corpus, semantic activation and full release acceptance remain pending. See the [rollout evidence](05-technical-spec.md#hosted-preview-rollout-8-november) for verified behavior and remaining checks.
+Status: revised 26 November 2026, when needs and offers moved to two places, this device and public listings (DL-155). The [removal plan](#retiring-private-saves-and-weave-only-sharing) retires private saves and Weave-only sharing. Earlier: public project creation policy revised 12 November 2026; the editor handoff was added locally on 13 November, with hosted validation pending. See [journey coverage](prototype/journey-coverage.md#external-editor-handoff-13-november-2026) for its proof and limits. The earlier matching flows and their evidence remain below. Certified sign-in and private Save/Load have local and limited hosted proof, including return after a bridge redeploy. Shared-entry matching and the external-evidence index are implemented, and the matching migrations and preview rollout are complete. The live public corpus, semantic activation and full release acceptance remain pending. See the [rollout evidence](05-technical-spec.md#hosted-preview-rollout-8-november) for verified behavior and remaining checks.
 Companions: [PRD](04-prd.md) · [technical spec](05-technical-spec.md#5-identity-and-access) · [decision register](open-decisions.md#certified-only-sign-in-and-private-saving) · [design spec](research/certified-hypercerts-2026-11-06/design-spec.md#one-sign-in-including-first-use).
 
 Certified is the only sign-in flow. Weave automatically creates or retrieves an
-internal account record for the proven identity and uses it to own saved
-initiatives. People do not register separately with Weave. Private saving requires neither a public Certified project nor Ma Earth
-participation or Regen Commons membership. Network matching has its own project
-requirements.
+internal account record for the proven identity, which also owns any private saves
+made before DL-155. People do not register separately with Weave. Drafting needs no
+account. Publishing needs Certified authority for the project, not Ma Earth
+participation or Regen Commons membership.
 
 ## The decision
 
+Revised 26 November 2026 by DL-155: items 2 and 3 now name publishing, not saving.
+
 1. Show value before sign-in. Browse public initiatives and funding, and prepare an initiative draft on this device.
-2. Offer “Sign in with Certified” when the person wants an account copy or chooses to add a need or offer to an initiative they manage. Certified handles the code, account setup and consent. The hosted test offers email entry in Weave for that attempt.
-3. Keep authentication, saving and sharing separate. Return to the same task after sign-in; only explicit Save uploads the checked document.
+2. Offer “Sign in with Certified” when the person chooses to publish or withdraw a need or offer, or to link a project they manage. Certified handles the code, account setup and consent. The hosted test offers email entry in Weave for that attempt.
+3. Keep sign-in and publishing separate. Return to the same task after sign-in; only Make It Public sends anything, and only the listings the person reviewed.
 4. Reuse one person session for several initiatives. There is no account-linking screen, migration flow, alternate Weave code or fallback identity provider.
 5. Preserve device work through every exit. Cancel, failure or Not now never discards a draft or claims it is saved.
 
 ## Where work lives
 
-| State | Storage and access | Meaning |
+Needs and offers live in two places (DL-155):
+
+| Place | Storage and access | Meaning |
 |---|---|---|
-| Device draft | This browser's local storage, subject to device/browser access | Includes working text, files and unfinished edits; no account required. A browser can hold several, each an initiative of its own, and each shows "Not saved yet" until it is saved (DL-112). |
-| Saved privately | Owner-authorized Weave database record | Checked initiative, kept needs/offers and funding answers only; available to the same Certified identity on another device. |
-| Saved to a team workspace (target) | Weave database, accessible to teammates with workspace read access | Saved needs and offers are visible to the team before sharing. Personal saves outside the workspace stay personal. |
-| Shared for matching | Selected current entries and an approved initiative summary | Any workspace editor can preview and explicitly share what signed-in Weave users can see. Saving alone does not share. |
-| Published to a Certified project | Public listings in the project's own repository, one record per chosen need or offer | Anyone can read them, in Weave and in other apps. The person chooses the entries, sees the exact records and their destination, and confirms once. The project's name, description and place stay Certified's own (DL-148). |
+| On this device | The browser's IndexedDB `weave-drafts` database, subject to device and browser access | The whole draft: working text, files, conversation and unfinished edits, with no account required. A browser can hold several drafts, each an initiative of its own (DL-112). Download is the backup, and import brings a draft to another browser. |
+| Public | `com.regencommons.weave.supportListing` records in the project's own AT repository, one per chosen need or offer | Anyone can read them, in Weave and in other apps. The person chooses the entries, sees the exact records and their destination, and confirms once. The project's name, description and place stay Certified's own (DL-148). |
 
-Since 25 November 2026 the primary destinations are this device and a Certified
-project (DL-147). A private save in Weave is a secondary choice, offered only to
-someone signed in, and it says where the card goes and who can read it before it
-saves. Existing private saves are not migrated or published: Your Initiatives keeps
-them under Private Weave Saves, where each can be opened, all can be downloaded, and
-any one can be deleted.
+Nothing else holds a need or offer. Weave keeps a working record of what it
+publishes: a copy of each public record with its address, version and read-back
+state, plus the account, request and state data it needs to publish and withdraw
+safely, such as a pending withdrawal. A review holds the exact record for ten
+minutes before it is confirmed, and stays until the next review purges it. The
+record keeps no unpublished draft beyond such reviews, and nobody saves to it. As built, it hangs off a project link that a
+personal save owns; step 3 detaches it.
 
-Saving the checked document does not back up conversation transcripts, files,
-unfinished alternatives or AI history. Show this limit where the person saves.
-Loading a saved initiative opens it as a device draft under the saved card's own
-ID. Other device drafts are not touched. If this browser already holds a copy of
-that card, the copy and its files are backed up first, and if that backup fails
-the load stops and nothing changes. Database administrators
-can technically access stored data; owner-only product access is not end-to-end
-encryption.
+Being retired, under the [removal plan](#retiring-private-saves-and-weave-only-sharing):
 
-A linked Certified project can see named suggestions and evidence without
-sharing its own entries, following [R16](04-prd.md). Before linking, people can
-browse public projects and match for funding locally. Compute private queries
-locally against a bounded public snapshot and show its coverage. Inferred
-experience, potential uses of an offer, public statements and confirmed entries
-remain distinct. Private records and saved leads never enter
-the public corpus. Seeing a public project does not reveal associated private
-Weave records or give permission to contact its team.
+| State | Where it is today | Until it goes |
+|---|---|---|
+| Saved privately | `weave.initiatives` with `weave.needs` and `weave.offers` in Platform | Existing saves stay readable and downloadable for at least 60 days after new saves stop, then the user is asked before anything is deleted (D49). They are deletable unless the server's delete guard refuses them, as it does for a card with a project link, a published listing or a project setup in progress. New saves stop. |
+| Saved to a team workspace | The same tables, with `team_workspace_id` set | As above. A team prepares a draft on one device or passes it on as a downloaded file (D48). |
+| Shared for matching | The `matching_*` columns on those rows, read through `private.weave_matching_current` | New shares stop, and existing ones end when published listings take over matching. |
+| Saved or dismissed partners | `private.weave_matching_leads` and `private.weave_matching_reviews` | They move to the shortlist on the device (DL-153). |
+
+Database administrators can technically read the retired tables while they last;
+owner-only product access is not end-to-end encryption.
+
+A draft gets named suggestions and evidence without publishing its entries,
+following [R16](04-prd.md). The device compares it against a bounded public
+snapshot of published listings and project evidence and shows that snapshot's
+coverage. Nothing about the draft is sent. Inferred experience, potential uses of
+an offer, public statements and published listings remain distinct. Unpublished
+drafts never enter the public corpus or another person's results. Seeing a public
+project does not reveal anything unpublished or give permission to contact its
+team.
+
+## Retiring private saves and Weave-only sharing
+
+The order matters: publishing must work without a private save before private
+saves stop, because Make It Public currently saves the card as the project's
+workspace first (`PublishStep` `"save"` in `packages/app/src/initiative/publish-plan.ts`,
+and `saved_revision` in `weave_workspace.support_reviews`). Each step leaves the app
+working and passes `bun run ci`. A migration file in this repository is not an
+applied migration: Platform changes go through the website repository
+([spec 3.3](05-technical-spec.md#33-supabase-project-and-migration-ownership)), and
+applying each one needs its own approval.
+
+Production on 26 November 2026, from a count-only query: 8 initiatives saved in
+Platform (2 of them team workspaces), 15 needs, 15 offers, 4 entries shared for
+matching and 8 published listings (4 needs, 4 offers).
+
+| Step | Change | Owning paths | Proof |
+|---|---|---|---|
+| 1 | Record the decision: DL-155, this page, R12 and R16, D47 to D49. | `docs/platform/`, `packages/design-system/decision-log.md` | `bun run guidance:check` |
+| 2 | Show published listings on public pages. Apply the missing `private.weave_public_support_listings` read, or read the records from the repository. It can land first, but it joins `support_listings` to `project_links` and reads `project_links.matching_paused`, so steps 3 and 7 must carry it forward. | `packages/api/src/public-initiative-store.ts`, `supabase/candidates/weave-public-support-listings.sql`, a website repository migration | An initiative page in production shows its published listings. Today the function is missing, so the page cannot read them. |
+| 3 | Publish from the draft. The review builds each record from the need or offer the browser sends, checks it with `parseSupportListing` and the project's authority, and expires after ten minutes as now. Key Weave's working record by project and entry, not by a saved workspace row, and detach it from `weave.initiatives`: today `project_links.solo_initiative_id` cascades from a personal save, and `support_listings` cascades from `project_links`, so deleting the save would erase Weave's record of its live listings. Move step 2's read to the new keys. Publishing an entry again replaces its record at the same key, with the expected CID. Drop the `save` step from Make It Public. Critical tier. | `packages/api/src/support-publication*.ts`, a successor to `supabase/candidates/weave-support-publication.sql`, `packages/app/src/initiative/publish-plan.ts` | API tests with the PostgreSQL suites. A card that was never saved publishes one need and one offer, edits on the device leave them unchanged, publishing again replaces them, and withdrawal works from a second browser. Hosted read-back of both. Second review before merge. |
+| 4 | Stop new private saves and shares. Remove Save Privately and Share for Matching. The server refuses new saves and shares with a named error. Your Initiatives keeps Private Weave Saves read-only: Open on This Device, Download, Make It Public and Delete. | `packages/app/src/account/`, `packages/app/src/initiative/`, `packages/api/src/account*.ts`, the matching share commands | App and API tests. Rendered check at 360 and 1280 px in both themes, by keyboard. |
+| 5 | Match on published listings. Server matching takes a published listing as its query and searches other published listings and public project evidence. A draft's suggestions come from the device against a public snapshot that now includes published listings. Saved and dismissed partners move to the device shortlist. Existing shares end here. Depends on D47. | `packages/api/src/matching*.ts`, `supabase/candidates/weave-matching*.sql`, `packages/app/src/partners/` | Matching tests and the held-out relevance fixture. Two published entries from two accounts find each other; an unpublished draft appears in no one else's results. |
+| 6 | Keep only what group publishing needs in team workspaces: the project link and the explicit Weave editor grants that [group writes require](../../packages/api/lexicons/README.md#local-publication-lifecycle). Private team content follows step 4. Depends on D48. | `packages/api/src/project-commands.ts`, `supabase/candidates/weave-team-content.sql` successors | Workspace and invitation tests. Group publishing stays behind `WEAVE_SUPPORT_GROUP_LIFECYCLE_VERIFIED`. |
+| 7 | Remove the retired data and code after D49: the rows in `weave.initiatives`, `weave.needs` and `weave.offers`, their `matching_*` columns and the commands that wrote them. Only after step 3 has detached project links and published listings from those rows. Keep or replace `project_links.matching_paused`, which step 2's read uses. | A website repository migration, `packages/api/src/`, `packages/app/src/account/` | Migration tests, `bun run ci`, and production counts of zero after a separate approval to apply. |
+| 8 | Bring the rest of the plan in line as each step lands: the [architecture diagrams](03-logical-architecture.md#first-release-architecture), [spec 5.1](05-technical-spec.md#51-first-build-certified-sign-in-and-private-saving) and [7.2](05-technical-spec.md#72-cross-initiative-matching-r12-r16), R23's pulse per saved initiative, and the [Lexicon README](../../packages/api/lexicons/README.md). | `docs/platform/`, `packages/api/lexicons/README.md` | `bun run guidance:check` |
+
+Not in this plan: changes to Certified sign-in, the public project index, funding
+matching on the device, or the editor handoff to Ma Earth and Certified.
 
 ## First visit and first save
+
+This and the next two sections describe private saving and sharing as built. DL-155
+retires them under the [removal plan](#retiring-private-saves-and-weave-only-sharing);
+they stay accurate for existing saves until then.
 
 1. Describe and check an initiative. Art, software, research and place-based work follow the same path. A device draft can be prepared before signing in.
 2. Open the saving task. Explain: “Sign in with Certified to save your work and open it on another device. Your saved work stays private in Weave.”
