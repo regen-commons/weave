@@ -40,7 +40,7 @@ Being retired, under the [removal plan](#retiring-private-saves-and-weave-only-s
 
 | State | Where it is today | Until it goes |
 |---|---|---|
-| Saved privately | `weave.initiatives` with `weave.needs` and `weave.offers` in Platform | Existing saves stay readable and downloadable until D49 is decided, and deletable unless the server's delete guard refuses them, as it does for a card with a project link, a published listing or a project setup in progress. New saves stop. |
+| Saved privately | `weave.initiatives` with `weave.needs` and `weave.offers` in Platform | Existing saves stay readable and downloadable for at least 60 days after new saves stop, then the user is asked before anything is deleted (D49). They are deletable unless the server's delete guard refuses them, as it does for a card with a project link, a published listing or a project setup in progress. New saves stop. |
 | Saved to a team workspace | The same tables, with `team_workspace_id` set | As above. A team prepares a draft on one device or passes it on as a downloaded file (D48). |
 | Shared for matching | The `matching_*` columns on those rows, read through `private.weave_matching_current` | New shares stop, and existing ones end when published listings take over matching. |
 | Saved or dismissed partners | `private.weave_matching_leads` and `private.weave_matching_reviews` | They move to the shortlist on the device (DL-153). |
