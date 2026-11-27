@@ -115,9 +115,10 @@ as it is until the person withdraws it and publishes again, which keeps its reco
 key and first date. For a listing published from a saved entry, editing published
 details or closing or deleting the entry queues withdrawal with the private change,
 and replacement details stay private until another explicit publish. Confirming that
-the parent project was removed or unlisted queues withdrawal of either. Deleting a
-saved card leaves its project link and Weave's record of the listing, so the
-withdrawal can still finish. Deletion sends the
+the parent project was removed or unlisted queues withdrawal of either. A saved card
+deleted with its account leaves its project link and Weave's record of the listing,
+so the withdrawal can still finish; the delete guard still refuses a card that a
+link refers to. Deletion sends the
 expected public CID as `swapRecord` and remains pending until independent public
 read-back confirms absence. Withdrawal remains available for a paused project when
 the editor has the required upstream authority. A provider outage leaves the request
@@ -134,8 +135,9 @@ may retain records that were previously public.
 workspace-bound `nextCursor`. Follow the cursor to reach older pending withdrawals,
 including listings whose private entries were removed. A project link no saved card
 anchors is not in `list_workspaces`; a signed-in device reaches it through `lookup`
-or `link` on the project, and `support_withdraw` takes its listings from there. The
-app has no screen for withdrawing those listings yet.
+or `link` on the project, and `support_withdraw` takes its listings from there.
+Your Initiative's Public Listings does this for the person's own project. Make It
+Public keeps a listing already public exactly as previewed and sends nothing for it.
 
 The standalone public-reader fixture in
 [`support-publication.test.ts`](../src/support-publication.test.ts) discovers a need
