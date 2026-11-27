@@ -136,8 +136,9 @@ workspace-bound `nextCursor`. Follow the cursor to reach older pending withdrawa
 including listings whose private entries were removed. A project link no saved card
 anchors is not in `list_workspaces`; a signed-in device reaches it through `lookup`
 or `link` on the project, and `support_withdraw` takes its listings from there.
-Your Initiative's Public Listings does this for the person's own project. Make It
-Public keeps a listing already public exactly as previewed and sends nothing for it.
+Your Initiative's Public Listings does this for the person's own project, beside a
+card linked to it. Make It Public reads back a listing already public exactly as
+previewed and sends nothing for it.
 
 The standalone public-reader fixture in
 [`support-publication.test.ts`](../src/support-publication.test.ts) discovers a need

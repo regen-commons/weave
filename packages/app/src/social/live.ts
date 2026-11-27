@@ -244,9 +244,13 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (project && !project.group) {
         const linked = await post({ action: "link", projectUri: project.uri, ...receipt });
         // A project made public from a draft keeps the link it was published through, which no saved card can
-        // take (DL-155). The card is then saved privately on its own and is not the project's workspace.
-        const publishedFromDraft = linked.status === "linked" && uuid(linked.workspaceId) && linked.workspaceId !== receipt.initiativeId
-          && linked.projectUri === project.uri && !(state.workspaces ?? []).some(p => p.workspaceId === linked.workspaceId);
+        // take (DL-155). The card is then saved privately on its own and is not the project's workspace. The
+        // account says whether the link is another saved card's, since the workspace list may not have loaded.
+        const another = linked.status === "linked" && uuid(linked.workspaceId) && linked.workspaceId !== receipt.initiativeId
+          && linked.projectUri === project.uri && linked.accessRole === "admin";
+        const publishedFromDraft = another && await request(`?id=${encodeURIComponent(String(linked.workspaceId))}`, undefined, "/api/account", lifetime.signal)
+          .then(() => false, (error: unknown) => { if (error instanceof AccountFailure && error.code === "not_found") return true; throw error; });
+        checked();
         if (publishedFromDraft) {
           const account = await options.refreshAccount(); checked();
           service.syncAccount(account);

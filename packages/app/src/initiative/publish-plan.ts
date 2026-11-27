@@ -84,8 +84,10 @@ export interface PublishPlan {
   readonly workspaceId: string | null;
   /** Set by the one confirmation. From then on the plan goes on by itself, after Certified's screens too. */
   readonly confirmed: boolean;
-  /** Entries already public exactly as the preview shows them, so nothing is sent for them. */
+  /** Entries already public exactly as the preview shows them, read back from the repository, so nothing is sent for them. */
   readonly unchanged: readonly PublishEntry[];
+  /** Listings still public for needs or offers the preview leaves out, closed or removed on this device, to withdraw. */
+  readonly stillPublic: readonly (PublishEntry & { readonly title: string })[];
   readonly prepared: readonly PreparedListing[];
   readonly results: readonly ListingResult[];
   /** Kept until this time, in milliseconds, so an abandoned plan does not reopen days later. */
@@ -151,7 +153,7 @@ export const sameEntry = (a: PublishEntry, b: PublishEntry) => a.kind === b.kind
 
 export function newPlan(draftId: string, owner: string | null, preview: readonly PreviewListing[], creation: ProjectCreation | null,
   projectUri: string | null = null, now = Date.now()): PublishPlan {
-  return { version: 3, draftId, owner, preview: [...preview], creation, projectUri, workspaceId: null, confirmed: false, unchanged: [], prepared: [],
+  return { version: 3, draftId, owner, preview: [...preview], creation, projectUri, workspaceId: null, confirmed: false, unchanged: [], stillPublic: [], prepared: [],
     results: [], until: now + PLAN_LIFETIME_MS };
 }
 
@@ -171,8 +173,8 @@ export function readPlan(storage: PlanStorage | undefined, draftId: string, now 
     const value = record(JSON.parse(text));
     if (value.version !== 3 || value.draftId !== draftId || typeof value.until !== "number" || value.until <= now
       || (value.owner !== null && !uuid(value.owner)) || typeof value.confirmed !== "boolean"
-      || !Array.isArray(value.preview) || !Array.isArray(value.unchanged) || !Array.isArray(value.prepared) || !Array.isArray(value.results)
-      || value.preview.length > 50 || value.unchanged.length > 50 || value.prepared.length > 50 || value.results.length > 50
+      || !Array.isArray(value.preview) || !Array.isArray(value.unchanged) || !Array.isArray(value.stillPublic) || !Array.isArray(value.prepared) || !Array.isArray(value.results)
+      || value.preview.length > 50 || value.unchanged.length > 50 || value.stillPublic.length > 100 || value.prepared.length > 50 || value.results.length > 50
       || (value.projectUri !== null && (typeof value.projectUri !== "string" || !value.projectUri.startsWith("at://")))
       || (value.workspaceId !== null && !uuid(value.workspaceId)) || (value.workspaceId !== null && value.projectUri === null)) throw Error("invalid_plan");
     const strings = (list: unknown): list is string[] => Array.isArray(list) && list.every((item) => typeof item === "string");
@@ -210,8 +212,13 @@ export function readPlan(storage: PlanStorage | undefined, draftId: string, now 
       return { ...entry(item), title: item.title, state: item.state as ListingState, problem: item.problem as string | null };
     });
     const unchanged = value.unchanged.map(entry);
+    const stillPublic = value.stillPublic.map((input) => {
+      const item = record(input);
+      if (typeof item.title !== "string") throw Error("invalid_plan");
+      return { ...entry(item), title: item.title };
+    });
     return { version: 3, draftId, owner: value.owner as string | null, preview, creation, projectUri: value.projectUri as string | null,
-      workspaceId: value.workspaceId as string | null, confirmed: value.confirmed, unchanged, prepared, results, until: value.until };
+      workspaceId: value.workspaceId as string | null, confirmed: value.confirmed, unchanged, stillPublic, prepared, results, until: value.until };
   } catch {
     clearPlan(storage, draftId);
     return null;

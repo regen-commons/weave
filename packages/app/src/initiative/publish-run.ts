@@ -66,7 +66,8 @@ async function heldListings(workspaceId: string, requests: PublishRequests, sign
     signal.throwIfAborted();
     if (answer.workspaceId !== workspaceId || !Array.isArray(answer.listings)) throw new PreviewProblem(unread);
     for (const input of answer.listings) {
-      const item = record(input), fields = record(item.record);
+      let item: Record<string, unknown>, fields: Record<string, unknown>;
+      try { item = record(input); fields = record(item.record); } catch { throw new PreviewProblem(unread); }
       if ((item.kind !== "need" && item.kind !== "offer") || !uuid(item.entryId) || typeof item.status !== "string"
         || fields.kind !== item.kind || typeof fields.title !== "string" || !optional(fields.description) || !strings(fields.capitalForms)
         || (fields.lenses !== undefined && !strings(fields.lenses)) || !optional(fields.expiresAt)) throw new PreviewProblem(unread);
@@ -102,12 +103,20 @@ export async function prepareListings(
     const seen = plan.preview.find((item) => sameEntry(item, chosen));
     if (!seen) throw new PreviewProblem("A chosen need or offer is not in what you saw. Prepare the preview again. Nothing was published.");
     const current = held.find((item) => sameEntry(item, seen));
+    const heldUp = () => new PreviewProblem(`Already public with other details, or still being published or withdrawn: ${seen.title}. Withdraw it under Public Listings first, then make it public again. Nothing was published.`);
     if (current && current.status !== "withdrawn") {
-      if (current.status === "published" && showsPreview(current.record, seen)) {
+      if (current.status !== "published" || !showsPreview(current.record, seen)) throw heldUp();
+      // Weave's stored state is not enough to call it public now: the record is read back from the repository.
+      let check: Record<string, unknown>;
+      try { check = await requests.project({ action: "support_reconcile", workspaceId, kind: seen.kind, entryId: seen.entryId }, signal); }
+      catch (error) { throw error instanceof AccountFailure ? new PreviewProblem("Weave could not check what is already public. Nothing was published. Try again.") : error; }
+      signal.throwIfAborted();
+      if (check.status === "published") {
         unchanged.push({ kind: seen.kind, entryId: seen.entryId });
         continue;
       }
-      throw new PreviewProblem(`Already public with other details, or still being published or withdrawn: ${seen.title}. Withdraw it under Public Listings first, then make it public again. Nothing was published.`);
+      // Removed outside Weave since, so it is published again below; anything else waits for its withdrawal.
+      if (check.status !== "withdrawn") throw heldUp();
     }
     let answer: Record<string, unknown>;
     try {
@@ -130,8 +139,13 @@ export async function prepareListings(
     prepared.push(item);
   }
   const again = (item: PublishEntry) => only.some((entry) => sameEntry(entry, item));
+  // A listing still public for a need or offer the preview leaves out (closed or removed on this device) does not
+  // follow the draft (DL-155), so the person is told, and withdraws it under Public Listings.
+  const stillPublic = held.filter((item) => item.status !== "withdrawn" && !plan.preview.some((seen) => sameEntry(seen, item)))
+    .map((item) => ({ kind: item.kind, entryId: item.entryId, title: item.record.title }));
   return {
     ...plan,
+    stillPublic,
     unchanged: [...plan.unchanged.filter((item) => !again(item)), ...unchanged],
     prepared: [...plan.prepared.filter((item) => !again(item)), ...prepared],
     results: plan.results.filter((item) => !again(item)),

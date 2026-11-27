@@ -382,7 +382,8 @@ test("a need or offer already public as shown is kept as it is, one added beside
   again = await prepareListings(again, requests, signal);
   assert.deepEqual(again.unchanged, [{ kind: "need", entryId: needId }, { kind: "offer", entryId: offerId }]);
   assert.deepEqual(again.prepared.map((item) => item.entryId), [added.entryId]);
-  assert.deepEqual(sent.map((body) => body.action), ["support_state", "support_review"], "only the new need is reviewed");
+  assert.deepEqual(sent.map((body) => body.action), ["support_state", "support_reconcile", "support_reconcile", "support_review"],
+    "the two already public are read back again, and only the new need is reviewed");
   assert.equal(nextStep(again, { signedIn: true, linked: projectUri }), "publish");
   const storage = memoryStorage();
   writePlan(storage, again);
@@ -416,7 +417,51 @@ test("a draft's public listings are found by the project alone, withdrawn from a
   assert.equal((await projectListings(projectUri, request, signal))?.line, "1 need or offer public on Certified.");
   await elsewhere.project({ action: "support_withdraw", workspaceId, kind: "offer", entryId: offerId, requestId: crypto.randomUUID() }, signal);
   assert.equal(await projectListings(projectUri, request, signal), null, "with everything withdrawn the row goes");
-  // Someone else's account has its own link to the shared fixture project and sees none of these.
+  // In the fixture every account keeps its own link to the shared project, so another account's sees none of these;
+  // that a real project's link refuses another account is proven by the SQL suite on the website repository.
   const stranger = fixtureRequests(fixtureSession(crypto.randomUUID())).requests;
   assert.equal(await projectListings(projectUri, (body, abort) => stranger.project(body, abort), signal), null);
+});
+
+test("what is already public is read through every page, and a state that cannot be read publishes nothing", async () => {
+  const signal = new AbortController().signal, workspaceId = crypto.randomUUID();
+  const plan: PublishPlan = { ...plain(newPlan(crypto.randomUUID(), owner, preview.slice(0, 1), null, projectUri)), workspaceId };
+  const listing = (status: string, title = preview[0]!.title) => ({ kind: "need", entryId: needId, status, record: { kind: "need", title,
+    capitalForms: preview[0]!.capitalForms, lenses: ["place_based"] } });
+  const scripted = (pages: (cursor: unknown) => Record<string, unknown>, reconcile = "published"): PublishRequests => ({
+    async project(body) {
+      if (body.action === "support_state") return pages(body.cursor);
+      if (body.action === "support_reconcile") return { status: reconcile };
+      throw new AccountFailure("unexpected_command");
+    },
+  });
+  // The need is public as shown on the second page: it is read back and kept, and nothing is reviewed.
+  const paged = scripted((cursor) => cursor === undefined ? { workspaceId, listings: [], nextCursor: "page-2" }
+    : { workspaceId, listings: [listing("published")], nextCursor: null });
+  assert.deepEqual((await prepareListings(plan, paged, signal)).unchanged, [{ kind: "need", entryId: needId }]);
+  // Public with other details, still on its way out, or read back as anything but public: withdraw it first.
+  for (const requests of [scripted(() => ({ workspaceId, listings: [listing("published", "Other words")], nextCursor: null })),
+    scripted(() => ({ workspaceId, listings: [listing("withdrawal_pending")], nextCursor: null })),
+    scripted(() => ({ workspaceId, listings: [listing("published")], nextCursor: null }), "publish_pending")])
+    await assert.rejects(prepareListings(plan, requests, signal), /Withdraw it under Public Listings first/u);
+  for (const [label, requests] of [
+    ["a state for another link", scripted(() => ({ workspaceId: crypto.randomUUID(), listings: [], nextCursor: null }))],
+    ["a malformed listing", scripted(() => ({ workspaceId, listings: [{ kind: "need", entryId: "x" }], nextCursor: null }))],
+    ["a cursor that never ends", scripted(() => ({ workspaceId, listings: [], nextCursor: "again" }))],
+    ["a refused read", { async project() { throw new AccountFailure("support_publication_unavailable"); } } satisfies PublishRequests],
+  ] as const) await assert.rejects(prepareListings(plan, requests, signal), /could not check what is already public/u, label);
+});
+
+test("a listing still public for a need the card no longer lists as open is named, to withdraw", async () => {
+  setFixturePublishPermission("granted");
+  let { plan, requests, signal } = await linkedDraft();
+  plan = await publishListings(await prepareListings(plan, requests, signal), requests, signal, () => {});
+  // The need was marked met on this device, so the preview leaves it out; its listing stays public until withdrawn.
+  const later = await prepareListings(await linkForPublishing(plain(newPlan(plan.draftId, plan.owner, preview.slice(1), null, projectUri)),
+    requests, signal), requests, signal);
+  assert.deepEqual(later.stillPublic, [{ kind: "need", entryId: needId, title: "Seedlings and tools" }]);
+  assert.deepEqual(later.unchanged, [{ kind: "offer", entryId: offerId }]);
+  const storage = memoryStorage();
+  writePlan(storage, later);
+  assert.deepEqual(readPlan(storage, later.draftId), later);
 });

@@ -201,13 +201,17 @@ export function PublishInitiative({ open, onClose, onPublished }: { open: boolea
             {plan.creation && <p>Anyone can read it on Certified now. Its page in Weave's list of initiatives appears after the list's next daily update.</p>}
             <ul className="rc-ask-summary" aria-label="Each listing">
               {plan.preview.filter((item) => plan.unchanged.some((entry) => sameEntry(entry, item))).map((item) => (
-                <li key={`${item.kind}/${item.entryId}`}><strong>{item.title}</strong><p>Already public as shown here, so nothing was sent.</p></li>
+                <li key={`${item.kind}/${item.entryId}`}><strong>{item.title}</strong><p>Already public as shown here, and Weave read it back again, so nothing was sent.</p></li>
               ))}
               {plan.prepared.map((item) => {
                 const result = plan.results.find((entry) => sameEntry(entry, item));
                 return <li key={`${item.kind}/${item.entryId}`}><strong>{item.review.record.title}</strong><p>{result ? resultLine(result) : "Not sent yet."}</p></li>;
               })}
             </ul>
+            {/* A public listing does not follow the draft (DL-155): one this card no longer lists as open stays public until withdrawn. */}
+            {plan.stillPublic.length > 0 && (
+              <p className="rc-notice" data-tone="warning">{`Still public, though this card no longer lists ${plan.stillPublic.length === 1 ? "it" : "them"} as open: ${plan.stillPublic.map((item) => item.title).join(", ")}. Withdraw ${plan.stillPublic.length === 1 ? "it" : "them"} under Public Listings on this page.`}</p>
+            )}
             <div className="rc-action-bar">
               {page && !plan.creation && <ButtonLink href={page} variant="primary">See Its Public Page</ButtonLink>}
               {needsPermission(plan.results) && <ConsentButton action="publish-initiative" />}
