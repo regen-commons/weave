@@ -64,19 +64,19 @@ The left column is the domain language used in data, code and documents. The mid
 
 ## Saving and signing in
 
-Use one door and one family of verbs: Sign in and Save. Signing in says who you are. Saving, sharing and publishing are each their own action with their own words (DL-032). Account and membership are different things, so keep the words apart.
+Use one door: Sign in. Signing in says who you are. Publishing is its own action with its own words (DL-032). Nothing is saved privately any more (DL-155): a card is on this device until it is made public, and only a team's workspace still takes a save. Account and membership are different things, so keep the words apart.
 
 | Moment | Words |
 |---|---|
-| The offer | Sign in with Certified to save your work and open it on another device. Your saved work stays private in Weave. |
-| Buttons | Sign In With Certified. Sign In To Save. Not Now. |
+| The offer | Sign in with Certified to make your initiative public, or to link a project you already have there. Your draft stays on this device. |
+| Buttons | Sign In With Certified. Not Now. |
 | Optional email | Add your email (optional). Your email appears in the link to Certified and may be saved in browser history or request logs. |
-| Before saving | Not saved yet. |
-| Save | Save Privately. Save To Team Workspace. Save Changes. |
-| Saved privately | Saved privately in Weave. Only you can see it. |
+| Only in this browser | On this device. |
+| Save to a team | Save To Team Workspace. Save Changes. |
+| A private save made before | Also kept as a private save in Weave, which no longer changes. Only you can see it. |
 | Saved for a team | Saved in the Upper valley growers workspace. Teammates with access can see it. |
-| Changed since saving | Changed on this device since you saved. |
-| Sharing | Share For Matching. Not shared. Only you see your needs and offers. |
+| Changed since saving | Changed on this device since you saved. Changed on this device since your private save in Weave, which no longer changes. |
+| A share still on | 1 need or offer is still shared with people signed in. Stop Sharing. Withdraw From Matching. |
 | Publishing | Publish On Certified. Not published. |
 | Withdrawing | Ask to withdraw. The listing can stay readable until Certified confirms. |
 
