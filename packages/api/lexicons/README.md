@@ -6,11 +6,13 @@ what someone is seeking or offering before a match or partnership exists.
 The `kind` field distinguishes the two. Each listing points back to a Certified
 project with `projectUri`. The project record needs no schema change.
 
-`capitalForms` requires one to eight of Weave's existing values. More than one
-can apply, and order does not indicate priority. Publishers must reject duplicate
-values, as the [Weave account contract](../src/account-contract.ts) does. The
-Lexicon constrains the array's length. The publishing service also checks each
-value, uniqueness and, when `expiresAt` is present, that expiry follows creation.
+`capitalForms` names one or more forms of capital, and the Lexicon allows up to
+16 so the list can grow. Weave publishes one to eight of its existing values. More
+than one can apply, and order does not indicate priority. Publishers must reject
+duplicate values, as the [Weave account contract](../src/account-contract.ts) does.
+The Lexicon limits the array's length and each value to 64 bytes. The publishing
+service also checks each value, uniqueness and, when `expiresAt` is present, that
+expiry follows creation.
 Omit `expiresAt` for an undated listing. It stays open until someone closes or
 withdraws it, subject to the project's eligibility.
 
@@ -34,8 +36,14 @@ and a test keeps the Lexicon's lists equal to the ones the publisher accepts.
 
 Readers must tolerate values they do not recognize. Treat a listing whose
 `status` is anything other than `open` as inactive, and ignore unrecognized forms
-of capital or lenses rather than rejecting the listing. Once the schema is
-published, change it only by adding optional fields or new known values.
+of capital or lenses rather than rejecting the listing. Weave's own readers are not
+there yet: the public initiative page and the browser run the strict
+`parseSupportListing` and leave out a listing with any value it does not know.
+That is safe while only Weave writes these records. They must become tolerant
+before Weave reads listings other apps write (D47) or adds a value.
+
+Records under this name are already public, so change the schema only by adding
+optional fields or new known values, and leave every length limit as it is.
 
 Example public record with fictional data:
 

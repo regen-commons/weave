@@ -189,6 +189,9 @@ test("the Lexicon lists exactly the values Weave publishes, and only kind is a c
   assert.deepEqual(props.capitalForms.items.knownValues, CAPITALS);
   assert.deepEqual(props.lenses.items.knownValues, LENSES);
   assert(props.status.knownValues.includes("open"));
+  // Lexicon limits cannot change once records exist, so the open lists keep room to grow.
+  for (const open of [props.capitalForms.items, props.lenses.items, props.status]) assert.equal(open.maxLength, 64);
+  assert(props.capitalForms.maxLength > CAPITALS.length);
   // Readers must tolerate unknown values, but Weave itself still publishes only the listed ones.
   assert.deepEqual(parseSupportListing({ ...listing(), capitalForms: CAPITALS }).capitalForms, CAPITALS);
   for (const lenses of [LENSES.slice(0, 5), LENSES.slice(-5)])

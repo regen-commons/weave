@@ -374,6 +374,8 @@ Certified is the only Weave sign-in flow, per the [6 November decision](open-dec
 
 ### 5.1 First build: Certified sign-in and private saving
 
+**Superseded in part on 26 November 2026 by DL-155:** Certified sign-in stays, but private saving is being retired, and needs and offers live only on the device or in public listings. This section describes the code as built until step 4 of the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing) lands.
+
 **Outcome:** a person with a new or existing Certified identity signs in, explicitly
 saves an ordinary initiative privately, signs out, returns through Certified and
 loads the same saved document. No Ma Earth listing, public project, email access,
@@ -648,6 +650,8 @@ Step 3 implements plain text, Markdown, CSV text and PDF text with approved `pdf
 - Structured features: capital forms, lenses, themes (snapped), place set (basin, bioregion, subrealm, realm, country, global flag), stage, eligibility details, freshness (`confirmed_at`), status.
 
 ### 7.2 Cross-initiative matching (R12, R16)
+
+**Superseded in part on 26 November 2026 by DL-155:** matching moves from entries shared with signed-in Weave users to published listings, and a draft is compared on the device. This section describes the code as built until step 5 of the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing) lands.
 
 **Outcome.** A person signs in with Certified, creates or opens a Weave initiative
 they own, adds a need or offer, and chooses which entries to share for matching.

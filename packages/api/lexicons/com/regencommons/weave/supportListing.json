@@ -46,8 +46,8 @@
           "capitalForms": {
             "type": "array",
             "minLength": 1,
-            "maxLength": 8,
-            "description": "Distinct forms of capital that apply. Order has no meaning. Readers should tolerate values they do not recognize.",
+            "maxLength": 16,
+            "description": "Distinct forms of capital that apply. Order has no meaning. Readers should tolerate values they do not recognize. The limit leaves room for the list to grow; Weave publishes at most eight.",
             "items": {
               "type": "string",
               "maxLength": 64,
