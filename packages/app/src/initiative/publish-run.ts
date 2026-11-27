@@ -1,68 +1,88 @@
-import { parseMatchingState, type MatchingState } from "@weave/api/matching-contract";
-import { record } from "@weave/api/account-contract";
+import { record, uuid } from "@weave/api/account-contract";
 import { AccountFailure, accountRequest } from "../account/client.ts";
-import { publicListingReview } from "../partners/public-support-state.ts";
+import { publicListingReview, type PublicReview } from "../partners/public-support-state.ts";
 import {
-  listingResult, matchesPreview, publishCommand, sameEntry,
+  DRAFT_REVISION, listingResult, matchesPreview, publishCommand, reviewCommand, sameEntry,
   type ListingResult, type PreparedListing, type PublishEntry, type PublishPlan,
 } from "./publish-plan.ts";
 
-/** The two endpoints a publication uses: the project commands and the matching state of the saved card. */
+/** The one endpoint a publication uses: the project commands. Nothing is read from a private save (DL-155). */
 export interface PublishRequests {
   project(body: Record<string, unknown>, signal: AbortSignal): Promise<Record<string, unknown>>;
-  matchingState(workspaceId: string, signal: AbortSignal): Promise<MatchingState>;
 }
 
 export const browserRequests: PublishRequests = {
   project: (body, signal) => accountRequest("", body, "/api/projects", signal),
-  async matchingState(workspaceId, signal) {
-    const state = parseMatchingState(await accountRequest("", { action: "state", initiativeId: workspaceId }, "/api/matching", signal));
-    if (state.initiativeId !== workspaceId) throw new AccountFailure("matching_unavailable");
-    return state;
-  },
 };
 
 /** Why a preview could not be prepared, in the words the person reads. Nothing was published in any case. */
 export class PreviewProblem extends Error {}
 
+/** Weave's link to the plan's project, which every review and publication names. */
+function linkedWorkspace(plan: PublishPlan): string {
+  if (!plan.workspaceId) throw new PreviewProblem("Your project is not linked in Weave yet. Try again. Nothing was published.");
+  return plan.workspaceId;
+}
+
 /**
- * Asks the server to review each chosen entry of the saved card, the project's workspace, at its
- * current revision, and keeps the exact public records it returns with a new request ID each. `only`
- * prepares just those entries again, as after a review lapsed; the others keep what they had.
+ * Links the plan's personal project in Weave with no saved card behind it (DL-155), so Weave can keep its
+ * record of what it publishes there. The server answers with the project's one link, made now or before,
+ * so a retry never makes a second one.
+ */
+export async function linkForPublishing(plan: PublishPlan, requests: PublishRequests, signal: AbortSignal): Promise<PublishPlan> {
+  if (plan.workspaceId) return plan;
+  const projectUri = plan.projectUri;
+  if (!projectUri) throw new PreviewProblem("Weave lost track of the project. Start again. Nothing was published.");
+  let answer: Record<string, unknown>;
+  try {
+    answer = await requests.project({ action: "link", projectUri }, signal);
+  } catch (error) {
+    if (error instanceof AccountFailure && error.code === "project_consent_required") throw error;
+    if (error instanceof AccountFailure && (error.code === "project_authority_required" || error.code === "project_verification_required"))
+      throw new PreviewProblem("Certified did not confirm that this project is yours, so Weave cannot publish to it. Nothing was published.");
+    throw new PreviewProblem("Weave could not link your project. Nothing was published. Try again.");
+  }
+  signal.throwIfAborted();
+  const value = record(answer);
+  if (value.status !== "linked" || !uuid(value.workspaceId) || value.projectUri !== projectUri || value.accessRole !== "admin")
+    throw new PreviewProblem("Weave could not confirm the link to your project. Nothing was published. Try again.");
+  return { ...plan, workspaceId: value.workspaceId };
+}
+
+/**
+ * Asks the server to review each chosen need or offer exactly as the preview showed it, and keeps the
+ * exact public records it returns with a new request ID each. `only` prepares just those entries again,
+ * as after a review lapsed; the others keep what they had.
  */
 export async function prepareListings(
   plan: PublishPlan,
-  workspaceId: string,
-  saved: { readonly revision: number },
   requests: PublishRequests,
   signal: AbortSignal,
   only: readonly PublishEntry[] = plan.preview,
 ): Promise<PublishPlan> {
-  const matching = await requests.matchingState(workspaceId, signal);
-  signal.throwIfAborted();
-  if (matching.initiativeRevision !== saved.revision)
-    throw new PreviewProblem("Your saved card changed while the preview was prepared. Prepare it again.");
+  const workspaceId = linkedWorkspace(plan);
   const prepared: PreparedListing[] = [];
   for (const chosen of only) {
-    const entry = matching.entries.find((item) => sameEntry(item, chosen));
-    if (!entry) throw new PreviewProblem("A chosen need or offer is not in the saved card. Check your card, then prepare the preview again.");
+    const seen = plan.preview.find((item) => sameEntry(item, chosen));
+    if (!seen) throw new PreviewProblem("A chosen need or offer is not in what you saw. Prepare the preview again. Nothing was published.");
     let answer: Record<string, unknown>;
     try {
-      answer = await requests.project({ action: "support_review", workspaceId, kind: entry.kind, entryId: entry.entryId,
-        expectedRevision: saved.revision, expectedEntryRevision: entry.revision, expiresAt: null }, signal);
+      answer = await requests.project(reviewCommand(workspaceId, seen), signal);
     } catch (error) {
       throw error instanceof AccountFailure ? new PreviewProblem(reviewRefusal(error.code)) : error;
     }
     signal.throwIfAborted();
-    const review = publicListingReview(answer, saved.revision, entry.revision);
+    const unchecked = "Weave could not check the preview. Nothing was published. Try again.";
+    let review: PublicReview;
+    try { review = publicListingReview(answer, DRAFT_REVISION, DRAFT_REVISION); }
+    catch { throw new PreviewProblem(unchecked); }
     const lapses = record(answer).reviewExpiresAt;
-    if (review.record.kind !== entry.kind || typeof lapses !== "string" || !Number.isFinite(Date.parse(lapses)))
-      throw new PreviewProblem("Weave could not check the preview. Nothing was published. Try again.");
-    const item: PreparedListing = { kind: entry.kind, entryId: entry.entryId, review, requestId: crypto.randomUUID(),
-      savedRevision: saved.revision, entryRevision: entry.revision, reviewExpiresAt: lapses };
-    // The server builds the public record from the saved card. It must be what the person saw, or nothing is published.
+    if (review.record.kind !== seen.kind || review.record.projectUri !== plan.projectUri
+      || typeof lapses !== "string" || !Number.isFinite(Date.parse(lapses))) throw new PreviewProblem(unchecked);
+    const item: PreparedListing = { kind: seen.kind, entryId: seen.entryId, review, requestId: crypto.randomUUID(), reviewExpiresAt: lapses };
+    // The server builds the public record from the fields sent. It must be what the person saw, or nothing is published.
     if (!matchesPreview(item, plan.preview))
-      throw new PreviewProblem("What Weave would publish differs from what you saw, because the card changed. Look at it again before making it public. Nothing was published.");
+      throw new PreviewProblem("What Weave would publish differs from what you saw. Nothing was published. Try again.");
     prepared.push(item);
   }
   const again = (item: PublishEntry) => only.some((entry) => sameEntry(entry, item));
@@ -100,8 +120,12 @@ export async function createProject(plan: PublishPlan, requests: PublishRequests
 }
 
 function reviewRefusal(code: string): string {
-  if (code === "support_conflict" || code === "invalid_support_command")
-    return "This need or offer changed, or it is already public and must be withdrawn before it is published again. Nothing was published.";
+  // A draft's review conflicts only with a listing already public at its address.
+  if (code === "support_conflict")
+    return "This need or offer is already public, and must be withdrawn before it is published again. Nothing was published.";
+  if (code === "invalid_support_command")
+    return "Weave could not accept this need or offer as it is. Check it on your card, then try again. Nothing was published.";
+  if (code === "rate_limited") return "Too many previews were prepared in a short time. Wait a few minutes, then try again. Nothing was published.";
   if (code === "workspace_edit_required") return "Certified did not confirm that you can publish to this project. Nothing was published.";
   if (code === "project_consent_required") return "Weave needs Certified's permission to check your project first. Nothing was published.";
   if (code === "support_group_lifecycle_unverified") return "Publishing for group projects is paused until safe withdrawal is verified. Nothing was published.";
@@ -128,11 +152,11 @@ const replaced = (plan: PublishPlan, result: ListingResult): PublishPlan =>
  */
 export async function publishListings(
   plan: PublishPlan,
-  workspaceId: string,
   requests: PublishRequests,
   signal: AbortSignal,
   keep: (plan: PublishPlan) => void,
 ): Promise<PublishPlan> {
+  const workspaceId = linkedWorkspace(plan);
   let current: PublishPlan = { ...plan, confirmed: true };
   keep(current);
   for (const item of current.prepared) {
@@ -157,11 +181,11 @@ export async function publishListings(
  */
 export async function checkListings(
   plan: PublishPlan,
-  workspaceId: string,
   requests: PublishRequests,
   signal: AbortSignal,
   keep: (plan: PublishPlan) => void,
 ): Promise<PublishPlan> {
+  const workspaceId = linkedWorkspace(plan);
   let current = plan;
   for (const item of current.prepared) {
     const before = resultFor(current, item);

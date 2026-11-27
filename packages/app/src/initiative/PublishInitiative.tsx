@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { busyProps } from "../account/busy.ts";
 import { useAccount } from "../account/context.tsx";
-import { activeInitiative } from "../account/active-initiative.ts";
 import { AccountFailure, accountMessage } from "../account/client.ts";
 import { SignInButton } from "../account/SignInButton.tsx";
+import { LENS_LABELS } from "../describe/contracts.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { initialsOf } from "../partners/public-initiative.ts";
 import { projectAddress } from "../partners/public-project.ts";
@@ -13,6 +13,7 @@ import { AskCards } from "../ui/AskCards.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { Media } from "../ui/Media.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
+import { WorkTag } from "../ui/WorkTag.tsx";
 import { beginEditorHandoff, editorStorage, PROJECT_EDITORS } from "./editor-handoff.ts";
 import { possibleDuplicate, type PossibleDuplicate } from "./possible-duplicate.ts";
 import { ConsentButton } from "./ProjectConsent.tsx";
@@ -20,37 +21,34 @@ import {
   adoptPlan, clearPlan, needsPermission, newPlan, nextStep, PROJECT_NAME_LIMIT, projectFromDraft, projectNameFits, publishPreview, readPlan,
   resultLine, resultsSummary, sameEntry, unfinished, writePlan, type PublishPlan, type PublishStep,
 } from "./publish-plan.ts";
-import { browserRequests, checkListings, createProject, prepareListings, PreviewProblem, publishListings } from "./publish-run.ts";
+import { browserRequests, checkListings, createProject, linkForPublishing, prepareListings, PreviewProblem, publishListings } from "./publish-run.ts";
 import { newTid } from "./tid.ts";
-import { useCardStatus } from "./use-card-status.ts";
 
 const tabStorage = () => { try { return window.sessionStorage; } catch { return undefined; } };
 /** What each step after the confirmation says while it runs. */
 const WORKING: Partial<Record<PublishStep, string>> = {
   create: "Creating your project on Certified",
   link: "Linking your card to it",
-  save: "Keeping a private copy in your Weave account",
   review: "Checking each listing against what you saw",
   publish: "Publishing your needs and offers",
 };
-const RUNS: readonly PublishStep[] = ["create", "link", "save", "review", "publish"];
+const RUNS: readonly PublishStep[] = ["create", "link", "review", "publish"];
 
 /**
- * Make It Public (DL-148, revised 25 November 2026): the card as its public page will read, where it goes,
- * a warning where it may already exist on Certified or Ma Earth, and one confirmation. After it, Weave
- * creates a personal Certified project from the card unless one is linked, keeps a private copy as its
- * workspace, checks each listing against the preview and publishes them, going on by itself after
- * Certified's sign-in and permission screens. Ma Earth is a handoff with the details to copy.
+ * Make It Public (DL-148, revised 25 November 2026; DL-155): the card as its public page will read, where it
+ * goes, a warning where it may already exist on Certified or Ma Earth, and one confirmation. After it, Weave
+ * creates a personal Certified project from the card unless one is linked, links the project in Weave, has
+ * each listing reviewed from the draft and checked against the preview, and publishes them, going on by itself
+ * after Certified's sign-in and permission screens. Nothing is saved privately. Ma Earth is a handoff with the
+ * details to copy.
  */
 export function PublishInitiative({ open, onClose, onPublished }: { open: boolean; onClose(): void; onPublished(): void }) {
   const { draft, controller } = useDraft();
   const account = useAccount();
   const social = useSocial();
-  const status = useCardStatus();
   const owner = account.state?.user?.id ?? null;
   const live = social?.mode === "live" ? social : null;
   const project = live?.state.project ?? null;
-  const saved = activeInitiative(draft.account.saved, owner ?? undefined);
   const [plan, setPlan] = useState<PublishPlan | null>(() => adoptPlan(readPlan(tabStorage(), draft.id), owner));
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState("");
@@ -79,8 +77,7 @@ export function PublishInitiative({ open, onClose, onPublished }: { open: boolea
     return () => lookup.abort();
   }, [open, project, card?.name, card?.links, own, plan?.confirmed]);
   const keep = (next: PublishPlan) => { setPlan(next); writePlan(tabStorage(), next); };
-  const workspace = !!saved && !status.unsaved && !!project && project.workspaceId === saved.id;
-  const step = nextStep(plan, { signedIn: !!owner, linked: project?.uri ?? null, workspace });
+  const step = nextStep(plan, { signedIn: !!owner, linked: project?.uri ?? null });
 
   /** Runs the step the plan is at. The effect below runs the next one, until it is done or something stops it. */
   async function advance() {
@@ -92,22 +89,19 @@ export function PublishInitiative({ open, onClose, onPublished }: { open: boolea
       if (step === "create") keep(await createProject(plan, browserRequests, signal));
       else if (step === "link") {
         if (!plan.projectUri) throw new PreviewProblem("Weave lost track of the project. Start again. Nothing was published.");
-        await live.service.reload();
-        await live.service.linkProject(plan.projectUri, signal, { keepCard: !!plan.creation });
-        live.refresh();
-        if (live.service.snapshot().project?.uri !== plan.projectUri)
-          throw new PreviewProblem("The project could not be linked to your card yet. Try again. Nothing was published.");
-      } else if (step === "save") {
-        await live.service.save("", "private");
-        live.refresh();
+        // The card on this device is linked first, then the project in Weave, with no saved card behind it (DL-155).
+        if (live.service.snapshot().project?.uri !== plan.projectUri) {
+          await live.service.reload();
+          await live.service.linkProject(plan.projectUri, signal, { keepCard: !!plan.creation });
+          live.refresh();
+          if (live.service.snapshot().project?.uri !== plan.projectUri)
+            throw new PreviewProblem("The project could not be linked to your card yet. Try again. Nothing was published.");
+        }
+        keep(await linkForPublishing(plan, browserRequests, signal));
       } else if (step === "review") {
-        const now = activeInitiative(controller.getSnapshot().draft.account.saved, owner);
-        if (!now || live.service.snapshot().project?.workspaceId !== now.id)
-          throw new PreviewProblem("Your card was saved privately, but it is not the project's workspace yet. Open it from Your Initiatives, then try again. Nothing was published.");
-        keep(await prepareListings(plan, now.id, { revision: now.revision }, browserRequests, signal));
+        keep(await prepareListings(plan, browserRequests, signal));
       } else if (step === "publish") {
-        if (!project?.workspaceId) throw new PreviewProblem("The project's workspace is not ready. Try again. Nothing was published.");
-        const result = await publishListings(plan, project.workspaceId, browserRequests, signal, keep);
+        const result = await publishListings(plan, browserRequests, signal, keep);
         if (result.results.some((item) => item.state === "published")) onPublished();
       }
     } catch (error) {
@@ -134,10 +128,10 @@ export function PublishInitiative({ open, onClose, onPublished }: { open: boolea
     setPlan(next);
   }
   function check() {
-    if (busy || !plan || !project?.workspaceId) return;
+    if (busy || !plan?.workspaceId) return;
     const current = new AbortController(); task.current = current;
     setBusy(true); setProblem("");
-    void checkListings(plan, project.workspaceId, browserRequests, current.signal, keep)
+    void checkListings(plan, browserRequests, current.signal, keep)
       .then((result) => { if (result.results.some((item) => item.state === "published")) onPublished(); })
       .catch(() => setProblem("The listings could not be checked. Try again."))
       .finally(() => { if (task.current === current) { task.current = null; setBusy(false); } });
@@ -289,6 +283,12 @@ export function PublishInitiative({ open, onClose, onPublished }: { open: boolea
                 </div>
               </div>
               {card.description && <p className="rc-prose">{card.description}</p>}
+              {/* Each listing carries the card's types of work, so they are shown here before anything is published. */}
+              {card.lenses.length > 0 && (
+                <ul className="rc-tag-list" aria-label="Type of work">
+                  {card.lenses.map((lens) => <li key={lens}><WorkTag work={LENS_LABELS[lens]} /></li>)}
+                </ul>
+              )}
               {(["need", "offer"] as const).map((kind) => {
                 const items = preview.listings.filter((item) => item.kind === kind);
                 return items.length ? (
@@ -303,7 +303,7 @@ export function PublishInitiative({ open, onClose, onPublished }: { open: boolea
             {preview.withoutKind.length > 0 && (
               <p className="rc-meta">{`${preview.withoutKind.length} ${preview.withoutKind.length === 1 ? "entry is" : "entries are"} left out until ${preview.withoutKind.length === 1 ? "it has" : "they have"} a kind of support.`}</p>
             )}
-            <p className="rc-meta">Weave keeps a private copy in your Weave account so you can update or withdraw these later. Certified asks you once to allow it.</p>
+            <p className="rc-meta">Your card stays on this device. Weave keeps a copy of each listing and where it is published, so you can withdraw it later. Certified asks you once to allow it.</p>
             <div className="rc-action-bar">
               {owner ? (
                 <button className="rc-button" data-variant="primary" type="button" {...busyProps(busy, blocked || longName || !preview.listings.length)} onClick={confirm}>

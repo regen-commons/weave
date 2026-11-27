@@ -266,7 +266,9 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       let link = linkOf(chosen);
       if (result.status === "linked") {
         if (!uuid(result.workspaceId) || result.projectUri !== uri || !["viewer", "editor", "admin"].includes(String(result.accessRole))) throw Error("The workspace could not be checked.");
-        link = { ...link, workspaceId: result.workspaceId, workspace: chosen.group ? "open" : "solo",
+        // A personal project's workspace is the saved card it was linked to, which the workspace list names. A link
+        // made to publish from a draft has no card behind it (DL-155), so the card here is not told of another one.
+        if (chosen.group || chosen.workspace) link = { ...link, workspaceId: result.workspaceId, workspace: chosen.group ? "open" : "solo",
           accessRole: result.accessRole === "viewer" ? "viewer" : result.accessRole === "editor" ? "editor" : "admin" };
       } else if (result.status === "access_required") throw Error("Ask a workspace admin for an invitation to this project.");
       else if (result.status !== "unlinked" && result.status !== "pending") throw Error("The project could not be linked.");
