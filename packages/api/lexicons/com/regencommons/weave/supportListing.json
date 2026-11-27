@@ -47,10 +47,11 @@
             "type": "array",
             "minLength": 1,
             "maxLength": 8,
-            "description": "Distinct forms of capital that apply. Order has no meaning.",
+            "description": "Distinct forms of capital that apply. Order has no meaning. Readers should tolerate values they do not recognize.",
             "items": {
               "type": "string",
-              "enum": [
+              "maxLength": 64,
+              "knownValues": [
                 "living",
                 "material",
                 "intellectual",
@@ -64,13 +65,14 @@
           },
           "status": {
             "type": "string",
-            "enum": [
+            "maxLength": 64,
+            "knownValues": [
               "open",
               "met",
               "withdrawn",
               "expired"
             ],
-            "description": "Open listings remain active until closed or withdrawn, or until their optional expiry."
+            "description": "Open listings remain active until closed or withdrawn, or until their optional expiry. Readers treat any value other than open as inactive."
           },
           "createdAt": {
             "type": "string",
@@ -90,10 +92,11 @@
           "lenses": {
             "type": "array",
             "maxLength": 5,
-            "description": "Reviewed types of work for the linked initiative. Optional for compatibility with earlier listings; order has no meaning.",
+            "description": "Reviewed types of work for the linked initiative. Optional for compatibility with earlier listings; order has no meaning. Readers should tolerate values they do not recognize.",
             "items": {
               "type": "string",
-              "enum": [
+              "maxLength": 64,
+              "knownValues": [
                 "art_culture",
                 "research",
                 "technology",

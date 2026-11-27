@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import { LENSES, record, uuid } from "./account-contract.ts";
+import { CAPITALS, LENSES, record, uuid } from "./account-contract.ts";
 import { AccountError } from "./account-provider.ts";
 import type { CertifiedGroupRole, CertifiedProjectProvider, CertifiedProjectResult } from "./certified-project-provider.ts";
 import type { ProjectActor } from "./project-commands.ts";
@@ -21,7 +21,6 @@ export interface SupportListing {
   updatedAt?: string;
   expiresAt?: string;
 }
-const capitals = ["living", "material", "intellectual", "experiential", "social", "financial", "cultural", "spiritual"];
 const segmenter = new Intl.Segmenter();
 function text(value: unknown, max: number, bytes: number): value is string {
   return typeof value === "string" && !/\p{Surrogate}/u.test(value) && Buffer.byteLength(value) <= bytes &&
@@ -43,7 +42,7 @@ export function parseSupportListing(input: unknown): SupportListing {
       !text(v.title, 140, 1400) || !v.title.trim() ||
       (v.description !== undefined && !text(v.description, 600, 6000)) ||
       !Array.isArray(v.capitalForms) || v.capitalForms.length < 1 || v.capitalForms.length > 8 ||
-      v.capitalForms.some(x => typeof x !== "string" || !capitals.includes(x)) ||
+      v.capitalForms.some(x => typeof x !== "string" || !CAPITALS.includes(x)) ||
       new Set(v.capitalForms).size !== v.capitalForms.length || v.status !== "open" ||
       (v.lenses !== undefined && (!Array.isArray(v.lenses) || v.lenses.length > 5
         || v.lenses.some(lens => typeof lens !== "string" || !LENSES.includes(lens)) || new Set(v.lenses).size !== v.lenses.length)) ||
