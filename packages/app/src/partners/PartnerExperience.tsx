@@ -203,7 +203,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
       {import.meta.env.DEV && fixture && (
         <p className="rc-notice" data-tone="info">Local matching fixture. Changes last until the development server restarts.</p>
       )}
-      {listing && <p>Weave no longer shares needs and offers with people signed in. One still shared stays visible to them until you withdraw it.</p>}
+      {listing && <p>Weave no longer shares needs and offers with people signed in. Withdraw any listed here. One still shared stays visible to them until you do.</p>}
       {stale && (
         <p className="rc-notice" data-tone="warning" role="alert">{team ? "This workspace changed. Reload to see the latest entries. Copy any unsaved changes first."
           : "This initiative changed in your account. Load the latest saved version to continue. Loading keeps a backup on this device."}</p>
@@ -215,7 +215,7 @@ export function SavedMatching({ active, synced, compact, online, onExpired, fixt
         first={state === null ? <LinesSkeleton label="Checking partners" /> : undefined} onRetry={command => void network.mutate(command)} />
       {listing && state && !stale && (stillShared.length ? (
         <fieldset className="rc-stack">
-          <legend>Still shared</legend>
+          <legend>Shared before</legend>
           <ul className="rc-ask-summary">
             {stillShared.map((entry) => {
               const shared = sharedEntries([entry]).length > 0;

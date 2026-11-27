@@ -14,8 +14,13 @@ import { sharedEntries, sharedLine } from "../partners/use-network-matching.ts";
  * Agreed status rows; their reviews retain server receipts, conflict handling and the exact retry command. Nothing
  * new is shared for matching (DL-155, step 4), so the sharing row shows only while something is still shared, to stop it.
  */
-export function LiveExposure({ saved, owner, readOnly = false, online = true, onExpired, onChanged, team = false, refreshVersion = 0 }: {
+export function LiveExposure({ saved, owner, readOnly = false, publishHeld = false, online = true, onExpired, onChanged, team = false, refreshVersion = 0 }: {
   saved: SavedInitiative; owner: string; readOnly?: boolean; online?: boolean; team?: boolean;
+  /**
+   * The device moved on from this save, so publishing from it would publish an earlier version. Stopping a
+   * share still works: withdrawal names the server's own entries, not the device's words.
+   */
+  publishHeld?: boolean;
   /** Changes when sharing changed elsewhere on the page, such as from Partners For You, so the rows read again. */
   refreshVersion?: number;
   /** Hears of a session that ended, after the screen was cleared. */
@@ -58,7 +63,7 @@ export function LiveExposure({ saved, owner, readOnly = false, online = true, on
     {shared !== null && <StatusLine actions={!readOnly && stoppable ? (
       <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={!online}
         onClick={() => show("share")}>Stop Sharing</button>) : undefined}>{shared}</StatusLine>}
-    <StatusLine actions={!readOnly && <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={!online}
+    <StatusLine actions={!readOnly && !publishHeld && <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={!online}
       onClick={() => show("publish")}>{PUBLISH_ACTION}</button>}>{published}</StatusLine>
     <TaskDialog title="Stop Sharing" open={step === "share"} onClose={() => close("share")} retainContents>
       {opened.share && <SavedMatching key={saved.revision} active={active} synced online={online} compact={false}
@@ -66,7 +71,7 @@ export function LiveExposure({ saved, owner, readOnly = false, online = true, on
       }
     </TaskDialog>
     <TaskDialog title={PUBLISH_ACTION} open={step === "publish"} onClose={() => close("publish")} retainContents>
-      {opened.publish && <PublicSupport workspaceId={saved.id} saved={saved} readOnly={readOnly} expanded visible={step === "publish"} />}
+      {opened.publish && <PublicSupport workspaceId={saved.id} saved={saved} readOnly={readOnly || publishHeld} expanded visible={step === "publish"} />}
     </TaskDialog>
   </>;
 }

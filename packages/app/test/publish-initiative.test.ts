@@ -10,8 +10,8 @@ import { AccountFailure } from "../src/account/client.ts";
 import { loadedDraft } from "../src/account/document.ts";
 import { revise } from "../src/describe/contracts.ts";
 import {
-  adoptPlan, clearPlan, DRAFT_REVISION, matchesPreview, needsPermission, newPlan, nextStep, PLAN_LIFETIME_MS, projectFromDraft, projectNameFits,
-  publishCommand, publishPreview, readPlan, resultLine, resultsSummary, reviewCommand, settledResults, writePlan, type PreviewListing, type PublishPlan,
+  adoptPlan, askToMakePublic, clearPlan, DRAFT_REVISION, matchesPreview, needsPermission, newPlan, nextStep, PLAN_LIFETIME_MS, projectFromDraft, projectNameFits,
+  publishCommand, publishPreview, readPlan, resultLine, resultsSummary, reviewCommand, settledResults, takeMakePublic, writePlan, type PreviewListing, type PublishPlan,
 } from "../src/initiative/publish-plan.ts";
 import { newTid, TID } from "../src/initiative/tid.ts";
 import { projectListings } from "../src/initiative/project-listings.ts";
@@ -464,4 +464,23 @@ test("a listing still public for a need the card no longer lists as open is name
   const storage = memoryStorage();
   writePlan(storage, later);
   assert.deepEqual(readPlan(storage, later.draftId), later);
+});
+
+// D49: Make It Public on a private save opens that save here and asks its page, once, to open the step.
+test("a private save's Make It Public asks its own card's page once, and the ask is used up", () => {
+  const storage = memoryStorage(), card = crypto.randomUUID(), other = crypto.randomUUID();
+  assert.equal(takeMakePublic(storage, card), false, "nothing was asked");
+  askToMakePublic(storage, card);
+  assert.equal(takeMakePublic(storage, other), false, "another card's page is not asked");
+  assert.equal(takeMakePublic(storage, card), true);
+  assert.equal(takeMakePublic(storage, card), false, "a later visit does not open it again");
+  // Without storage, or with storage that throws, the page opens without the dialog and nothing fails.
+  assert.doesNotThrow(() => askToMakePublic(undefined, card));
+  assert.equal(takeMakePublic(undefined, card), false);
+  const broken = { getItem() { throw Error("blocked"); }, setItem() { throw Error("blocked"); }, removeItem() { throw Error("blocked"); } };
+  assert.doesNotThrow(() => askToMakePublic(broken as never, card));
+  assert.equal(takeMakePublic(broken as never, card), false);
+  // The card's page reads the plan and the ask both, so an ask is never left behind by a plan.
+  const page = readFileSync(new URL("../src/pages/YourInitiative.tsx", import.meta.url), "utf8");
+  assert.match(page, /const planned = adoptPlan\(readPlan\(tab, draft\.id\), signedInAs\);\s*const asked = takeMakePublic\(tab, draft\.id\);/u);
 });

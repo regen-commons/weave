@@ -177,7 +177,7 @@ export const SIGN_IN = {
     "Signing in says who you are, and Certified then asks to let Weave read your projects for as long as you stay signed in. Nothing of yours is published until you choose it.",
   /** DL-155: nothing is saved privately in Weave any more. A draft leaves the device only as what is made public. */
   saved:
-    "Your draft, with its conversations, files, unfinished edits and assistant records, stays on this device. Only the needs and offers you make public, and your project's details, leave it.",
+    "Conversations, files, unfinished edits and assistant records stay on this device. Making it public sends the needs and offers you choose and your project's details. Saving to a team workspace sends the checked card, needs, offers and funding details.",
   session: "You stay signed in on this browser for up to 30 days. If you do not open Weave for 14 days, you are signed out sooner.",
 } as const;
 

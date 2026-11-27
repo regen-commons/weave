@@ -104,7 +104,8 @@ export function accountMessage(error: unknown): string {
         document_too_large: "This card is too large to save. Your device draft is still here.",
         initiative_deleted:
           "This card was deleted from your account. Your words are still on this device.",
-        // DL-155, step 4: what an older tab hears when it still offers to save or to share for matching.
+        // DL-155, step 4: the server's refusals of a new private save or share. This build sends neither; the
+        // words stay for a request this build did not send, such as a retry carried over from before.
         private_saves_retired:
           "Weave no longer saves cards privately. Your card is still on this device: make it public to put it on Certified.",
         matching_shares_retired:

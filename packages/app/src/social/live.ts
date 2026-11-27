@@ -8,7 +8,6 @@ import { withConfirmedSession } from "../account/session-end.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { hasDraft } from "../describe/view.ts";
 import { projectLocations, projectPage, setupPage, workspacePage, type PublicProject } from "../initiative/projects-client.ts";
-import { saveForProject } from "../initiative/project-save.ts";
 import { chosenProjectUri, projectChoiceKey, projectChoosers } from "./project-choice.ts";
 import { linkedProject } from "../initiative/list.ts";
 import { submitProjectCreate } from "../initiative/project-creation.ts";
@@ -298,7 +297,8 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (!options.storage) throw Error("Device storage is needed to keep this creation request safe.");
       const { result } = await submitProjectCreate({ owner: owner!, draftId: options.controller.getSnapshot().draft.id, groupLabel,
         profile: { title: card.name, description: card.description }, storage: options.storage,
-        save: () => saveForProject(options.controller, owner!, lifetime.signal), request: post, signal: lifetime.signal, resumeOnly: true });
+        // Only an earlier request is reconciled, so nothing here saves privately (DL-155, step 4).
+        save: async () => { throw Error("Only the earlier request can be resumed."); }, request: post, signal: lifetime.signal, resumeOnly: true });
       if (result.status !== "linked" || !uuid(result.workspaceId) || typeof result.projectUri !== "string")
         throw Error("Certified is still confirming creation. Check again with the same request.");
       select(result.projectUri);

@@ -12,7 +12,7 @@ import { waitingSuggestions } from "../initiative/import.ts";
 import { strongestFirst, projectLinkLine } from "../initiative/list.ts";
 import { useProjectLink } from "../initiative/use-project-link.ts";
 import { ConsentButton } from "../initiative/ProjectConsent.tsx";
-import { cardName, cardRoute, onlyInitiativeWaits, openSteps } from "../initiative/status.ts";
+import { cardName, cardRoute, onlyInitiativeWaits, openSteps, SAVED_SIGNED_OUT } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { intakeComplete, keptAsks } from "../intake/finish.ts";
 import { ExamplePartners } from "../partners/ExamplePartners.tsx";
@@ -65,7 +65,10 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
     // Only a plan made before sign-in, or by the account signed in now; another account's stays unshown. A private
     // save opened here through its own Make It Public opens the dialog too (D49).
     const tab = (() => { try { return window.sessionStorage; } catch { return undefined; } })();
-    if (adoptPlan(readPlan(tab, draft.id), signedInAs) || takeMakePublic(tab, draft.id)) setPublishing(true);
+    // Both are read, so an ask is used up even when a plan opens the dialog, and never opens it on a later visit.
+    const planned = adoptPlan(readPlan(tab, draft.id), signedInAs);
+    const asked = takeMakePublic(tab, draft.id);
+    if (planned || asked) setPublishing(true);
   }, [ready, draft.id, signedInAs]);
   const [retrying, setRetrying] = useState(false);
   const checked = intakeComplete(draft);
@@ -259,8 +262,9 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                     </>
                   )}
                   {/* Nothing is saved privately any more (DL-155). A card only here needs no second line; one opened from an
-                      earlier private save says so, and an example team workspace still takes its card (until step 6). */}
-                  {(save || status.state !== "device") && (
+                      earlier private save says so, signed out included, and an example team workspace still takes its card
+                      (until step 6). */}
+                  {(save || status.state !== "device" || status.line === SAVED_SIGNED_OUT) && (
                     <StatusLine actions={save && example ? <ExampleSave size="sm" onFailed={setSaveMessage} /> : undefined}>
                       {status.line}
                     </StatusLine>
@@ -300,7 +304,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                   {!example && project?.workspaceId && project.group && <StatusLine actions={<ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="secondary">Open Team Workspace</ButtonLink>}>Your team workspace is ready. This device card stays private until you choose to save it there.</StatusLine>}
                   {!example && project?.workspaceId && !project.group && project.workspaceId !== active?.id && <StatusLine actions={<ButtonLink href={pathTo("your-initiatives")} variant="secondary">Open Saved Initiative</ButtonLink>}>This project already has a saved initiative. Your device work stays here until you choose to open it.</StatusLine>}
                   {!example && project && !project.group && active && project.workspaceId === active.id && <LiveExposure saved={{ id: active.id, revision: active.revision, document: active.document, updatedAt: new Date().toISOString() }} owner={active.owner}
-                    readOnly={status.unsaved} onChanged={() => setMatchVersion(v => v + 1)} refreshVersion={sharedVersion} />}
+                    publishHeld={status.unsaved} onChanged={() => setMatchVersion(v => v + 1)} refreshVersion={sharedVersion} />}
                   {/* Listings made public from the draft have no saved card behind them (DL-155), so they are found by the project. */}
                   {!example && project && !project.group && !(active && project.workspaceId === active.id) && (
                     <ProjectListings projectUri={project.uri} refreshVersion={sharedVersion} />

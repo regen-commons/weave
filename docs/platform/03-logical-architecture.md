@@ -62,7 +62,7 @@ uploads the selected initiative fields and entries to Platform.
 
 ```mermaid
 flowchart TB
-  draft["Start a local draft and match for funding"] --> save["Sign in with Certified and save privately"]
+  draft["Start a local draft and match for funding"] --> save["Sign in with Certified"]
   save --> select{"Which project?"}
   select -->|"No project yet"| editor{"Choose public editor"}
   editor -->|"Aligned with Ma Earth and chooses it"| ma["Reuse or create organization/project in Ma Earth"]

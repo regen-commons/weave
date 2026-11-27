@@ -148,7 +148,7 @@ test("opening the saved version over a working copy keeps the copy, and the entr
   calls.length = 0;
   assert.equal(await openSavedOver({ id: "copy" }, { id: "card" }, open, retire(true)), true);
   assert.deepEqual(calls, ["open", "retire copy"]);
-  // A copy still waiting for a save's answer is left where it is, and the page must not claim otherwise.
+  // A copy that could not be moved, because it changed meanwhile, is left where it is, and the page must not claim otherwise.
   assert.equal(await openSavedOver({ id: "copy" }, { id: "card" }, open, retire(false)), false);
   // The page leaves for the card on success, so the entry says the copy is kept before the press,
   // in words true whichever way it is kept.

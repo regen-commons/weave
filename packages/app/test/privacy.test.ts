@@ -134,8 +134,10 @@ test("what sign-in does and what leaves the device is written once and agrees wi
   assert.doesNotMatch(read("src/account/sign-in.ts"), /accountDocument|saveAccountCard/u);
   assert.match(SIGN_IN.effect, /Nothing is published or loaded until you choose it/u);
   // What leaves the device is only what is made public; a private save made before holds what the policy lists.
-  assert.match(SIGN_IN.saved, /conversations, files, unfinished edits and assistant records, stays on this device/u);
-  assert.match(SIGN_IN.saved, /Only the needs and offers you make public, and your project's details, leave it/u);
+  assert.match(SIGN_IN.saved, /Conversations, files, unfinished edits and assistant records stay on this device/u);
+  assert.match(SIGN_IN.saved, /Making it public sends the needs and offers you choose and your project's details/u);
+  // A team workspace still takes a save until step 6, so the line names it rather than claim only public things leave.
+  assert.match(SIGN_IN.saved, /Saving to a team workspace sends the checked card, needs, offers and funding details/u);
   for (const kept of ["checked card", "needs and offers you kept", "funding details"]) assert.match(policy, new RegExp(kept, "u"), kept);
   // The session is as long as the policy states.
   assert.match(SIGN_IN.session, /up to 30 days\. If you do not open Weave for 14 days, you are signed out sooner/u);

@@ -12,7 +12,7 @@ import { EMPTY_ASK } from "../src/intake/contracts.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
 import { loadedDraft, saveCommand } from "../src/account/document.ts";
 import { DraftController } from "../src/describe/controller.ts";
-import { MemoryDraftRepository, RemovalNotice } from "../src/describe/repository.ts";
+import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
 import { SaveDetached, saveAccountCard } from "../src/account/actions.ts";
 import { createLiveSocialService } from "../src/social/live.ts";
@@ -178,18 +178,24 @@ function heldSave() {
   return { release, restore: () => { globalThis.fetch = original; } };
 }
 
-test("a draft with an unconfirmed save is never removed, so a save answer cannot bind the next blank draft", async () => {
-  const { controller } = await device({ composer: "Edited words" });
+// DL-155, step 4: nothing saves privately now, so a draft's mark of a save waiting for its answer may never
+// be answered. Removing the draft is no longer refused for it; the answer is bound by the draft's ID, so a
+// late one finds no draft and binds no other.
+test("a draft with an unconfirmed save can be removed, and a late answer binds no other draft", async () => {
+  const { controller, repository, draft } = await device({ composer: "Edited words" });
   const held = heldSave();
   try {
     const saving = saveAccountCard(controller, owner, async () => {});
     await new Promise((resolve) => setTimeout(resolve, 20));
     assert.ok(controller.getSnapshot().draft.account.pending, "the save is waiting for its answer");
-    await assert.rejects(controller.discardCurrent(), RemovalNotice);
+    await controller.discardCurrent();
+    assert.equal(repository.drafts.has(draft.id), false, "the draft left the device");
+    const next = controller.getSnapshot().draft;
+    assert.notEqual(next.id, draft.id);
     held.release();
-    await saving;
-    assert.equal(controller.getSnapshot().draft.composer, "Edited words");
-    assert.equal(controller.getSnapshot().draft.account.saved?.revision, 4);
+    await assert.rejects(saving, SaveDetached);
+    assert.equal(controller.getSnapshot().draft.account.saved, null, "the blank draft that followed is never bound");
+    assert.equal(controller.getSnapshot().draft.account.pending, null);
   } finally { held.restore(); }
 });
 
@@ -291,10 +297,16 @@ test("a deleted card's copies on this device move to the backups when chosen, th
 test("a copy that cannot be moved stays listed, and the message says so instead of claiming it left", async () => {
   const pendingCopy = revise(loadedDraft(saved, owner), { composer: "Waiting for a save" });
   const waiting = revise(pendingCopy, { id: crypto.randomUUID(), account: { saved: null, pending: { ...pendingCopy.account.saved!, requestId: crypto.randomUUID() } } });
-  const repository = new MemoryDraftRepository(newDraft(), [waiting]), controller = new DraftController(repository);
+  // DL-155, step 4: a draft still marked as waiting for a private save is moved, since no answer can come now.
+  const stranded = new DraftController(new MemoryDraftRepository(newDraft(), [waiting]));
+  await stranded.initialize();
+  assert.equal(await backUpDraft(stranded, waiting.id), true, "the mark of an unanswered save does not keep a draft here");
+  // A copy another tab removed meanwhile cannot be moved, and stays as the list last showed it.
+  const gone = crypto.randomUUID();
+  const repository = new MemoryDraftRepository(newDraft(), []), controller = new DraftController(repository);
   await controller.initialize();
-  assert.equal(await backUpDraft(controller, waiting.id), false, "a draft waiting for a save's answer is never moved");
-  const result = await backUpCopies(controller, { deleted: deleted().deleted, device: "unbound" }, [waiting.id]);
+  assert.equal(await backUpDraft(controller, gone), false);
+  const result = await backUpCopies(controller, { deleted: deleted().deleted, device: "unbound" }, [gone]);
   assert.equal(result.device, "backup_failed");
   assert.match(deletedMessage("Seed library", result), /could not be moved to the backups, so it stays in Your Initiatives, marked On this device\.$/u);
   assert.match(NOT_BACKED_UP, /Nothing was removed\./u);

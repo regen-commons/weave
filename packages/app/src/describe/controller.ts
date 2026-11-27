@@ -363,9 +363,9 @@ export class DraftController {
     await this.settled();
     if (!this.writable || this.dirty || this.snapshot.draft !== previous || this.expected === null || !this.repository.discard)
       throw new RemovalNotice("The device draft changed or is not stored yet. Keep this tab open and try again. Nothing was removed.");
-    // A save still waiting for its answer would otherwise bind whatever draft follows to its card.
-    if (previous.account.pending)
-      throw new RemovalNotice("A save to your account is not confirmed yet. Save again or wait for it to finish, then remove this draft. Nothing was removed.");
+    // A draft can still carry the mark of a private save that never got its answer. Nothing saves privately
+    // now (DL-155, step 4) and the server refuses a late one, so that mark is never answered and does not
+    // hold the draft here. A late answer to an older tab finds no draft to bind.
     let result: DeviceRemoval & { backup: string };
     try {
       result = await this.repository.discard(draftPin(previous));
@@ -414,14 +414,14 @@ export class DraftController {
   /**
    * Moves one of the device's drafts that this tab is not on into the backups: a working copy
    * that the account's newer version has just replaced under the card's own ID, so the card is
-   * not left as two drafts. The tab's own draft, one waiting for a save's answer and one that
-   * changed meanwhile are left alone. False when nothing was moved.
+   * not left as two drafts. The tab's own draft and one that changed meanwhile are left alone. A mark of
+   * a private save never answered does not hold one back (DL-155, step 4). False when nothing was moved.
    */
   async retire(id: string): Promise<boolean> {
     await this.loaded();
     if (this.snapshot.draft.id === id || !this.repository.discard) return false;
     const stored = await this.repository.load(id);
-    if (!stored || stored.account.pending) return false;
+    if (!stored) return false;
     try {
       await this.repository.discard(draftPin(stored));
     } catch (error) {
