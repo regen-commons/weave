@@ -11,7 +11,7 @@ import { loadedDraft } from "../src/account/document.ts";
 import { revise } from "../src/describe/contracts.ts";
 import {
   adoptPlan, clearPlan, DRAFT_REVISION, matchesPreview, needsPermission, newPlan, nextStep, PLAN_LIFETIME_MS, projectFromDraft, projectNameFits,
-  publishCommand, publishPreview, readPlan, resultLine, resultsSummary, reviewCommand, writePlan, type PreviewListing, type PublishPlan,
+  publishCommand, publishPreview, readPlan, resultLine, resultsSummary, reviewCommand, settledResults, writePlan, type PreviewListing, type PublishPlan,
 } from "../src/initiative/publish-plan.ts";
 import { newTid, TID } from "../src/initiative/tid.ts";
 import { possibleDuplicate } from "../src/initiative/possible-duplicate.ts";
@@ -271,7 +271,8 @@ test("a draft no one saved publishes: the preview is the server's exact review, 
   assert.equal((await publishListings(plan, requests, signal, () => {})).results.length, 2, "a listing with a result is not sent again");
   assert.equal(nextStep(plan, { signedIn: true, linked: projectUri }), "done");
   // Nothing was saved privately on the way: only the project link, the reviews and the publications were sent.
-  assert.deepEqual(sent.map((body) => body.action), ["link", "support_review", "support_review", "support_publish", "support_publish"]);
+  assert.deepEqual(sent.map((body) => body.action),
+    ["link", "support_state", "support_review", "support_review", "support_publish", "support_publish"]);
   assert.ok(sent.filter((body) => body.action === "support_review").every((body) => !("expectedRevision" in body) && "entry" in body));
   assert.throws(() => fixtureInitiative(token, workspaceId), "no saved card stands behind the published listings");
 });
@@ -341,9 +342,57 @@ test("a preview is refused, with nothing published, for an unlinked plan, an ent
   const edited = { ...one, preview: [{ ...preview[0]!, title: "Seedlings, tools and gloves" }], prepared: [], results: [] };
   await assert.rejects(prepareListings(edited, requests, signal), (error) => {
     assert.ok(error instanceof PreviewProblem);
-    assert.match(error.message, /already public, and must be withdrawn before it is published again\. Nothing was published\.$/u);
+    assert.equal(error.message, "Already public with other details, or still being published or withdrawn: Seedlings, tools and gloves. "
+      + "Withdraw it under Public Listings first, then make it public again. Nothing was published.");
     return true;
   });
   const listings = (await call("/api/projects", { action: "support_state", workspaceId })).listings as { record: { title: string } }[];
   assert.deepEqual(listings.map((listing) => listing.record.title), ["Seedlings and tools"]);
+  // Withdrawn from another browser of the same account, it publishes again with the edited details.
+  const elsewhere = fixtureRequests(fixtureSession(plan.owner!));
+  assert.equal((await elsewhere.call("/api/projects", { action: "support_withdraw", workspaceId, kind: "need", entryId: needId,
+    requestId: crypto.randomUUID() })).status, "withdrawn");
+  const republished = await publishListings(await prepareListings(edited, requests, signal), requests, signal, () => {});
+  assert.deepEqual(republished.results.map((result) => [result.title, result.state]), [["Seedlings, tools and gloves", "published"]]);
+  const [first] = published.prepared, [second] = republished.prepared;
+  assert.equal(second!.review.record.createdAt, first!.review.record.createdAt, "publishing again keeps the listing's first date");
+  const after = (await call("/api/projects", { action: "support_state", workspaceId })).listings as { rkey: string }[];
+  assert.equal(after.length, 1, "and its address");
+});
+
+test("a need or offer already public as shown is kept as it is, one added beside it is published, and one no longer open is left out", async () => {
+  setFixturePublishPermission("granted");
+  const draft = loadedDraft({ id: crypto.randomUUID(), revision: 1, updatedAt: "2026-11-25T00:00:00Z", document }, owner);
+  const met = revise(draft, { needs: { ...draft.needs, items: draft.needs.items.map((item) => ({ ...item, value: { ...item.value, status: "met" as const } })) } });
+  const { listings, closed } = publishPreview(met);
+  assert.deepEqual(closed, [{ kind: "need", entryId: needId }], "a need marked met is never published as open");
+  assert.deepEqual(listings.map((item) => item.kind), ["offer"]);
+
+  let { plan, requests, call, sent, signal, workspaceId } = await linkedDraft();
+  plan = await publishListings(await prepareListings(plan, requests, signal), requests, signal, () => {});
+  const added: PreviewListing = { kind: "need", entryId: crypto.randomUUID(), title: "Volunteer drivers", description: null,
+    capitalForms: ["social"], lenses: ["place_based"] };
+  // Making it public again, later, with one more need: the two already public as shown are not sent again.
+  let again = await linkForPublishing(plain(newPlan(plan.draftId, plan.owner, [...preview, added], null, projectUri)), requests, signal);
+  assert.equal(again.workspaceId, workspaceId);
+  sent.length = 0;
+  again = await prepareListings(again, requests, signal);
+  assert.deepEqual(again.unchanged, [{ kind: "need", entryId: needId }, { kind: "offer", entryId: offerId }]);
+  assert.deepEqual(again.prepared.map((item) => item.entryId), [added.entryId]);
+  assert.deepEqual(sent.map((body) => body.action), ["support_state", "support_review"], "only the new need is reviewed");
+  assert.equal(nextStep(again, { signedIn: true, linked: projectUri }), "publish");
+  const storage = memoryStorage();
+  writePlan(storage, again);
+  assert.deepEqual(readPlan(storage, again.draftId), again, "what is already public is kept with the plan");
+  again = await publishListings(again, requests, signal, () => {});
+  assert.equal(nextStep(again, { signedIn: true, linked: projectUri }), "done");
+  assert.equal(resultsSummary(settledResults(again), again.prepared.length + again.unchanged.length),
+    "All 3 listings are public, and Weave read each one back from your project's repository.");
+  assert.equal(((await call("/api/projects", { action: "support_state", workspaceId })).listings as unknown[]).length, 3,
+    "three listings, never a second copy of one");
+  // With nothing new, making it public again sends nothing and is done at once.
+  const nothing = await prepareListings(await linkForPublishing(plain(newPlan(plan.draftId, plan.owner, preview, null, projectUri)), requests, signal),
+    requests, signal);
+  assert.equal(nothing.prepared.length, 0);
+  assert.equal(nextStep(nothing, { signedIn: true, linked: projectUri }), "done");
 });

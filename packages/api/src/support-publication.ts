@@ -75,8 +75,10 @@ function draftEntry(input: unknown): SupportDraftEntry | null {
   if (input === null || typeof input !== "object" || Array.isArray(input)) return null;
   const v = input as Record<string, unknown>;
   const allowed = ["title", "description", "capitalForms", "lenses"];
-  if (Object.keys(v).some(key => !allowed.includes(key)) || !text(v.title, 140, 1400) || !v.title.trim() ||
-      (v.description !== undefined && (!text(v.description, 600, 6000) || !v.description.trim())) ||
+  // PostgreSQL's jsonb cannot hold a NUL, so one would fail at the database instead of here.
+  const nul = (value: string) => value.includes("\u0000");
+  if (Object.keys(v).some(key => !allowed.includes(key)) || !text(v.title, 140, 1400) || !v.title.trim() || nul(v.title) ||
+      (v.description !== undefined && (!text(v.description, 600, 6000) || !v.description.trim() || nul(v.description))) ||
       !Array.isArray(v.capitalForms) || v.capitalForms.length < 1 || v.capitalForms.length > 8 ||
       v.capitalForms.some(x => typeof x !== "string" || !CAPITALS.includes(x)) || new Set(v.capitalForms).size !== v.capitalForms.length ||
       (v.lenses !== undefined && (!Array.isArray(v.lenses) || v.lenses.length > 5

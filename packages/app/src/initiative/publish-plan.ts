@@ -84,6 +84,8 @@ export interface PublishPlan {
   readonly workspaceId: string | null;
   /** Set by the one confirmation. From then on the plan goes on by itself, after Certified's screens too. */
   readonly confirmed: boolean;
+  /** Entries already public exactly as the preview shows them, so nothing is sent for them. */
+  readonly unchanged: readonly PublishEntry[];
   readonly prepared: readonly PreparedListing[];
   readonly results: readonly ListingResult[];
   /** Kept until this time, in milliseconds, so an abandoned plan does not reopen days later. */
@@ -97,20 +99,24 @@ type PlanStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 /**
  * The draft's kept needs and offers as their public listings will read, in the card's order, and the ones
- * left out because a listing needs at least one kind of support. Each carries the card's types of work.
+ * left out: those no longer open (met, withdrawn or expired), since a listing is published as open, and those
+ * with no kind of support, which a listing needs. Each listing carries the card's types of work.
  */
-export function publishPreview(draft: Pick<DeviceDraft, "needs" | "offers" | "confirmed">): { listings: PreviewListing[]; withoutKind: PublishEntry[] } {
+export function publishPreview(draft: Pick<DeviceDraft, "needs" | "offers" | "confirmed">): {
+  listings: PreviewListing[]; withoutKind: PublishEntry[]; closed: PublishEntry[];
+} {
   const kept = (["needs", "offers"] as const).flatMap((list) =>
     draft[list].items.filter((item) => item.decision === "kept").map((item) => ({ list, item })));
   const lenses = [...draft.confirmed?.lenses ?? []];
-  const listings: PreviewListing[] = [], withoutKind: PublishEntry[] = [];
+  const listings: PreviewListing[] = [], withoutKind: PublishEntry[] = [], closed: PublishEntry[] = [];
   for (const { list, item } of kept) {
     const kind = list === "needs" ? "need" as const : "offer" as const;
+    if (item.value.status !== "open") { closed.push({ kind, entryId: item.id }); continue; }
     if (!item.value.capitalForms.length) { withoutKind.push({ kind, entryId: item.id }); continue; }
     const description = typeof item.value.description === "string" && item.value.description.trim() ? item.value.description : null;
     listings.push({ kind, entryId: item.id, title: item.value.title, description, capitalForms: [...item.value.capitalForms], lenses: [...lenses] });
   }
-  return { listings, withoutKind };
+  return { listings, withoutKind, closed };
 }
 
 const graphemes = new Intl.Segmenter();
@@ -145,8 +151,8 @@ export const sameEntry = (a: PublishEntry, b: PublishEntry) => a.kind === b.kind
 
 export function newPlan(draftId: string, owner: string | null, preview: readonly PreviewListing[], creation: ProjectCreation | null,
   projectUri: string | null = null, now = Date.now()): PublishPlan {
-  return { version: 3, draftId, owner, preview: [...preview], creation, projectUri, workspaceId: null, confirmed: false, prepared: [], results: [],
-    until: now + PLAN_LIFETIME_MS };
+  return { version: 3, draftId, owner, preview: [...preview], creation, projectUri, workspaceId: null, confirmed: false, unchanged: [], prepared: [],
+    results: [], until: now + PLAN_LIFETIME_MS };
 }
 
 const entry = (value: unknown): PublishEntry => {
@@ -165,8 +171,8 @@ export function readPlan(storage: PlanStorage | undefined, draftId: string, now 
     const value = record(JSON.parse(text));
     if (value.version !== 3 || value.draftId !== draftId || typeof value.until !== "number" || value.until <= now
       || (value.owner !== null && !uuid(value.owner)) || typeof value.confirmed !== "boolean"
-      || !Array.isArray(value.preview) || !Array.isArray(value.prepared) || !Array.isArray(value.results)
-      || value.preview.length > 50 || value.prepared.length > 50 || value.results.length > 50
+      || !Array.isArray(value.preview) || !Array.isArray(value.unchanged) || !Array.isArray(value.prepared) || !Array.isArray(value.results)
+      || value.preview.length > 50 || value.unchanged.length > 50 || value.prepared.length > 50 || value.results.length > 50
       || (value.projectUri !== null && (typeof value.projectUri !== "string" || !value.projectUri.startsWith("at://")))
       || (value.workspaceId !== null && !uuid(value.workspaceId)) || (value.workspaceId !== null && value.projectUri === null)) throw Error("invalid_plan");
     const strings = (list: unknown): list is string[] => Array.isArray(list) && list.every((item) => typeof item === "string");
@@ -203,8 +209,9 @@ export function readPlan(storage: PlanStorage | undefined, draftId: string, now 
         || (item.problem !== null && typeof item.problem !== "string")) throw Error("invalid_plan");
       return { ...entry(item), title: item.title, state: item.state as ListingState, problem: item.problem as string | null };
     });
+    const unchanged = value.unchanged.map(entry);
     return { version: 3, draftId, owner: value.owner as string | null, preview, creation, projectUri: value.projectUri as string | null,
-      workspaceId: value.workspaceId as string | null, confirmed: value.confirmed, prepared, results, until: value.until };
+      workspaceId: value.workspaceId as string | null, confirmed: value.confirmed, unchanged, prepared, results, until: value.until };
   } catch {
     clearPlan(storage, draftId);
     return null;
@@ -250,7 +257,7 @@ export function nextStep(plan: PublishPlan | null, now: {
   if (!now.signedIn) return "sign-in";
   if (plan.creation && !plan.projectUri) return "create";
   if (now.linked !== plan.projectUri || !plan.workspaceId) return "link";
-  if (plan.prepared.length < plan.preview.length) return "review";
+  if (plan.prepared.length + plan.unchanged.length < plan.preview.length) return "review";
   if (plan.results.length < plan.prepared.length) return "publish";
   return "done";
 }
@@ -258,12 +265,31 @@ export function nextStep(plan: PublishPlan | null, now: {
 /** The same strings, in any order, each once. */
 const sameSet = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((item) => b.includes(item));
 
+/** The public fields of a listing record, as a review or the server's state carries them. */
+export interface ListingFields {
+  readonly kind: PublishKind;
+  readonly title: string;
+  readonly description?: string;
+  readonly capitalForms: readonly string[];
+  readonly lenses?: readonly string[];
+  readonly expiresAt?: string;
+}
+/** True when a listing record says exactly what the preview showed for that need or offer, and stays open until withdrawn. */
+export function showsPreview(listing: ListingFields, seen: PreviewListing): boolean {
+  return listing.kind === seen.kind && listing.title === seen.title && (listing.description ?? null) === seen.description
+    && sameSet(listing.capitalForms, seen.capitalForms) && sameSet(listing.lenses ?? [], seen.lenses) && listing.expiresAt === undefined;
+}
+
 /** True when the server's review of a listing is exactly what the preview showed, so nothing unseen is published. */
 export function matchesPreview(prepared: PreparedListing, preview: readonly PreviewListing[]): boolean {
   const seen = preview.find((item) => sameEntry(item, prepared));
-  const { record: listing } = prepared.review;
-  return !!seen && listing.kind === seen.kind && listing.title === seen.title && (listing.description ?? null) === seen.description
-    && sameSet(listing.capitalForms, seen.capitalForms) && sameSet(listing.lenses ?? [], seen.lenses);
+  return !!seen && showsPreview(prepared.review.record, seen);
+}
+
+/** Every listing's outcome: the results of those sent, and those already public as shown, which count as published. */
+export function settledResults(plan: PublishPlan): ListingResult[] {
+  return [...plan.results, ...plan.unchanged.map((entry): ListingResult => ({ ...entry,
+    title: plan.preview.find((item) => sameEntry(item, entry))?.title ?? "", state: "published", problem: null }))];
 }
 
 /**

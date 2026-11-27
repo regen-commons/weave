@@ -2,8 +2,8 @@ import { record, uuid } from "@weave/api/account-contract";
 import { AccountFailure, accountRequest } from "../account/client.ts";
 import { publicListingReview, type PublicReview } from "../partners/public-support-state.ts";
 import {
-  DRAFT_REVISION, listingResult, matchesPreview, publishCommand, reviewCommand, sameEntry,
-  type ListingResult, type PreparedListing, type PublishEntry, type PublishPlan,
+  DRAFT_REVISION, listingResult, matchesPreview, publishCommand, reviewCommand, sameEntry, showsPreview,
+  type ListingFields, type ListingResult, type PreparedListing, type PublishEntry, type PublishPlan,
 } from "./publish-plan.ts";
 
 /** The one endpoint a publication uses: the project commands. Nothing is read from a private save (DL-155). */
@@ -49,10 +49,45 @@ export async function linkForPublishing(plan: PublishPlan, requests: PublishRequ
   return { ...plan, workspaceId: value.workspaceId };
 }
 
+/** One listing Weave holds for the project, as its state reads now. */
+interface HeldListing extends PublishEntry { readonly status: string; readonly record: ListingFields }
+const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every((item) => typeof item === "string");
+const optional = (value: unknown) => value === undefined || typeof value === "string";
+
+/** Every listing Weave holds for the project, through each page of its state. */
+async function heldListings(workspaceId: string, requests: PublishRequests, signal: AbortSignal): Promise<HeldListing[]> {
+  const unread = "Weave could not check what is already public. Nothing was published. Try again.";
+  const held: HeldListing[] = [];
+  let cursor: string | null = null;
+  for (let page = 0; page < 20; page++) {
+    let answer: Record<string, unknown>;
+    try { answer = await requests.project({ action: "support_state", workspaceId, ...(cursor ? { cursor } : {}) }, signal); }
+    catch (error) { throw error instanceof AccountFailure ? new PreviewProblem(unread) : error; }
+    signal.throwIfAborted();
+    if (answer.workspaceId !== workspaceId || !Array.isArray(answer.listings)) throw new PreviewProblem(unread);
+    for (const input of answer.listings) {
+      const item = record(input), fields = record(item.record);
+      if ((item.kind !== "need" && item.kind !== "offer") || !uuid(item.entryId) || typeof item.status !== "string"
+        || fields.kind !== item.kind || typeof fields.title !== "string" || !optional(fields.description) || !strings(fields.capitalForms)
+        || (fields.lenses !== undefined && !strings(fields.lenses)) || !optional(fields.expiresAt)) throw new PreviewProblem(unread);
+      held.push({ kind: item.kind, entryId: item.entryId, status: item.status, record: { kind: item.kind, title: fields.title,
+        ...(fields.description === undefined ? {} : { description: fields.description as string }), capitalForms: fields.capitalForms,
+        ...(fields.lenses === undefined ? {} : { lenses: fields.lenses as string[] }),
+        ...(fields.expiresAt === undefined ? {} : { expiresAt: fields.expiresAt as string }) } });
+    }
+    if (answer.nextCursor === null) return held;
+    if (typeof answer.nextCursor !== "string" || !answer.nextCursor) throw new PreviewProblem(unread);
+    cursor = answer.nextCursor;
+  }
+  throw new PreviewProblem(unread);
+}
+
 /**
  * Asks the server to review each chosen need or offer exactly as the preview showed it, and keeps the
- * exact public records it returns with a new request ID each. `only` prepares just those entries again,
- * as after a review lapsed; the others keep what they had.
+ * exact public records it returns with a new request ID each. One already public exactly as shown is kept
+ * as it is and nothing is sent for it; one public with other details, or still on its way in or out,
+ * must be withdrawn first, because publishing never replaces a listing by itself (DL-155). `only`
+ * prepares just those entries again, as after a review lapsed; the others keep what they had.
  */
 export async function prepareListings(
   plan: PublishPlan,
@@ -61,10 +96,19 @@ export async function prepareListings(
   only: readonly PublishEntry[] = plan.preview,
 ): Promise<PublishPlan> {
   const workspaceId = linkedWorkspace(plan);
-  const prepared: PreparedListing[] = [];
+  const held = await heldListings(workspaceId, requests, signal);
+  const prepared: PreparedListing[] = [], unchanged: PublishEntry[] = [];
   for (const chosen of only) {
     const seen = plan.preview.find((item) => sameEntry(item, chosen));
     if (!seen) throw new PreviewProblem("A chosen need or offer is not in what you saw. Prepare the preview again. Nothing was published.");
+    const current = held.find((item) => sameEntry(item, seen));
+    if (current && current.status !== "withdrawn") {
+      if (current.status === "published" && showsPreview(current.record, seen)) {
+        unchanged.push({ kind: seen.kind, entryId: seen.entryId });
+        continue;
+      }
+      throw new PreviewProblem(`Already public with other details, or still being published or withdrawn: ${seen.title}. Withdraw it under Public Listings first, then make it public again. Nothing was published.`);
+    }
     let answer: Record<string, unknown>;
     try {
       answer = await requests.project(reviewCommand(workspaceId, seen), signal);
@@ -88,6 +132,7 @@ export async function prepareListings(
   const again = (item: PublishEntry) => only.some((entry) => sameEntry(entry, item));
   return {
     ...plan,
+    unchanged: [...plan.unchanged.filter((item) => !again(item)), ...unchanged],
     prepared: [...plan.prepared.filter((item) => !again(item)), ...prepared],
     results: plan.results.filter((item) => !again(item)),
   };
@@ -122,7 +167,7 @@ export async function createProject(plan: PublishPlan, requests: PublishRequests
 function reviewRefusal(code: string): string {
   // A draft's review conflicts only with a listing already public at its address.
   if (code === "support_conflict")
-    return "This need or offer is already public, and must be withdrawn before it is published again. Nothing was published.";
+    return "This need or offer is already public, and must be withdrawn under Public Listings before it is published again. Nothing was published.";
   if (code === "invalid_support_command")
     return "Weave could not accept this need or offer as it is. Check it on your card, then try again. Nothing was published.";
   if (code === "rate_limited") return "Too many previews were prepared in a short time. Wait a few minutes, then try again. Nothing was published.";

@@ -247,11 +247,13 @@ function supportCommand(token: string, actor: string, command: SupportCommand) {
     const earlier = supportRows.get(supportKey(command.workspaceId, command.kind, command.entryId));
     if (earlier && earlier.status !== "withdrawn") throw new AccountError(409, "support_conflict");
     if (command.expiresAt && Date.parse(command.expiresAt) <= Date.now()) throw new AccountError(400, "invalid_support_command");
+    // Publishing again after a withdrawal keeps the listing's first date, as the SQL does.
     const { entry } = command, now = new Date().toISOString();
+    const createdAt = typeof earlier?.record.createdAt === "string" ? earlier.record.createdAt : now;
     const record: JsonObject = { $type: "com.regencommons.weave.supportListing", projectUri, kind: command.kind,
       ...(command.expiresAt ? { expiresAt: command.expiresAt } : {}), title: entry.title,
       ...(entry.description ? { description: entry.description } : {}), capitalForms: [...entry.capitalForms],
-      ...(entry.lenses?.length ? { lenses: [...entry.lenses] } : {}), status: "open", createdAt: now, updatedAt: now };
+      ...(entry.lenses?.length ? { lenses: [...entry.lenses] } : {}), status: "open", createdAt, updatedAt: now };
     const reviewId = crypto.randomUUID(), until = Date.now() + 10 * 60_000;
     supportReviews.set(reviewId, { actor, workspaceId: command.workspaceId, kind: command.kind, entryId: command.entryId, record, until });
     return { reviewId, audience: "public-atproto", destination: repository, record, expectedRevision: 0,
@@ -286,7 +288,9 @@ function supportCommand(token: string, actor: string, command: SupportCommand) {
       throw new AccountError(409, "support_conflict");
     supportReviews.delete(command.reviewId);
     const granted = publishPermission === "granted";
-    const row: SupportRow = { workspaceId: command.workspaceId, kind: review.kind, entryId: review.entryId, rkey: fixtureTid(),
+    // A listing published again after a withdrawal keeps its record key, so its address stays the same.
+    const rkey = supportRows.get(supportKey(command.workspaceId, review.kind, review.entryId))?.rkey ?? fixtureTid();
+    const row: SupportRow = { workspaceId: command.workspaceId, kind: review.kind, entryId: review.entryId, rkey,
       operationId: crypto.randomUUID(), status: granted ? "published" : "publish_pending", record: review.record,
       cid: granted ? fixtureCid() : null, attempted: granted, problem: granted ? null : "authorization_required", repository };
     supportRows.set(supportKey(command.workspaceId, review.kind, review.entryId), row);

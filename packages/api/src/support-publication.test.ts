@@ -197,7 +197,8 @@ test("a draft review takes the need or offer's public fields under the listing's
   for (const [label, changed] of [
     ["no title", { title: undefined }], ["a blank title", { title: "  " }], ["a title of 141 graphemes", { title: graphemes(141) }],
     ["a title over 1400 bytes", { title: "\u{1F469}‍\u{1F469}‍\u{1F467}".repeat(80) }], ["a lone surrogate", { title: "A \ud800 place" }],
-    ["a number for a title", { title: 7 }], ["a blank description", { description: " " }], ["a null description", { description: null }],
+    ["a number for a title", { title: 7 }], ["a NUL in a title", { title: "A\u0000place" }], ["a NUL in a description", { description: "Fictional\u0000" }],
+    ["a blank description", { description: " " }], ["a null description", { description: null }],
     ["a description of 601 graphemes", { description: "d".repeat(601) }], ["no kind of support", { capitalForms: [] }],
     ["a repeated kind", { capitalForms: ["social", "social"] }], ["an unknown kind", { capitalForms: ["social", "money"] }],
     ["nine kinds", { capitalForms: [...CAPITALS, "social"] }], ["kinds as text", { capitalForms: "social" }],
