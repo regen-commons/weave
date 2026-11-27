@@ -60,9 +60,36 @@ export function parseSupportListing(input: unknown): SupportListing {
 }
 
 type Entry = { kind: SupportKind; entryId: string };
+/** A need or offer as the device draft holds it: the public fields its listing carries, and nothing else. */
+export interface SupportDraftEntry {
+  title: string;
+  description?: string;
+  capitalForms: string[];
+  lenses?: string[];
+}
+/**
+ * The draft's fields under the same limits `parseSupportListing` puts on the record they become. A
+ * description is left out rather than sent empty, so the record never carries a blank one.
+ */
+function draftEntry(input: unknown): SupportDraftEntry | null {
+  if (input === null || typeof input !== "object" || Array.isArray(input)) return null;
+  const v = input as Record<string, unknown>;
+  const allowed = ["title", "description", "capitalForms", "lenses"];
+  if (Object.keys(v).some(key => !allowed.includes(key)) || !text(v.title, 140, 1400) || !v.title.trim() ||
+      (v.description !== undefined && (!text(v.description, 600, 6000) || !v.description.trim())) ||
+      !Array.isArray(v.capitalForms) || v.capitalForms.length < 1 || v.capitalForms.length > 8 ||
+      v.capitalForms.some(x => typeof x !== "string" || !CAPITALS.includes(x)) || new Set(v.capitalForms).size !== v.capitalForms.length ||
+      (v.lenses !== undefined && (!Array.isArray(v.lenses) || v.lenses.length > 5
+        || v.lenses.some(lens => typeof lens !== "string" || !LENSES.includes(lens)) || new Set(v.lenses).size !== v.lenses.length)))
+    return null;
+  return { title: v.title, ...(v.description === undefined ? {} : { description: v.description as string }),
+    capitalForms: [...v.capitalForms] as string[], ...(v.lenses === undefined ? {} : { lenses: [...v.lenses] as string[] }) };
+}
 export type SupportPublicationCommand =
   | { action: "support_state"; workspaceId: string; cursor?: string }
   | ({ action: "support_review"; workspaceId: string; expectedRevision: number; expectedEntryRevision: number; expiresAt: string | null } & Entry)
+  // DL-155: a review of the need or offer the device draft sends, with no private save behind it.
+  | ({ action: "support_review"; workspaceId: string; entry: SupportDraftEntry; expiresAt: string | null } & Entry)
   | { action: "support_publish"; workspaceId: string; reviewId: string; requestId: string; audience: "public-atproto"; confirmPublic: true }
   | ({ action: "support_withdraw"; workspaceId: string; requestId: string } & Entry)
   | ({ action: "support_reconcile"; workspaceId: string } & Entry);
@@ -72,7 +99,9 @@ export function parseSupportPublicationCommand(input: unknown): SupportPublicati
   const common = ["action", "workspaceId"];
   const entry = ["kind", "entryId"];
   let keys: string[];
+  const fromDraft = a === "support_review" && Object.hasOwn(v, "entry");
   if (a === "support_state") keys = v.cursor === undefined ? common : [...common, "cursor"];
+  else if (fromDraft) keys = [...common, ...entry, "entry", "expiresAt"];
   else if (a === "support_review") keys = [...common, ...entry, "expectedRevision", "expectedEntryRevision", "expiresAt"];
   else if (a === "support_publish") keys = [...common, "reviewId", "requestId", "audience", "confirmPublic"];
   else if (a === "support_withdraw") keys = [...common, ...entry, "requestId"];
@@ -84,6 +113,12 @@ export function parseSupportPublicationCommand(input: unknown): SupportPublicati
   if (a === "support_publish" && (v.audience !== "public-atproto" || v.confirmPublic !== true)) return invalid();
   if (a === "support_state" && v.cursor !== undefined && (typeof v.cursor !== "string" ||
       v.cursor.length > 512 || !/^[A-Za-z0-9_-]+$/u.test(v.cursor))) return invalid();
+  if (fromDraft) {
+    const draft = draftEntry(v.entry);
+    if (!draft || (v.expiresAt !== null && !date(v.expiresAt))) return invalid();
+    return { action: "support_review", workspaceId: v.workspaceId as string, kind: v.kind as SupportKind, entryId: v.entryId as string,
+      entry: draft, expiresAt: v.expiresAt as string | null };
+  }
   if (a === "support_review" && (!Number.isSafeInteger(v.expectedRevision) || Number(v.expectedRevision) < 1 ||
       !Number.isSafeInteger(v.expectedEntryRevision) || Number(v.expectedEntryRevision) < 1 ||
       (v.expiresAt !== null && !date(v.expiresAt)))) return invalid();

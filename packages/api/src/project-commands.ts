@@ -92,6 +92,11 @@ export function parseProjectCommand(value: Record<string, unknown>) {
     return { action, projectUri: uri } as const;
   }
   if (action === "link") {
+    // DL-155: publishing from a draft links the person's own project with no saved card behind it.
+    if (!Object.hasOwn(value, "initiativeId") && !Object.hasOwn(value, "expectedRevision")) {
+      keys(value, ["action", "projectUri"]);
+      return { action, projectUri: uri } as const;
+    }
     keys(value, ["action", "projectUri", "initiativeId", "expectedRevision"]);
     if (!uuid(value.initiativeId) || !revision(value.expectedRevision)) invalid();
     return { action, projectUri: uri, initiativeId: value.initiativeId, expectedRevision: value.expectedRevision } as const;
@@ -328,7 +333,10 @@ export function createProjectCommands(provider: CertifiedProjectProvider, store:
     if (command.action === "lookup" || command.action === "request_setup") return run(command.action);
     if (command.action === "link") {
       if (verification.groupDid) return invalid();
-      return run("link", { initiativeId: command.initiativeId, expectedRevision: command.expectedRevision });
+      // A card-less link sends no initiative key at all: the store tells the two shapes apart by its presence.
+      return command.initiativeId !== undefined
+        ? run("link", { initiativeId: command.initiativeId, expectedRevision: command.expectedRevision })
+        : run("link");
     }
     if (!verification.groupDid) return invalid();
     if (command.action === "activate" || command.action === "approve_setup") {

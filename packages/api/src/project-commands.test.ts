@@ -333,6 +333,57 @@ test("a personal project is written once: its place, then the project pinning th
   assert.equal(state.writes.length, 2);
 });
 
+test("a project made from a draft links with no saved card, and its need is reviewed from the draft (DL-155)", async () => {
+  const { provider, records } = personalRepository();
+  await createPersonalProjectCommand(provider, grantGiven)(actor, personal());
+  const stored = records.get(`org.hypercerts.collection/${projectRkey}`)!;
+  assert.deepEqual(parseProjectCommand({ action: "link", projectUri: ownProjectUri }), { action: "link", projectUri: ownProjectUri });
+  assert.deepEqual(parseProjectRequest({ action: "link", projectUri: ownProjectUri }), { action: "link", projectUri: ownProjectUri },
+    "POST /api/projects reaches the same parser");
+  // Either key of the saved-card link alone is neither shape, and nothing else rides along.
+  for (const [label, body] of [
+    ["a card without its revision", { action: "link", projectUri: ownProjectUri, initiativeId: workspaceId }],
+    ["a revision without its card", { action: "link", projectUri: ownProjectUri, expectedRevision: 1 }],
+    ["an empty card", { action: "link", projectUri: ownProjectUri, initiativeId: null, expectedRevision: 1 }],
+    ["a revision of zero", { action: "link", projectUri: ownProjectUri, initiativeId: workspaceId, expectedRevision: 0 }],
+    ["a chosen workspace", { action: "link", projectUri: ownProjectUri, workspaceId }],
+    ["a supplied repository", { action: "link", projectUri: ownProjectUri, repositoryDid: actor.did }],
+  ] as const) assert.throws(() => parseProjectCommand(body), { code: "invalid_project_command" }, label);
+  assert.throws(() => parseProjectCommand({ action: "link" }), "no project is no link");
+
+  const linked: Array<{ action: string; data: Record<string, unknown> }> = [];
+  const commands = createProjectCommands(provider, { async execute(_actor, action, data) {
+    linked.push({ action, data }); return { status: "linked", workspaceId, accessRole: "admin", projectUri: ownProjectUri };
+  } }, "https://dev.certified.app");
+  assert.deepEqual(await commands(actor, parseProjectCommand({ action: "link", projectUri: ownProjectUri })),
+    { status: "linked", workspaceId, accessRole: "admin", projectUri: ownProjectUri });
+  assert.deepEqual(linked, [{ action: "link", data: { projectUri: ownProjectUri, repositoryDid: actor.did, cid: stored.cid } }],
+    "the store gets the verified project and no initiative key, so it links no saved card");
+
+  // A group project is never linked this way: its workspace is set up by a verified group admin.
+  const groupStore: ProjectStore = { async execute() { return assert.fail("a group project reaches no store command"); } };
+  await assert.rejects(setup({ getMembership: async () => ok("owner") }, groupStore)(actor, parseProjectCommand({ action: "link", projectUri: uri })),
+    { code: "invalid_project_command" });
+
+  const reviewed: Array<{ action: string; data: Record<string, unknown> }> = [];
+  const supportStore: SupportPublicationStore = {
+    async target() { return { projectUri: ownProjectUri, repositoryDid: actor.did, groupDid: null }; },
+    async command(_actor, id, _role, _projectCid, action, data) {
+      assert.equal(id, workspaceId);
+      reviewed.push({ action, data });
+      return { reviewId: requestId };
+    },
+  };
+  const noWrites = { authorize: () => assert.fail(), read: () => assert.fail(), create: () => assert.fail(), delete: () => assert.fail() };
+  const entry = { title: "Seed packets", capitalForms: ["material"], lenses: ["place_based"] };
+  await createSupportPublication(provider, supportStore, noWrites).execute(actor, parseSupportPublicationCommand({
+    action: "support_review", workspaceId, kind: "need", entryId: "00000000-0000-0000-0000-000000000005", entry, expiresAt: null,
+  }));
+  assert.deepEqual(reviewed, [{ action: "support_review", data: {
+    action: "support_review", workspaceId, kind: "need", entryId: "00000000-0000-0000-0000-000000000005", entry, expiresAt: null,
+  } }], "the draft's fields reach the review, with no saved revision");
+});
+
 test("a draft without a place writes only its project, and lost or partial writes finish on a retry without a second record", async () => {
   const bare = personalRepository();
   const created = await createPersonalProjectCommand(bare.provider, grantGiven)(actor, personal(unplaced));
