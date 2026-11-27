@@ -49,10 +49,13 @@ Prototype product proposals, from [DL-019 to DL-021](../../packages/design-syste
 | D20 | Which basin layer? | BasinATLAS under CC BY 4.0, unless HydroBASINS's licence is confirmed for this use. | Phase 1 | Open |
 | D21 | Which KOI node is first contact? | Ask the Regen KOI coordinator and Metagov. Take whichever responds with a test path. | Phase 2 | Open |
 | D22 | Will the Knowledge Commons add Opportunity, Need and Offer classes? | Propose them, with this platform as the fixture source. | Phase 2 | Open |
-| D23 | How long do inactive saved initiatives stay? | Until deleted; define a notice mechanism for accounts without contact email before any inactivity deletion. Contact email is optional and cannot be assumed from Certified sign-in. | Phase 1 | Open |
+| D23 | How long do inactive saved initiatives stay? | Until deleted; define a notice mechanism for accounts without contact email before any inactivity deletion. Contact email is optional and cannot be assumed from Certified sign-in. | Phase 1 | Superseded by D49: private saves retire under DL-155 |
 | D24 | Where is the app hosted? | Vercel, as a new project in the Regen Commons team beside the website and Funding Commons. The team is on Hobby now and moves to Pro (USD 20 per developer seat) once needed, at the latest when grant money pays a builder, because Hobby is for non-commercial use only. | Phase 0 | Decided (afo, 2 November 2026) |
 | D25 | When do we move to paid plans? | Only when the full place layers (2 to 4 GB against Supabase's 500 MB free limit), daily backups or traffic need them: Vercel Pro USD 20 per developer seat once a builder is paid or per-minute cron is needed, Supabase Pro USD 25, Resend Pro USD 20 when daily sends approach 100. Until then a nightly database dump stands in for backups. | Phase 1 | Open |
 | D45 | Should the funder catalog hold programs that offer no money, such as cloud credits, land access, residencies and technical assistance? | Not yet. The catalog's program schema only has instruments of money, so these stay leads with the `non-cash-program` disposition, as the [search playbook](../../.claude/skills/catalog-research/search-playbook.md#terms-by-form-of-capital) says. The maintainer chose this on 23 November 2026. Later, a schema change could let Weave show them under its forms of capital; that touches the importer, matching and the funding page, so it needs its own plan. | After the first release | Open |
+| D47 | Where does Weave read published listings from, for matching and public pages? | Start from Weave's working record of what it published and read back (`weave_workspace.support_listings`), served through `private.weave_public_support_listings`. Later, find listings other apps write by listing each indexed project repository's `com.regencommons.weave.supportListing` collection, or through Jetstream if Hypercerts carries the collection. Never treat a listing as current without its read-back. | Step 5 of the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing) | Open |
+| D48 | How does a team prepare a need or offer before it is public? | On one device, or by passing a downloaded draft to a teammate who imports it. Weave keeps no shared private drafts (DL-155). Group publishing stays behind `WEAVE_SUPPORT_GROUP_LIFECYCLE_VERIFIED` and the explicit Weave editor grant. | Step 6 of the removal plan | Open |
+| D49 | What happens to the private saves and shares already in Platform? | End the existing shares when published listings take over matching (step 5). Keep private saves read-only, with Open on This Device, Download, Make It Public and Delete, for at least 60 days after new saves stop, then ask the user again before deleting what remains. These accounts have no contact address (D23), so the notice can only be in Your Initiatives. | Step 7 of the removal plan | Open: for the user |
 
 ## Earlier prototype questions
 
@@ -296,6 +299,8 @@ server-assisted matching from entries already shared for that purpose.
 
 ### Certified-only sign-in and private saving
 
+**Superseded in part on 26 November 2026 by DL-155:** Certified stays the only sign-in, but needs and offers now live only on the device or in public listings, so new private saves stop. See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
+
 Decided by the user on 6 November 2026: Certified is the only Weave sign-in flow.
 The internal Weave account is created or retrieved from the proven Certified
 identity; it has no separate credentials or registration screen. Private saving
@@ -325,6 +330,8 @@ Hosted staging and a second auth review are release gates. This records the user
 direction for the product, not a council vote or a completed deployment.
 
 ### Owner-authored needs and offers are the matching core
+
+**Superseded in part on 26 November 2026 by DL-155:** owners still author every need and offer, but other initiatives find them only once they are published. The audience of signed-in Weave users ends. See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
 
 The user's 8 November direction is to match real needs and offers across
 initiatives. Certified authenticates the person. Weave checks that the person
@@ -370,6 +377,8 @@ require approval from an actor authorized to add them in Certified. A pending
 invite can start before the teammate has a Certified account. After the teammate
 signs in, an admin confirms the resulting identity before granting access.
 
+**Superseded in part on 26 November 2026 by DL-155:** a team workspace no longer holds private needs or offers (D48). See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
+
 Needs and offers saved in the team workspace are visible to teammates with
 workspace read access, including before sharing for matching. Personal saves
 outside that workspace stay personal. Any workspace editor can review and
@@ -400,6 +409,8 @@ sharing decisions. See the
 [project integration contract](05-technical-spec.md#certified-project-integration-target).
 
 ### Public support listings in the first release
+
+**Superseded in part on 26 November 2026 by DL-155:** publishing starts from the device draft with no private save first, and an edit on the device leaves the public listing as it is until the person publishes again or withdraws it. See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
 
 The first user-facing release includes an explicit AT Protocol publish action
 once the team proves consent, authorization and read-back. A listing refers
@@ -432,6 +443,8 @@ Certified write consent, read-back and the `weave-public-support-listings.sql`
 candidate remain unapplied and unproven outside local fixtures.
 
 ### Shared entries and acting on matches
+
+**Superseded in part on 26 November 2026 by DL-155:** matches come from published listings and public evidence, not shared entries. See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
 
 A share with no end date stays discoverable until the team closes or withdraws
 it, subject to the existing checks for the reviewed revision and project

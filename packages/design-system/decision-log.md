@@ -1311,3 +1311,24 @@ Measured on the local dev server at 360 by 780 px, the first funding card starte
 **Status:** the user's decision, 26 November 2026 ("Yes, build it"), after links to learn about an initiative were found opening its record's raw JSON.
 
 Every way in to a public Certified initiative opens its page in Weave, `/initiatives/<account>-<record>`, in place. A partner result's Open Initiative replaces Open The Source for public projects; a catalog source keeps Open The Source, since that is a page people read. A project with no Weave address shows its name with no link, on list cards, in suggestions and in partner results, because the raw record is no page to read. On the initiative's page, Get In Touch sends people to the publisher's own links, or says it shared none, and no longer to the record. The raw record stays for people checking or building on it, behind a Where this comes from line under the small print, as Open the raw record (JSON). This refines the small print of DL-151.
+
+## DL-155: Needs and offers live in two places: this device, then public
+
+**Status:** the user's decision, 26 November 2026 ("It should be local then published that's it"). Supersedes the Weave-only matching audience of 8 November, the private needs and offers of a team workspace (12 November), DL-147's Private Weave Saves and the step of DL-148 that saves the card privately as the project's workspace before publishing. The [removal plan](../../docs/platform/08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing) owns the order of the work.
+
+A need or offer is in one of two places:
+
+- **On this device.** The draft, with its words, files and conversation, stays in the browser's own storage. Suggestions for it, funds and partners alike, are computed on the device against public data, and nothing is sent.
+- **Public.** Make It Public writes the chosen needs and offers as `com.regencommons.weave.supportListing` records in the project's own AT repository. That is the only copy anywhere but the device. Anyone can read it, in Weave and in other apps.
+
+What goes: Save Privately and the account copy of a card with its needs and offers; Share for matching and its audience of signed-in Weave users; private needs and offers saved to a team workspace. Another initiative finds a need or offer only once it is public.
+
+What changes:
+
+- **Publishing starts from the draft.** There is no private save first.
+- **Editing on the device leaves the public record as it is.** The public listing changes only when the person publishes again, which replaces it at the same address, or withdraws it. Before this, Weave saw the edit to a saved entry and queued a withdrawal. The device shows when a draft differs from what is public.
+- **Withdrawing needs no draft.** Any device signed in to Certified with authority for the project can withdraw a listing by its address.
+
+What stays: Certified sign-in, needed to publish, withdraw or link a project; the public project index; the device backups, Download and import; and Weave's working record of what it published, with each record's address, version and read-back state. That record holds public data only, can be rebuilt from the repositories, and is never a place a person saves to.
+
+Stated so they are not reopened: a draft on one browser is only on that browser, and Download is its backup; to be found by other initiatives an entry must be public; a team prepares a draft on one device, or passes it on as a downloaded file, before publishing. Private saves already in Weave stay readable, downloadable and deletable until [D49](../../docs/platform/open-decisions.md#for-the-builders) is decided. Nothing is published or deleted for anyone.

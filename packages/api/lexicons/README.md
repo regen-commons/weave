@@ -73,6 +73,12 @@ Example public record with fictional data:
 
 ## Local publication lifecycle
 
+DL-155 changes this lifecycle. Publishing will start from the device draft with no
+private save, and an edit on the device will leave a published listing as it is
+until the person publishes again or withdraws it. Until step 3 of the
+[removal plan](../../../docs/platform/08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing)
+lands, this section describes the code as built.
+
 `support_review` returns the exact public record, repository DID, audience
 `public-atproto`, saved revision, entry revision and a ten-minute review expiry.
 That review expiry is separate from the optional listing end date. The explicit
