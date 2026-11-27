@@ -15,7 +15,7 @@ import { projectSource } from "../src/intake/project-page.ts";
 import { likelyDuplicate } from "../src/initiative/duplicates.ts";
 import { publicCard } from "../src/initiative/status.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
-import { accountFixture, fixtureSession } from "../dev/account-fixture.ts";
+import { accountFixture, fixtureSession, seedFixtureSave } from "../dev/account-fixture.ts";
 import { projectEvidenceFixture, FIXTURE_TEAM_ADMIN, FIXTURE_GROUP_MEMBER, FIXTURE_UNAVAILABLE, FIXTURE_TEAM_ID, FIXTURE_PROJECT_STARTER, publishFixtureProject } from "../dev/matching-fixture.ts";
 import { editorHandoffKey, readEditorHandoff } from "../src/initiative/editor-handoff.ts";
 
@@ -156,32 +156,26 @@ test("a fresh link takes the source place, and a place Weave cannot read stays e
   assert.deepEqual(publicCard(admin.controller.getSnapshot().draft).links, []);
 });
 
-test("the live screen adapter saves and reloads a private card through the authenticated account handlers", async () => {
+test("the live screen adapter lists and opens a private save made earlier, and offers no new one (DL-155)", async () => {
   const { service, controller, repo, request } = await fixture();
   const document = JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8"));
   const id = crypto.randomUUID();
-  const card = loadedDraft({ id, document, revision: 1, updatedAt: "2026-11-11T00:00:00Z" }, FIXTURE_TEAM_ADMIN);
-  await controller.replace(revise(card, { account: { saved: null, pending: null } }));
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (input, init) => {
-    const url = new URL(String(input), origin);
-    return Response.json(await request(url.search, init?.body ? JSON.parse(String(init.body)) : undefined, url.pathname));
-  };
-  try {
-    await service.save(String(document.initiative.name), "private");
-    const saved = controller.getSnapshot().draft.account.saved!;
-    assert.equal(saved.id, id); assert.equal(saved.revision, 1);
-    assert.ok(service.snapshot().cards.some(item => item.id === id));
-    const other = revise(newDraft(), { composer: "Another unfinished initiative" });
-    await controller.replace(other);
-    await service.openCard(id, null);
-    assert.equal(controller.getSnapshot().draft.account.saved?.id, id);
-    assert.equal(controller.getSnapshot().draft.confirmed?.name, document.initiative.name);
-    // The other initiative stays on the device as its own draft; the card's earlier copy is the backup.
-    assert.equal(repo.drafts.get(other.id)?.composer, "Another unfinished initiative");
-    assert.equal(repo.history[0]?.draft.account.saved?.id, id);
-    assert.equal(service.snapshot().shared, null);
-  } finally { globalThis.fetch = originalFetch; }
+  await seedFixtureSave(fixtureSession(FIXTURE_TEAM_ADMIN), { id, document });
+  assert.equal("save" in service, false, "the live service has no way to save privately");
+  await assert.rejects(request("", { action: "save", accountId: FIXTURE_TEAM_ADMIN, id: crypto.randomUUID(), expectedRevision: 0,
+    requestId: crypto.randomUUID(), document }), { code: "private_saves_retired" });
+  // Your Initiatives lists it from the account, as the account context passes it on.
+  service.syncAccount({ available: true, fixture: true, user: { id: FIXTURE_TEAM_ADMIN, email: null },
+    items: (await request()).items as AccountState["items"] });
+  assert.ok(service.snapshot().cards.some(item => item.id === id && item.revision === 1));
+  const other = revise(newDraft(), { composer: "Another unfinished initiative" });
+  await controller.replace(other);
+  await service.openCard(id, null);
+  assert.equal(controller.getSnapshot().draft.account.saved?.id, id);
+  assert.equal(controller.getSnapshot().draft.confirmed?.name, document.initiative.name);
+  // The other initiative stays on the device as its own draft.
+  assert.equal(repo.drafts.get(other.id)?.composer, "Another unfinished initiative");
+  assert.equal(service.snapshot().shared, null);
 });
 
 test("refreshing a full first page restores pagination and rejects an older in-flight page", async () => {
@@ -643,7 +637,7 @@ test("a projects request refused for a lapsed token is confirmed through /api/ac
   service.dispose();
 });
 
-test("a project made public from a draft is linked with no other saved workspace, and saving the card privately still works (DL-155)", async () => {
+test("a project made public from a draft is linked with no other saved workspace (DL-155)", async () => {
   const id = crypto.randomUUID(), person = crypto.randomUUID();
   const { service, controller, request } = await fixture(person);
   const document = JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8"));
@@ -656,40 +650,6 @@ test("a project made public from a draft is linked with no other saved workspace
   const link = await service.linkProject(garden);
   assert.equal(link.uri, garden);
   assert.equal(link.workspaceId, undefined, "the card is not told the project has another saved initiative");
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (input, init) => {
-    const url = new URL(String(input), origin);
-    return Response.json(await request(url.search, init?.body ? JSON.parse(String(init.body)) : undefined, url.pathname));
-  };
-  try {
-    await service.save(String(document.initiative.name), "private");
-  } finally { globalThis.fetch = originalFetch; }
-  assert.equal(controller.getSnapshot().draft.account.saved?.id, id, "the card is saved privately");
-  assert.equal(service.snapshot().project?.workspaceId, undefined, "and stays apart from the link the project was published through");
-  assert.ok(service.snapshot().cards.some((card) => card.id === id));
-});
-
-test("saving a second card for a project another saved card already holds is still refused, whatever the workspace list says", async () => {
-  const person = crypto.randomUUID(), first = crypto.randomUUID(), second = crypto.randomUUID();
-  const { service, controller, request } = await fixture(person);
-  const document = JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8"));
-  const garden = "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/3mfixturegard";
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (input, init) => {
-    const url = new URL(String(input), origin);
-    return Response.json(await request(url.search, init?.body ? JSON.parse(String(init.body)) : undefined, url.pathname));
-  };
-  try {
-    // The first card is saved and becomes the project's workspace, as before DL-155.
-    await controller.replace(revise(loadedDraft({ id: first, document, revision: 1, updatedAt: "2026-11-11T00:00:00Z" }, person), { account: { saved: null, pending: null } }));
-    await service.reload();
-    await service.linkProject(garden);
-    await service.save(String(document.initiative.name), "private");
-    assert.equal(service.snapshot().project?.workspaceId, first);
-    // A second card on the device, linked to the same project. The account, not the workspace list, decides.
-    await controller.replace(revise(loadedDraft({ id: second, document, revision: 1, updatedAt: "2026-11-11T00:00:00Z" }, person), { account: { saved: null, pending: null } }));
-    await service.clearCard();
-    await service.linkProject(garden);
-    await assert.rejects(service.save(String(document.initiative.name), "private"), /already has another workspace/u);
-  } finally { globalThis.fetch = originalFetch; }
+  assert.equal(controller.getSnapshot().draft.account.saved, null, "the card stays on this device");
+  assert.equal(service.snapshot().project?.workspaceId, undefined, "and apart from the link the project was published through");
 });

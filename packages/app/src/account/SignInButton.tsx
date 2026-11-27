@@ -66,7 +66,7 @@ export function SignInButton({
     setProblem("");
     const tab = () => window.sessionStorage;
     // Every Sign In goes on to project access from the page it comes back to (the user's choice,
-    // 25 November 2026, DL-137). Only a sign-in that began at Save does not, and that is the door's.
+    // 25 November 2026, DL-137).
     expectProjectAccess(tab, window.location.pathname);
     try {
       await continueToCertified(

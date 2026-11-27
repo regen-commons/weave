@@ -29,7 +29,7 @@ test("no account button that starts work is disabled by its own press", () => {
   const section = read("account/AccountSection.tsx");
   assert.doesNotMatch(section, /void run\((?!action\))/u, "work starts through start(), which names the pressed button");
   assert.match(section, /function start\(name: string, action: \(\) => Promise<void>\) \{\s*if \(busy\) return;/u);
-  for (const name of ["check", "sign-in", "save", "begin", "more", "refresh", "load"]) {
+  for (const name of ["check", "sign-in", "begin", "more", "refresh", "load"]) {
     assert.match(section, new RegExp(`\\{\\.\\.\\.pressed\\("${name}"`, "u"), name);
     assert.match(section, new RegExp(`start\\("${name}", `, "u"), name);
     assert.match(section, new RegExp(`\\{spinner\\("${name}"\\)\\}`, "u"), name);
@@ -40,6 +40,5 @@ test("no account button that starts work is disabled by its own press", () => {
   const signOut = read("account/SignOutAction.tsx");
   assert.match(signOut, /aria-disabled=\{busy \|\| undefined\}\s*disabled=\{disabled && !busy\}/u);
   assert.match(signOut, /async function signOut\(\) \{\s*if \(busy\) return;/u);
-  assert.match(read("account/PrivateSaveAction.tsx"), /\{\.\.\.busyProps\(busy, /u);
   assert.match(read("pages/Settings.tsx"), /\{\.\.\.busyProps\(busy, !example\.state\.identity\)\}/u);
 });

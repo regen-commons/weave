@@ -91,7 +91,7 @@ test("a sign-in that returns to another page than it left from is followed by no
   expectProjectAccess(t.storage, page, () => 0);
   assert.equal(takeProjectAccess(t.storage, "signed-in", "/settings", () => 1000), false, "only the page it left from goes on");
   assert.equal(t.kept.size, 0);
-  // A sign-in to save clears an earlier note before leaving.
+  // A sign-in that could not start clears an earlier note.
   const stale = tab();
   expectProjectAccess(stale.storage, page, () => 0);
   forgetProjectAccess(stale.storage);

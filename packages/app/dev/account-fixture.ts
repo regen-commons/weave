@@ -4,7 +4,7 @@ import type { SignInAttempt } from "../../api/src/sign-in-store.ts";
 import { createAccountHandlers } from "@weave/api/account";
 import { AccountError, type AccountProvider } from "../../api/src/account-provider.ts";
 import { certifiedEmailHints } from "../../api/src/certified/email-hint.ts";
-import type { DeletedInitiative, SavedInitiative } from "@weave/api/account-contract";
+import type { AccountDocument, DeletedInitiative, SavedInitiative } from "@weave/api/account-contract";
 const sessions = new Map<string, string>();
 /** Refresh tokens rotate on use, as Supabase's do; a used or revoked one is refused. */
 const renewals = new Map<string, { id: string; token: string; signedInAt: number }>();
@@ -132,6 +132,15 @@ const provider: AccountProvider = {
     return deleted;
   },
 };
+/**
+ * A private save as one made before saving ended (DL-155, step 4), for the development server and tests. The
+ * account endpoint refuses new saves, so a save that already exists in Platform is seeded here, through the same
+ * checks the provider kept. Development only; nothing reaches the account endpoint.
+ */
+export function seedFixtureSave(token: string, command: { id: string; requestId?: string; expectedRevision?: number; document: AccountDocument }) {
+  const { requestId = crypto.randomUUID(), expectedRevision = 0, ...rest } = command;
+  return provider.save(token, { ...rest, requestId, expectedRevision });
+}
 export const accountFixture = createAccountHandlers({
   provider,
   secureCookies: false,

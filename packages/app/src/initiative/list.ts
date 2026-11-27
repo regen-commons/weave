@@ -222,7 +222,7 @@ export async function openSavedOver(
 export type EntryKind = "device" | "private" | "personal-project" | "group-project" | "team-workspace";
 
 export const ENTRY_KINDS: Record<EntryKind, { readonly icon: "device" | "lock" | "person" | "people"; readonly label: string }> = {
-  device: { icon: "device", label: "Not saved yet" },
+  device: { icon: "device", label: "On this device" },
   private: { icon: "lock", label: "Saved privately" },
   "personal-project": { icon: "person", label: "Personal project" },
   "group-project": { icon: "people", label: "Group project" },

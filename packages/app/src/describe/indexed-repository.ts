@@ -202,7 +202,7 @@ export class IndexedDraftRepository implements DraftRepository {
             // then this build's version simply stays, with what it knows about saving.
             // The same words, and only the card binding or the assistant record differ: this build's
             // version stays, whichever was written later. The older tab never saw this build's save,
-            // so its binding would leave the saved card showing "Not saved yet", or save the same
+            // so its binding would leave the saved card showing "On this device", or save the same
             // words again as a new card after a deletion. Its version is kept beside it.
             if (sameContent(mine.data, theirs, ["account", "runs"])) {
               backups.put(theirs, betweenBuildsKey(theirs.id));

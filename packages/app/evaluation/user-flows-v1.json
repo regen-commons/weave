@@ -183,7 +183,7 @@
   },
   {
    "id": "private-save-load",
-   "behavior": "Private save and load bound to the signed-in account",
+   "behavior": "Private saves made before load only for the signed-in account, and no new one is taken",
    "evidence": [
     {
      "file": "packages/app/test/account.test.ts",
@@ -202,7 +202,7 @@
     },
     {
      "file": "packages/app/test/social-live.test.ts",
-     "test": "the live screen adapter saves and reloads a private card through the authenticated account handlers",
+     "test": "the live screen adapter lists and opens a private save made earlier, and offers no new one (DL-155)",
      "class": "module"
     }
    ]
@@ -223,7 +223,7 @@
     },
     {
      "file": "packages/api/src/account.test.ts",
-     "test": "a cookie changed by another tab cannot save under a different account",
+     "test": "a private save is refused by name whichever account the cookie names, and nothing is written",
      "class": "module"
     }
    ]
@@ -419,21 +419,21 @@
   },
   {
    "id": "sharing-matching-synthetic",
-   "behavior": "Sharing, matching, editing, expiry and withdrawal on synthetic fixtures",
+   "behavior": "Earlier shares, matching, editing, expiry and withdrawal on synthetic fixtures, with no new share taken",
    "evidence": [
     {
      "file": "packages/app/test/network-partners.test.ts",
-     "test": "private Save, selected sharing, evidence, leads and returning account use the same initiative IDs",
+     "test": "shares made earlier, evidence, leads, withdrawal and a returning account use the same initiative IDs",
      "class": "module"
     },
     {
      "file": "packages/app/test/network-partners.test.ts",
-     "test": "a private edit after preview invalidates that preview and an edited share requires another review",
+     "test": "an earlier share is not reviewed, shared again or renewed, and a malformed command still fails as invalid",
      "class": "module"
     },
     {
      "file": "packages/app/test/network-partners.test.ts",
-     "test": "team editing shares only selected entries, invalidates edits and denies viewer commands",
+     "test": "team editing still saves, a team's earlier share is withdrawn by an editor, and nobody shares anew",
      "class": "module"
     },
     {
@@ -636,7 +636,7 @@
     },
     {
      "file": "packages/api/src/account.test.ts",
-     "test": "a card saved under the earlier limits stays saveable: five needs, five offers, six links and long answers",
+     "test": "a card saved under the earlier limits stays readable: five needs, five offers, six links and long answers",
      "class": "module"
     }
    ]

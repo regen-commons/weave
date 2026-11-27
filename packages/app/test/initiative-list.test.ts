@@ -186,7 +186,7 @@ test("every card says what it is, so a draft and a Certified project with one na
   // Each kind has its own words and an icon, so colour is never the only sign.
   const labels = Object.values(ENTRY_KINDS).map((kind) => kind.label);
   assert.equal(new Set(labels).size, labels.length);
-  assert.deepEqual(labels, ["Not saved yet", "Saved privately", "Personal project", "Group project", "Team workspace"]);
+  assert.deepEqual(labels, ["On this device", "Saved privately", "Personal project", "Group project", "Team workspace"]);
   for (const kind of Object.values(ENTRY_KINDS)) assert.ok(kind.icon);
 });
 

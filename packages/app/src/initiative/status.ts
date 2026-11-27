@@ -123,43 +123,17 @@ export function publicKey(draft: DeviceDraft, entries: Entries = "all"): string 
   });
 }
 
-/** A team's entries leave from its workspace, so a personal save has to move there first. */
+/** A team's entries leave from its workspace, so the card is saved there first (until step 6 of DL-155's plan). */
 const TEAM_SAVE_FIRST: Exposure = { state: "locked", line: "Save to the team workspace first.", waits: "save" };
-const SAVE_FIRST: Exposure = { state: "locked", line: "Save your initiative first.", waits: "save" };
 const WORKSPACE_FIRST: Exposure = { state: "locked", line: "Waits for the team workspace.", waits: "workspace" };
-/** The lock a linked project puts on sharing and publishing alike, or null when the entries can leave. */
+/**
+ * The lock a linked project puts on publishing, or null when the entries can leave. A person's own card
+ * publishes straight from the draft (DL-155), so only a team's workspace asks for anything first.
+ */
 function locked(example: SocialState, project: NonNullable<SocialState["project"]>): Exposure | null {
   if (project.workspace === "absent" || project.workspace === "requested") return WORKSPACE_FIRST;
-  if (!example.saved) return SAVE_FIRST;
-  if (project.workspace === "open" && example.saved.place !== "workspace") return TEAM_SAVE_FIRST;
+  if (project.workspace === "open" && example.saved?.place !== "workspace") return TEAM_SAVE_FIRST;
   return null;
-}
-function sharingOf(draft: DeviceDraft, example: SocialState): Exposure {
-  const project = example.identity ? example.project : null;
-  if (!project)
-    return { state: "locked", line: "Sharing for matching needs a Certified project.", waits: "project" };
-  const lock = locked(example, project);
-  if (lock) return lock;
-  if (!example.shared)
-    return {
-      state: "off",
-      line: project.group
-        ? "Not shared. Only your team sees your needs and offers."
-        : "Not shared. Only you see your needs and offers.",
-      waits: null,
-    };
-  const { entries, until, key } = example.shared;
-  if (key !== null && key !== publicKey(draft, entries))
-    return {
-      state: "changed",
-      line: "Changed since you shared. The earlier version is out of matching, and your changes stay private until you share again.",
-      waits: null,
-    };
-  return {
-    state: "on",
-    line: `${entryCount(chosenEntries(draft, entries))} shared with people signed in${until ? ` until ${fullDate(until)}` : " until closed or withdrawn"}.`,
-    waits: null,
-  };
 }
 /**
  * Publishing puts needs and offers on Certified as public listings of the project; the project itself
@@ -203,60 +177,37 @@ function publishingOf(draft: DeviceDraft, example: SocialState): Exposure | null
 /** What the saving and sharing section shows: the steps open now, the one to take next, and a line for the rest. */
 export interface OpenSteps {
   /** The step to take next; it alone gets the filled button. Null when nothing waits on the person. */
-  readonly lead: "save" | "workspace" | "project" | "share" | null;
-  /** Sharing has a row once it is open, and while the project it needs is the next step. */
-  readonly sharing: Exposure | null;
+  readonly lead: "save" | "workspace" | null;
   /** Publishing has a row once it is open. */
   readonly publishing: Exposure | null;
-  /** The steps still closed and what opens them, so no row repeats a lock. Empty when none is closed. */
+  /** What opens publishing while it is closed, so no row repeats a lock. Empty when it is open or not offered. */
   readonly later: string;
 }
 const OPENS: Record<"project" | "workspace" | "save", string> = {
-  project: "once you save and link a Certified project",
+  project: "once you link a Certified project",
   workspace: "once the team workspace is set up",
-  save: "once you save",
+  save: "once you save it to the team workspace",
 };
-const open = (exposure: Exposure | null): Exposure | null =>
-  exposure && exposure.state !== "locked" ? exposure : null;
 
 /**
- * Chooses the rows for the saving and sharing section. A closed step gets no row of its own: one
- * line under the open rows says what opens it, so the page never shows a button that cannot be used.
+ * Chooses the rows for the saving and sharing section. A closed step gets no row of its own: one line
+ * says what opens it, so the page never shows a button that cannot be used. Sharing for matching has no
+ * row: nothing new is shared (DL-155, step 4), and a share still on is stopped from Partners For You.
  */
 export function openSteps(status: CardStatus, workspace: WorkspaceState | null): OpenSteps {
-  const waiting = workspace === "absent" || workspace === "requested";
-  const kept = status.state === "saved" || status.state === "shared" || status.state === "published";
-  const shareOpen = open(status.sharing);
-  const lead: OpenSteps["lead"] = status.save
-    ? "save"
-    : waiting
-      ? "workspace"
-      : kept && status.sharing?.waits === "project"
-        ? "project"
-        : shareOpen && shareOpen.state !== "on"
-          ? "share"
-          : null;
-  const sharing = lead === "project" ? status.sharing : shareOpen;
-  const publishing = open(status.publishing);
-  const closedSharing = sharing ? null : status.sharing;
-  const closedPublishing = publishing ? null : status.publishing;
-  const lines: string[] = [];
-  const sharingWaits = closedSharing?.waits;
-  const publishingWaits = closedPublishing?.waits;
-  if (sharingWaits && sharingWaits !== "authority")
-    lines.push(
-      publishingWaits === sharingWaits
-        ? `Sharing for matching and publishing open ${OPENS[sharingWaits]}.`
-        : `Sharing for matching opens ${OPENS[sharingWaits]}.`,
-    );
-  else if (publishingWaits && publishingWaits !== "authority") lines.push(`Publishing opens ${OPENS[publishingWaits]}.`);
+  const lead: OpenSteps["lead"] = status.save ? "save" : workspace === "absent" || workspace === "requested" ? "workspace" : null;
+  const publishing = status.publishing && status.publishing.state !== "locked" ? status.publishing : null;
+  const waits = publishing ? null : status.publishing?.waits;
   // Authority is not a step the person can take, so its own sentence says who can.
-  if (closedPublishing && publishingWaits === "authority") lines.push(closedPublishing.line);
-  return { lead, sharing, publishing, later: lines.join(" ") };
+  const later = !waits ? "" : waits === "authority" ? status.publishing!.line : `Publishing opens ${OPENS[waits]}.`;
+  return { lead, publishing, later };
 }
 
-/** What a card that exists only in this browser says, on its page and on its badge in Your Initiatives. */
-export const NOT_SAVED_YET = "Not saved yet";
+/**
+ * What a card that exists only in this browser says, on its page and on its badge in Your Initiatives.
+ * Nothing is saved privately any more (DL-155): this device and, once published, the project are its places.
+ */
+export const NOT_SAVED_YET = "On this device";
 /**
  * What a card says while nobody is signed in and it carries the mark of an earlier save. Whether
  * that copy is current cannot be known signed out, so the card never claims it was not saved.
@@ -268,7 +219,7 @@ export const savedSignedOut = (draft: DeviceDraft, signedIn: boolean): boolean =
 /** What the live account holds for this card: no session, nothing, this version, or an earlier one. */
 export type AccountSave = "signed-out" | "none" | "current" | "changed";
 
-/** Saving does not back up source words or files. Said where the person saves. */
+/** Saving to a team does not back up source words or files. Said where the person saves. */
 const SAVING_LIMIT = "Files and conversations stay on this device.";
 
 export function cardStatus(
@@ -278,7 +229,8 @@ export function cardStatus(
   account: AccountSave,
 ): CardStatus {
   const signed = example ? !!example.identity : account !== "signed-out";
-  const sharing = example ? sharingOf(draft, example) : null;
+  // Sharing for matching with people signed in is retired (DL-155, step 4); a share still on stops from Partners.
+  const sharing: Exposure | null = null;
   const publishing = example ? publishingOf(draft, example) : null;
   const saved = example
     ? signed
@@ -289,24 +241,20 @@ export function cardStatus(
       : null;
   const unsaved =
     !!saved && (example ? saved.key !== null && saved.key !== publicKey(draft) : account === "changed");
-  // Where a save goes now: the linked project's open workspace, otherwise the person's private saves.
+  // Where a save goes now: only a linked project's open team workspace (until step 6).
   const team = signed && example?.project?.workspace === "open" ? example.project.group : null;
   const rows = { unsaved, save: saveStep(draft, signed, saved, unsaved, team), sharing, publishing };
   if (saved) {
     const group = saved.place === "workspace" ? example?.project?.group : null;
     return {
-      state: publishing && publishing.state !== "locked" && publishing.state !== "off"
-        ? "published"
-        : sharing?.state === "on" || sharing?.state === "changed"
-          ? "shared"
-          : "saved",
+      state: publishing && publishing.state !== "locked" && publishing.state !== "off" ? "published" : "saved",
       line: unsaved
         ? group
           ? "Changed on this device since you saved. Your team still sees the earlier version."
-          : "Changed on this device since you saved."
+          : "Changed on this device since your private save in Weave, which no longer changes."
         : group
           ? `Saved in the ${group} workspace. Teammates with access can see it.`
-          : "Saved privately in Weave. Only you can see it.",
+          : "Also kept as a private save in Weave, which no longer changes. Only you can see it.",
       ...rows,
     };
   }
@@ -323,16 +271,14 @@ function saveStep(
   unsaved: boolean,
   team: string | null,
 ): SaveStep | null {
-  if (!intakeComplete(draft)) return null;
-  if (!signed) return { needs: "sign-in", label: "Sign In To Save", note: "" };
+  // Nothing is saved privately any more (DL-155, step 4). A team's open workspace still takes its card until step 6.
+  if (!intakeComplete(draft) || !signed || !team) return null;
   // A personal save does not follow the person into a team workspace on its own.
-  const moves = !!saved && !!team && saved.place !== "workspace";
+  const moves = !!saved && saved.place !== "workspace";
   if (saved && !unsaved && !moves) return null;
   return {
     needs: "save",
-    label: unsaved && !moves ? "Save Changes" : team ? "Save To Team Workspace" : "Save Privately",
-    note: team
-        ? `Teammates with access to the ${team} workspace can see it. ${SAVING_LIMIT}`
-        : `Only you can see it. ${SAVING_LIMIT}`,
+    label: unsaved && !moves ? "Save Changes" : "Save To Team Workspace",
+    note: `Teammates with access to the ${team} workspace can see it. ${SAVING_LIMIT}`,
   };
 }

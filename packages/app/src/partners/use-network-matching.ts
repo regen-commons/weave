@@ -3,8 +3,7 @@ import { AccountFailure, type AccountState } from "../account/client.ts";
 import type { ActiveInitiative } from "../account/active-initiative.ts";
 import {
   confirmedMatchingRequest, entryKey, entryReference, matchingMessage,
-  type EntryRef, type MatchingEntry, type MatchingMutation, type MatchingSearch, type MatchingState,
-  type NetworkLead, type SharingPreview,
+  type MatchingEntry, type MatchingMutation, type MatchingSearch, type MatchingState, type NetworkLead,
 } from "./matching-client.ts";
 
 export function sharedEntries<Entry extends MatchingEntry>(entries: readonly Entry[], now = Date.now()): Entry[] {
@@ -13,29 +12,11 @@ export function sharedEntries<Entry extends MatchingEntry>(entries: readonly Ent
 }
 
 /**
- * Why the search of what other teams have shared is empty, while nothing of the person's is shared.
- * Open needs and offers that are saved but private (never shared, or withdrawn) are named as theirs, in
- * the words the user chose on 23 November 2026, with the step that shares them: "share at least one"
- * read as having none. An entry changed since sharing, or whose sharing ended, has its own line where
- * it is listed (review it, or renew it), so it is not called private here. Empty once something is
- * shared, or when only those wait. A team's entries are the team's; a person who can only read is not
- * asked to share.
+ * What a share still on says, where it can be stopped. Nothing new is shared for matching (DL-155, step 4),
+ * and the shares already on end when published listings take over matching (step 5).
  */
-export function notSharedLine(entries: MatchingEntry[], { team = false, readOnly = false, now = Date.now() } = {}): string {
-  if (sharedEntries(entries, now).length) return "";
-  const open = entries.filter(({ status }) => status === "open");
-  const quiet = open.filter(({ sharing }) => sharing === "private" || sharing === "withdrawn");
-  if (!open.length) return "Add an open need or offer to find partners.";
-  if (!quiet.length) return "";
-  const count = (kind: MatchingEntry["kind"], one: string, many: string) => {
-    const n = quiet.filter((entry) => entry.kind === kind).length;
-    return n === 0 ? "" : n === 1 ? one : `${n} ${many}`;
-  };
-  const yours = [count("need", "need", "needs"), count("offer", "offer", "offers")].filter(Boolean).join(" and ");
-  const are = quiet.length === 1 ? "is" : "are";
-  const them = quiet.length === 1 ? "it" : "them";
-  const said = team ? `Your team's ${yours} ${are} not shared for matching.` : `Your ${yours} ${are} private.`;
-  return readOnly ? said : `${said} Share ${them} for matching to find partners.`;
+export function sharedLine(count: number, team = false): string {
+  return `${count} ${count === 1 ? "need or offer is" : "needs and offers are"} still shared with people signed in${team ? " from this workspace" : ""}.`;
 }
 
 /**
@@ -46,7 +27,6 @@ export function useNetworkMatching(active: ActiveInitiative, confirm: () => Prom
   const [state, setState] = useState<MatchingState | null>(null);
   const [search, setSearch] = useState<MatchingSearch | null>(null);
   const [leads, setLeads] = useState<NetworkLead[] | null>(null);
-  const [preview, setPreview] = useState<{ review: SharingPreview; action: "share" | "renew" } | null>(null);
   const [pending, setPending] = useState<MatchingMutation | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -113,7 +93,6 @@ export function useNetworkMatching(active: ActiveInitiative, confirm: () => Prom
       const signal = scope.current?.signal;
       if (!signal || reading.current || writing.current || pending) return;
       setError("");
-      setPreview(null);
       void read(signal);
     }
     window.addEventListener("online", reconnect);
@@ -140,35 +119,7 @@ export function useNetworkMatching(active: ActiveInitiative, confirm: () => Prom
     if (!signal || reading.current || writing.current || pending) return;
     setError("");
     setNotice("");
-    setPreview(null);
     void read(signal);
-  }
-
-  async function review(entries: EntryRef[], action: "share" | "renew") {
-    const signal = scope.current?.signal;
-    if (!signal || !state || reading.current || writing.current || pending) return;
-    writing.current = true;
-    setBusy(true);
-    setError("");
-    setNotice("");
-    setPreview(null);
-    try {
-      const response = await request(active.id, "preview", { initiativeRevision: state.initiativeRevision, entries }, signal);
-      const returned = new Map(response.entries.map((entry) => [entryKey(entry), entry]));
-      if (response.initiativeRevision !== state.initiativeRevision || returned.size !== entries.length ||
-          response.entries.length !== entries.length || entries.some((entry) => {
-            const item = returned.get(entryKey(entry));
-            return item?.revision !== entry.revision || item.shareVersion !== entry.shareVersion;
-          })) throw new AccountFailure("matching_conflict");
-      if (!signal.aborted) setPreview({ review: response, action });
-    } catch (cause) {
-      failure(cause, signal);
-      if (cause instanceof AccountFailure && cause.code === "matching_conflict" && !signal.aborted)
-        await read(signal);
-    } finally {
-      writing.current = false;
-      if (!signal.aborted) setBusy(false);
-    }
   }
 
   async function mutate(command: MatchingMutation) {
@@ -191,12 +142,7 @@ export function useNetworkMatching(active: ActiveInitiative, confirm: () => Prom
       } else {
         await request(active.id, command.action, command.input, signal);
         if (signal.aborted) return;
-        setPreview(null);
-        setNotice({
-          share: "Selected entries shared for matching.",
-          renew: "Sharing renewed.",
-          withdraw: "Selected entry withdrawn from matching.",
-        }[command.action]);
+        setNotice("Selected entry withdrawn from matching.");
         await read(signal);
       }
       setPending(null);
@@ -210,10 +156,7 @@ export function useNetworkMatching(active: ActiveInitiative, confirm: () => Prom
         if (command.action !== "set_lead") setSearch(null);
       } else {
         setPending(null);
-        if (code !== "sign_in_required") {
-          setPreview(null);
-          await read(signal);
-        }
+        if (code !== "sign_in_required") await read(signal);
       }
     } finally {
       writing.current = false;
@@ -221,6 +164,5 @@ export function useNetworkMatching(active: ActiveInitiative, confirm: () => Prom
     }
   }
 
-  return { state, search, leads, preview, pending, loading, busy, error, notice, refresh, review, mutate,
-    cancelReview: () => setPreview(null) };
+  return { state, search, leads, pending, loading, busy, error, notice, refresh, mutate };
 }

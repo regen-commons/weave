@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parseDocument, parseSaved, record, type AccountDocument } from "@weave/api/account-contract";
 import { parseMatchingLeads, parseMatchingPreview, parseMatchingSearch, parseMatchingState } from "@weave/api/matching-contract";
-import { accountFixture, fixtureSession } from "../dev/account-fixture.ts";
-import { matchingFixture } from "../dev/matching-fixture.ts";
+import { accountFixture, fixtureSession, seedFixtureSave } from "../dev/account-fixture.ts";
+import { matchingFixture, seedFixtureShare } from "../dev/matching-fixture.ts";
 import { activeInitiative } from "../src/account/active-initiative.ts";
 import { AccountFailure } from "../src/account/client.ts";
 import { loadedDraft } from "../src/account/document.ts";
@@ -28,13 +28,9 @@ const ask = (title: string) => ({
   id: crypto.randomUUID(),
   value: { ...EMPTY_ASK, title, capitalForms: ["intellectual"] },
 });
-async function save(token: string, accountId: string, id: string, document: AccountDocument, expectedRevision = 0) {
-  const result = await accountFixture.POST(post("/api/account", {
-    action: "save", id, accountId, expectedRevision, requestId: crypto.randomUUID(), document,
-  }, token));
-  assert.equal(result.status, 200);
-  return parseSaved(record(await result.json()).saved);
-}
+/** A private save made before Weave stopped taking them (DL-155, step 4); the account endpoint refuses new ones. */
+const save = (token: string, id: string, document: AccountDocument, expectedRevision = 0) =>
+  seedFixtureSave(token, { id, document, expectedRevision });
 async function matching(token: string, initiativeId: string, input: object, status = 200) {
   const result = await matchingFixture(post("/api/matching", { initiativeId, ...input }, token));
   const data = await result.json();
@@ -43,37 +39,25 @@ async function matching(token: string, initiativeId: string, input: object, stat
   return record(data);
 }
 
-test("private Save, selected sharing, evidence, leads and returning account use the same initiative IDs", async () => {
+test("shares made earlier, evidence, leads, withdrawal and a returning account use the same initiative IDs", async () => {
   const ownerA = crypto.randomUUID(), ownerB = crypto.randomUUID();
   const first = fixtureSession(ownerA), second = fixtureSession(ownerB);
   const need = ask("GPS watershed mapping"), privateNeed = ask("Keep this off the network");
   const offer = ask("GPS mapping training"), secondNeed = ask("Environmental monitoring");
   const documentA = { ...base, initiative: { ...base.initiative, name: "Watershed A", links: [] }, needs: [need, privateNeed], offers: [] };
   const documentB = { ...base, initiative: { ...base.initiative, name: "Mapping B", links: ["https://example.org/project"] }, needs: [secondNeed], offers: [offer] };
-  const a = await save(first, ownerA, crypto.randomUUID(), documentA);
-  const b = await save(second, ownerB, crypto.randomUUID(), documentB);
-
-  async function prepare(token: string, initiativeId: string, id: string) {
-    const state = parseMatchingState(await matching(token, initiativeId, { action: "state" }));
-    const selected = state.entries.find(({ entryId }) => entryId === id)!;
-    assert.equal(selected.sharing, "private");
-    const review = parseMatchingPreview(await matching(token, initiativeId, {
-      action: "preview", initiativeRevision: state.initiativeRevision, entries: [entryReference(selected)],
-    }));
-    assert.equal(review.entries.length, 1);
-    assert.equal(review.entries[0]?.entryId, id);
-    assert.equal(review.audience, "weave_users");
-    assert.deepEqual(parseMatchingSearch(await matching(token, initiativeId, { action: "search" })).results, []);
-    return review;
+  const a = await save(first, crypto.randomUUID(), documentA);
+  const b = await save(second, crypto.randomUUID(), documentB);
+  // Nothing is shared until an earlier share is seeded, and nothing new can be shared.
+  for (const [token, card] of [[first, a], [second, b]] as const) {
+    const state = parseMatchingState(await matching(token, card.id, { action: "state" }));
+    assert.ok(state.entries.every(({ sharing }) => sharing === "private"));
+    assert.deepEqual(parseMatchingSearch(await matching(token, card.id, { action: "search" })).results, []);
+    assert.equal((await matching(token, card.id, { action: "preview", initiativeRevision: state.initiativeRevision,
+      entries: state.entries.map(entryReference) }, 410)).error, "matching_shares_retired");
   }
-  const aReview = await prepare(first, a.id, need.id);
-  const bReview = await prepare(second, b.id, offer.id);
-  assert.equal(Object.hasOwn(bReview.summary, "links"), false);
-  const aCommand = { action: "share", reviewId: aReview.reviewId, requestId: crypto.randomUUID() };
-  const aShare = parseMatchingState(await matching(first, a.id, aCommand));
-  assert.deepEqual(await matching(first, a.id, aCommand), aShare);
-  assert.equal((await matching(first, a.id, { ...aCommand, requestId: crypto.randomUUID() }, 409)).error, "matching_conflict");
-  const bShare = parseMatchingState(await matching(second, b.id, { action: "share", reviewId: bReview.reviewId, requestId: crypto.randomUUID() }));
+  const aShare = await seedFixtureShare(first, a.id, ({ entryId }) => entryId === need.id);
+  const bShare = await seedFixtureShare(second, b.id, ({ entryId }) => entryId === offer.id);
   assert.equal((await matching(second, a.id, { action: "state" }, 404)).error, "not_found");
   assert.equal(aShare.entries.find(({ entryId }) => entryId === privateNeed.id)?.sharing, "private");
 
@@ -94,14 +78,13 @@ test("private Save, selected sharing, evidence, leads and returning account use 
   assert.equal(parseMatchingLeads(await matching(first, a.id, dismiss)).leads[0]?.disposition, "dismissed");
   await matching(first, a.id, { ...saveLead, requestId: crypto.randomUUID() });
 
+  // A share still on cannot be renewed; it can be withdrawn, once, for the version listed.
   const bEntry = bShare.entries.find(({ entryId }) => entryId === offer.id)!;
-  const renew = parseMatchingPreview(await matching(second, b.id, {
-    action: "preview", initiativeRevision: bShare.initiativeRevision, entries: [entryReference(bEntry)],
-  }));
-  const renewed = parseMatchingState(await matching(second, b.id, { action: "renew", reviewId: renew.reviewId, requestId: crypto.randomUUID() }));
+  assert.equal((await matching(second, b.id, { action: "renew", reviewId: crypto.randomUUID(), requestId: crypto.randomUUID() }, 410)).error,
+    "matching_shares_retired");
   const withdraw = { action: "withdraw", entries: [entryReference(bEntry)], requestId: crypto.randomUUID() };
-  await matching(second, b.id, withdraw, 409);
-  await matching(second, b.id, { ...withdraw, entries: [entryReference(renewed.entries.find(({ entryId }) => entryId === offer.id)!)], requestId: crypto.randomUUID() });
+  await matching(second, b.id, withdraw);
+  await matching(second, b.id, { ...withdraw, requestId: crypto.randomUUID() }, 409);
   assert.ok(parseMatchingSearch(await matching(first, a.id, { action: "search" })).results.every(({ candidateId }) => candidateId !== candidate.candidateId));
   assert.equal((await accountFixture.POST(post("/api/account", { action: "sign_out" }, first))).status, 200);
   assert.equal((await matching(first, a.id, { action: "leads" }, 401)).error, "sign_in_required");
@@ -112,7 +95,8 @@ test("private Save, selected sharing, evidence, leads and returning account use 
   assert.equal(activeInitiative(draft.account.saved, ownerB), null);
   assert.deepEqual(draft.needs.items.map(({ id }) => id), [need.id, privateNeed.id]);
   assert.equal(parseMatchingLeads(await matching(returning, a.id, { action: "leads" })).leads[0]?.evidenceStatus, "unavailable");
-  await save(returning, ownerA, a.id, { ...documentA, needs: [privateNeed] }, a.revision);
+  // A saved partner stays until it is cleared, also after the need it was kept for leaves the card.
+  await save(returning, a.id, { ...documentA, needs: [privateNeed] }, a.revision);
   assert.equal(parseMatchingLeads(await matching(returning, a.id, { action: "leads" })).leads[0]?.entryId, need.id);
   const remove = {
     action: "set_lead", entry: { kind: "need", entryId: need.id },
@@ -121,32 +105,25 @@ test("private Save, selected sharing, evidence, leads and returning account use 
   assert.deepEqual(parseMatchingLeads(await matching(returning, a.id, remove)).leads, []);
 });
 
-test("a private edit after preview invalidates that preview and an edited share requires another review", async () => {
+test("an earlier share is not reviewed, shared again or renewed, and a malformed command still fails as invalid", async () => {
   const owner = crypto.randomUUID(), id = crypto.randomUUID(), token = fixtureSession(owner);
   const need = ask("Mapping training");
-  const document = { ...base, needs: [need], offers: [] };
-  const saved = await save(token, owner, id, document);
-  const preview = async () => {
-    const state = parseMatchingState(await matching(token, id, { action: "state" }));
-    return parseMatchingPreview(await matching(token, id, {
-      action: "preview", initiativeRevision: state.initiativeRevision, entries: [entryReference(state.entries[0]!)],
-    }));
-  };
-  const review = await preview();
-  const changed = { ...document, initiative: { ...document.initiative, name: "A more specific name" } };
-  await save(token, owner, id, changed, saved.revision);
-  await matching(token, id, { action: "share", reviewId: review.reviewId, requestId: crypto.randomUUID() }, 409);
-  const current = await preview();
-  const share = parseMatchingState(await matching(token, id, { action: "share", reviewId: current.reviewId, requestId: crypto.randomUUID() }));
-  const edited = { ...changed, needs: [{ ...need, value: { ...need.value, title: "GPS mapping workshop" } }] };
-  await save(token, owner, id, edited, share.initiativeRevision);
-  const state = parseMatchingState(await matching(token, id, { action: "state" }));
-  assert.equal(state.entries[0]?.entryId, need.id);
-  assert.equal(state.entries[0]?.sharing, "needs_review");
-  assert.equal(parseMatchingSearch(await matching(token, id, { action: "search" })).results.length, 0);
-  const next = await preview();
-  await matching(token, id, { action: "renew", reviewId: next.reviewId, requestId: crypto.randomUUID() }, 409);
-  await matching(token, id, { action: "share", reviewId: next.reviewId, requestId: crypto.randomUUID() });
+  await save(token, id, { ...base, needs: [need], offers: [] });
+  const shared = await seedFixtureShare(token, id);
+  assert.equal(shared.entries[0]?.sharing, "shared");
+  const refused = [
+    { action: "preview", initiativeRevision: shared.initiativeRevision, entries: [entryReference(shared.entries[0]!)] },
+    { action: "share", reviewId: crypto.randomUUID(), requestId: crypto.randomUUID() },
+    { action: "renew", reviewId: crypto.randomUUID(), requestId: crypto.randomUUID() },
+  ];
+  for (const command of refused) assert.equal((await matching(token, id, command, 410)).error, "matching_shares_retired");
+  assert.equal((await matching(token, id, { action: "share", reviewId: "not-an-id", requestId: crypto.randomUUID() }, 400)).error, "invalid_data");
+  // The share made earlier is untouched by the refusals.
+  assert.deepEqual(parseMatchingState(await matching(token, id, { action: "state" })), shared);
+  const withdrawn = parseMatchingState(await matching(token, id, { action: "withdraw", entries: [entryReference(shared.entries[0]!)], requestId: crypto.randomUUID() }));
+  assert.equal(withdrawn.entries[0]?.sharing, "withdrawn");
+  assert.equal((await matching(token, id, { action: "preview", initiativeRevision: withdrawn.initiativeRevision,
+    entries: [entryReference(withdrawn.entries[0]!)] }, 410)).error, "matching_shares_retired", "a withdrawn entry cannot be shared again");
 });
 
 test("browser client uses no-store POST with cancellation and refuses a response for another initiative", async (t) => {
@@ -188,7 +165,7 @@ test("private Certified suggestions download workspace evidence once and rank bo
   const token = fixtureSession(owner);
   const id = crypto.randomUUID();
   const need = ask("GPS watershed mapping"), offer = ask("Environmental monitoring training");
-  await save(token, owner, id, { ...base, needs: [need], offers: [offer] });
+  await save(token, id, { ...base, needs: [need], offers: [offer] });
   const handler = projectEvidenceFixture(origin);
   const requests: unknown[] = [];
   const originalFetch = globalThis.fetch;
@@ -236,7 +213,7 @@ test("the fixture links a personal project to the saved card, as the workspace c
   const owner = crypto.randomUUID(), other = crypto.randomUUID();
   const token = fixtureSession(owner), otherToken = fixtureSession(other);
   const id = crypto.randomUUID();
-  await save(token, owner, id, { ...base, needs: [ask("GPS watershed mapping")] });
+  await save(token, id, { ...base, needs: [ask("GPS watershed mapping")] });
   const link = { action: "link", projectUri: personal, initiativeId: id, expectedRevision: 1 };
   const linked = { status: "linked", workspaceId: id, accessRole: "admin", projectUri: personal, cid: "bafyfixture" };
 
@@ -349,7 +326,7 @@ test("membership consent returns to the same workspace and finishes once", async
   }
 });
 
-test("team editing shares only selected entries, invalidates edits and denies viewer commands", async () => {
+test("team editing still saves, a team's earlier share is withdrawn by an editor, and nobody shares anew", async () => {
   const { FIXTURE_TEAM_ID, FIXTURE_TEAM_EDITOR, FIXTURE_SECOND_TEAM_ID, FIXTURE_SECOND_EDITOR,
     projectEvidenceFixture } = await import("../dev/matching-fixture.ts");
   const { FIXTURE_ACCOUNT_ID } = await import("../dev/account-fixture.ts");
@@ -367,6 +344,7 @@ test("team editing shares only selected entries, invalidates edits and denies vi
     return input === "/api/projects" ? handler(request) : matchingFixture(request);
   };
   try {
+    // Team workspace saves go on until step 6.
     let team = (await requestTeamWorkspace(FIXTURE_TEAM_ID, signal)).saved!;
     const need = { ...team.document.needs[0]!, value: { ...team.document.needs[0]!.value,
       title: "GPS watershed mapping", capitalForms: ["intellectual"] } };
@@ -388,10 +366,7 @@ test("team editing shares only selected entries, invalidates edits and denies vi
         offers: initialSecond.document.offers.map((entry) => ({ ...entry, value: { ...entry.value,
           title: "GPS watershed mapping training" } })),
       } }, signal);
-    const initial = await matchingRequest(second.id, "state", {}, signal);
-    const secondReview = await matchingRequest(second.id, "preview", { initiativeRevision: second.revision,
-      entries: initial.entries.filter(({ kind }) => kind === "offer").map(entryReference) }, signal);
-    await matchingRequest(second.id, "share", { reviewId: secondReview.reviewId, requestId: crypto.randomUUID() }, signal);
+    await seedFixtureShare(tokens.second, second.id, ({ kind }) => kind === "offer");
     const findTeam = async () => {
       token = tokens.second;
       return (await matchingRequest(second.id, "search", {}, signal)).results.filter(({ counterpart }) => counterpart.id === team.id);
@@ -401,34 +376,33 @@ test("team editing shares only selected entries, invalidates edits and denies vi
     const state = await matchingRequest(team.id, "state", {}, signal);
     assert.ok(state.entries.every(({ sharing }) => sharing === "private"));
     const ref = state.entries.find(({ kind }) => kind === "need")!;
-    const review = await matchingRequest(team.id, "preview", { initiativeRevision: team.revision,
-      entries: [entryReference(ref)] }, signal);
-    token = tokens.viewer;
-    await assert.rejects(matchingRequest(team.id, "preview", { initiativeRevision: team.revision,
-      entries: [entryReference(ref)] }, signal), { code: "workspace_edit_required" });
-    await assert.rejects(matchingRequest(team.id, "share", { reviewId: review.reviewId,
-      requestId: crypto.randomUUID() }, signal), { code: "workspace_edit_required" });
-    token = tokens.editor;
-    await matchingRequest(team.id, "share", { reviewId: review.reviewId, requestId: crypto.randomUUID() }, signal);
+    // Neither an editor nor a viewer can start a share.
+    for (const who of [tokens.editor, tokens.viewer]) {
+      token = who;
+      await assert.rejects(matchingRequest(team.id, "preview", { initiativeRevision: team.revision,
+        entries: [entryReference(ref)] }, signal), { code: "matching_shares_retired" });
+      await assert.rejects(matchingRequest(team.id, "share", { reviewId: crypto.randomUUID(),
+        requestId: crypto.randomUUID() }, signal), { code: "matching_shares_retired" });
+    }
+    await seedFixtureShare(tokens.editor, team.id, ({ kind }) => kind === "need");
     assert.equal((await findTeam()).length, 1);
+    // A team edit takes the changed entry out of matching, and it cannot be renewed.
     token = tokens.editor;
-    const selected = (await matchingRequest(team.id, "state", {}, signal)).entries.find(({ kind }) => kind === "need")!;
-    const oldReview = await matchingRequest(team.id, "preview", { initiativeRevision: team.revision,
-      entries: [entryReference(selected)] }, signal);
     team = await saveTeamWorkspace(team.id, { expectedRevision: team.revision, requestId: crypto.randomUUID(),
       document: { ...team.document, needs: [{ ...need, value: { ...need.value, description: "Updated GPS watershed mapping" } }] } }, signal);
     assert.deepEqual(await findTeam(), []);
     token = tokens.editor;
-    await assert.rejects(matchingRequest(team.id, "share", { reviewId: oldReview.reviewId, requestId: crypto.randomUUID() }, signal),
-      { code: "matching_conflict" });
-    const current = (await matchingRequest(team.id, "state", {}, signal)).entries.find(({ kind }) => kind === "need")!;
-    const renewed = await matchingRequest(team.id, "preview", { initiativeRevision: team.revision,
-      entries: [entryReference(current)] }, signal);
-    await matchingRequest(team.id, "share", { reviewId: renewed.reviewId, requestId: crypto.randomUUID() }, signal);
-    assert.equal((await findTeam()).length, 1);
+    const changed = (await matchingRequest(team.id, "state", {}, signal)).entries.find(({ kind }) => kind === "need")!;
+    assert.equal(changed.sharing, "needs_review");
+    await assert.rejects(matchingRequest(team.id, "renew", { reviewId: crypto.randomUUID(), requestId: crypto.randomUUID() }, signal),
+      { code: "matching_shares_retired" });
+    // Withdrawing is the one change left, and only an editor can make it.
+    token = tokens.viewer;
+    await assert.rejects(matchingRequest(team.id, "withdraw", { entries: [entryReference(changed)], requestId: crypto.randomUUID() }, signal),
+      { code: "workspace_edit_required" });
     token = tokens.editor;
-    const shared = (await matchingRequest(team.id, "state", {}, signal)).entries.find(({ kind }) => kind === "need")!;
-    await matchingRequest(team.id, "withdraw", { entries: [entryReference(shared)], requestId: crypto.randomUUID() }, signal);
+    const withdrawn = await matchingRequest(team.id, "withdraw", { entries: [entryReference(changed)], requestId: crypto.randomUUID() }, signal);
+    assert.equal(withdrawn.entries.find(({ kind }) => kind === "need")?.sharing, "withdrawn");
     assert.deepEqual(await findTeam(), []);
   } finally {
     globalThis.fetch = original;

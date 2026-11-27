@@ -60,7 +60,7 @@ export interface DeletedCard {
   /**
    * What became of the drafts on this device that were working copies of the removed card:
    * - `unrelated`: none was.
-   * - `unbound`: they keep their words and stay in Your Initiatives, marked Not saved yet.
+   * - `unbound`: they keep their words and stay in Your Initiatives, marked On this device.
    * - `unbound_unsaved`: as `unbound`, but this device could not store the change.
    * - `backed_up`: they were moved to this device's backups, as the person chose before the press.
    * - `backup_failed`: they could not all be moved to the backups, so some stay in Your Initiatives.
@@ -126,10 +126,10 @@ const savedCount = (kept: number) =>
 /** Where the copies on this device are after a deletion, so the person knows the card left the account and where its words are. */
 const DEVICE_AFTER: Record<DeletedCard["device"], string> = {
   unrelated: "",
-  unbound: " Its copy on this device keeps its words and stays in Your Initiatives, marked Not saved yet.",
+  unbound: " Its copy on this device keeps its words and stays in Your Initiatives, marked On this device.",
   unbound_unsaved: " Its copy on this device keeps its words, but this device could not store the change. Copy your words before reloading.",
   backed_up: " Its copy on this device is now a device backup. Restore it or delete it for good in Settings, under Device Backups.",
-  backup_failed: " Its copy on this device could not be moved to the backups, so it stays in Your Initiatives, marked Not saved yet.",
+  backup_failed: " Its copy on this device could not be moved to the backups, so it stays in Your Initiatives, marked On this device.",
 };
 
 /**

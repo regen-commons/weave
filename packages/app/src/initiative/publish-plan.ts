@@ -240,6 +240,25 @@ export function clearPlan(storage: PlanStorage | undefined, draftId: string): vo
   try { storage?.removeItem(key(draftId)); } catch { /* Nothing stored, or nothing to remove. */ }
 }
 
+const askKey = (draftId: string) => `weave-publish-ask/${draftId}`;
+/**
+ * Asks the card's page to open Make It Public once it opens, as Make It Public on a private save in Your Initiatives
+ * does after opening the save on this device (D49). Kept in the tab's own storage; a refused write asks nothing.
+ */
+export function askToMakePublic(storage: PlanStorage | undefined, draftId: string): void {
+  try { storage?.setItem(askKey(draftId), "1"); } catch { /* The page opens without the dialog; Make It Public is one press away. */ }
+}
+/** True once, when the card's page was asked to open Make It Public. The ask is used up either way. */
+export function takeMakePublic(storage: PlanStorage | undefined, draftId: string): boolean {
+  try {
+    const asked = storage?.getItem(askKey(draftId)) === "1";
+    storage?.removeItem(askKey(draftId));
+    return asked;
+  } catch {
+    return false;
+  }
+}
+
 /** A plan made before sign-in becomes the account's; one made by another account is not this one's. */
 export function adoptPlan(plan: PublishPlan | null, owner: string | null): PublishPlan | null {
   if (!plan) return null;

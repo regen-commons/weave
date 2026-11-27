@@ -95,7 +95,7 @@ export function accountMessage(error: unknown): string {
         rate_limited: "Please wait before trying this account action again.",
         sign_in_required: "Your session ended. Sign in again. Your device draft is still here.",
         account_changed:
-          "The signed-in account changed in another tab. Check the account shown here before saving again.",
+          "The signed-in account changed in another tab. Check the account shown here, then try again.",
         save_conflict:
           "This saved card changed elsewhere. Load its latest copy before saving again. Your device draft is still here.",
         sign_out_unconfirmed: "Sign-out could not be confirmed. Keep this device with you and try again.",
@@ -103,7 +103,12 @@ export function accountMessage(error: unknown): string {
           "The connection failed. Your device draft is still here. Try again when you are online.",
         document_too_large: "This card is too large to save. Your device draft is still here.",
         initiative_deleted:
-          "This card was deleted from your account. Your words are still on this device. Save again to keep them as a new card.",
+          "This card was deleted from your account. Your words are still on this device.",
+        // DL-155, step 4: what an older tab hears when it still offers to save or to share for matching.
+        private_saves_retired:
+          "Weave no longer saves cards privately. Your card is still on this device: make it public to put it on Certified.",
+        matching_shares_retired:
+          "Weave no longer shares needs and offers for matching. Make them public so other initiatives can find them.",
       } as Record<string, string>
     )[code] ??
     (error instanceof AccountFailure

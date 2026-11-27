@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { SaveAction } from "../account/door.tsx";
 import { SignInButton } from "../account/SignInButton.tsx";
 import { InitiativeRecord } from "../initiative/InitiativeRecord.tsx";
 import { LiveExposure } from "../social/LiveExposure.tsx";
-import { PrivateSaveAction } from "../account/PrivateSaveAction.tsx";
 import { activeInitiative } from "../account/active-initiative.ts";
 import { useAccount } from "../account/context.tsx";
 import { teamWorkspacePath } from "../routes.ts";
@@ -24,7 +22,7 @@ import { FUNDING_COMMONS } from "../links.ts";
 import { ExampleSave } from "../social/Door.tsx";
 import { PublishInitiative } from "../initiative/PublishInitiative.tsx";
 import { ProjectListings } from "../initiative/ProjectListings.tsx";
-import { adoptPlan, readPlan } from "../initiative/publish-plan.ts";
+import { adoptPlan, readPlan, takeMakePublic } from "../initiative/publish-plan.ts";
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
 import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
 import { editorStorage, PROJECT_EDITORS, readEditorHandoff } from "../initiative/editor-handoff.ts";
@@ -64,9 +62,10 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const signedInAs = account.state?.user?.id ?? null;
   useEffect(() => {
     if (!ready || (import.meta.env.DEV && fixture)) return;
-    // Only a plan made before sign-in, or by the account signed in now; another account's stays unshown.
-    if (adoptPlan(readPlan((() => { try { return window.sessionStorage; } catch { return undefined; } })(), draft.id), signedInAs))
-      setPublishing(true);
+    // Only a plan made before sign-in, or by the account signed in now; another account's stays unshown. A private
+    // save opened here through its own Make It Public opens the dialog too (D49).
+    const tab = (() => { try { return window.sessionStorage; } catch { return undefined; } })();
+    if (adoptPlan(readPlan(tab, draft.id), signedInAs) || takeMakePublic(tab, draft.id)) setPublishing(true);
   }, [ready, draft.id, signedInAs]);
   const [retrying, setRetrying] = useState(false);
   const checked = intakeComplete(draft);
@@ -259,21 +258,13 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                       </StatusLine>
                     </>
                   )}
-                  <StatusLine
-                    actions={
-                      !save ? undefined : example && save.needs === "save" ? (
-                        <ExampleSave size="sm" onFailed={setSaveMessage} />
-                      ) : !example && account.state?.user ? (
-                        <PrivateSaveAction size="sm" variant="secondary" confirm={save.label === "Save Privately"} onFailed={setSaveMessage}>{save.label}</PrivateSaveAction>
-                      ) : (
-                        <SaveAction variant={example ? "primary" : "secondary"} size="sm">
-                          {save.label}
-                        </SaveAction>
-                      )
-                    }
-                  >
-                    {status.line}
-                  </StatusLine>
+                  {/* Nothing is saved privately any more (DL-155). A card only here needs no second line; one opened from an
+                      earlier private save says so, and an example team workspace still takes its card (until step 6). */}
+                  {(save || status.state !== "device") && (
+                    <StatusLine actions={save && example ? <ExampleSave size="sm" onFailed={setSaveMessage} /> : undefined}>
+                      {status.line}
+                    </StatusLine>
+                  )}
                   {save?.note && <p className="rc-meta">{save.note}</p>}
                   {saveMessage && (
                     <p className="rc-notice" data-tone="warning" role="alert">
@@ -315,19 +306,6 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                     <ProjectListings projectUri={project.uri} refreshVersion={sharedVersion} />
                   )}
                   {project && <WorkspaceRow primary={steps.lead === "workspace"} />}
-                  {steps.sharing && (
-                    <StatusLine
-                      actions={
-                        steps.lead === "project" ? (
-                          <ProjectAction variant="primary" size="sm" />
-                        ) : (
-                          <ShareAction variant={steps.lead === "share" ? "primary" : "secondary"} size="sm" />
-                        )
-                      }
-                    >
-                      {steps.sharing.line}
-                    </StatusLine>
-                  )}
                   {steps.publishing && (
                     <StatusLine actions={<ShareAction start="publish" variant="secondary" size="sm" />}>
                       {steps.publishing.line}

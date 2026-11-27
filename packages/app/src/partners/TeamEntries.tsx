@@ -100,7 +100,7 @@ export function TeamEntries({ workspaceId, workspace, online, onSaved, onEditing
   return (
     <section className="rc-stack" aria-label="Team needs and offers">
       {/* The page says what a viewer can do, so this section does not repeat it. */}
-      {canEdit && <p className="rc-meta">Only your team sees these until you share them.</p>}
+      {canEdit && <p className="rc-meta">Only your team sees these.</p>}
       {notice && <p role="status">{notice}</p>}
       {(["needs", "offers"] as const).map((kind) => (
         <section className="rc-stack" key={kind} aria-label={kind === "needs" ? "Team needs" : "Team offers"}>

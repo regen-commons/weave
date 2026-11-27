@@ -1,9 +1,8 @@
 /**
  * Sign-in and project access are two permissions at Certified, held by two clients, so they cannot
  * be one Certified screen. Weave goes straight on from the first to the second after every sign-in
- * but one that began at Save, which returns to its card instead (the user's choice, 25 November 2026,
- * DL-137; until then only Your Initiatives did). This is the note that carries that intent across the
- * trip to Certified.
+ * (the user's choice, 25 November 2026, DL-137; until then only Your Initiatives did). This is the note
+ * that carries that intent across the trip to Certified.
  *
  * It is kept for the tab only, names nobody and grants nothing: it holds when it stops counting and
  * the page the sign-in left from. Certified still decides: it asks, or approves a read the person
@@ -25,7 +24,7 @@ export function expectProjectAccess(storage: () => Kept, page: string, now: () =
   catch { /* Without it the person presses Allow themselves. */ }
 }
 
-/** The sign-in did not start, or began at Save, so nothing follows it. */
+/** The sign-in did not start, so nothing follows it. */
 export function forgetProjectAccess(storage: () => Kept): void {
   try { storage().removeItem(KEY); } catch { /* Nothing was kept. */ }
 }

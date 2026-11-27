@@ -109,8 +109,8 @@ export function leadKey(entry: Pick<EntryRef, "kind" | "entryId">, candidateId: 
   return `${entryKey(entry)}/${candidateId}`;
 }
 
+/** What a matching screen can still change: withdraw an earlier share, or keep or hide a partner (DL-155, step 4). */
 export type MatchingMutation =
-  | { action: "share" | "renew"; input: Commands["share"] }
   | { action: "withdraw"; input: Commands["withdraw"] }
   | { action: "set_lead"; input: Commands["set_lead"] };
 

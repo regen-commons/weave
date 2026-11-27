@@ -2,13 +2,11 @@ import { useMemo } from "react";
 import { useDraft } from "../describe/use-draft.ts";
 import { examplePartners, readFixtures, type ExamplePartner } from "../fixtures.ts";
 import { shareable } from "../initiative/status.ts";
-import { useCardStatus } from "../initiative/use-card-status.ts";
 import { routeSearch } from "../router.tsx";
 import { pathTo } from "../routes.ts";
 import { SocialAction } from "../social/Action.tsx";
 import { useSocialFixture } from "../social/context.tsx";
 import { partnerAccessOf, type SocialState } from "../social/fixture.ts";
-import { ShareAction } from "../social/Share.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { ShareCard } from "../ui/ShareCard.tsx";
 import { PUBLIC_PARTNER_EVIDENCE } from "./catalog.ts";
@@ -41,8 +39,8 @@ export function ExamplePartners({ compact = false }: { compact?: boolean }) {
 function ExampleFits({ state, compact }: { state: SocialState; compact: boolean }) {
   const { draft, ready } = useDraft();
   // A share the card has moved on from is out of matching until it is shared again.
-  const stale = useCardStatus().sharing?.state === "changed";
-  const access = partnerAccessOf(state, !stale);
+  // Sharing for matching is retired (DL-155), so nothing shared can be out of date.
+  const access = partnerAccessOf(state, true);
   const search = routeSearch();
   const query = useMemo(() => localPartnerQuery(draft.needs, draft.offers, draft.confirmed?.locations),
     [draft.needs, draft.offers, draft.confirmed?.locations]);
@@ -104,14 +102,10 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
             )} />
         )}
       </FitGroups>
-      {access === "public" && (
-        <p>{stale ? "To search what other teams have shared again, share your changes."
-          : "Your needs and offers are private. Share them for matching to find partners."}</p>
-      )}
-      {(access === "public" || compact) && (
+      {access === "public" && <p>Your needs and offers are not public. Make them public so other initiatives can find them.</p>}
+      {compact && (
         <div className="rc-action-bar">
-          {access === "public" && <ShareAction variant="secondary" />}
-          {compact && <ButtonLink href={pathTo("partners")} variant="secondary">See All Partners</ButtonLink>}
+          <ButtonLink href={pathTo("partners")} variant="secondary">See All Partners</ButtonLink>
         </div>
       )}
     </div>

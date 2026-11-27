@@ -26,7 +26,7 @@ const CARD_STEPS: Partial<Record<RouteName, string>> = {
  * target until Weave has team workspaces and Certified publishing.
  */
 export function ShareAction({
-  start = "share",
+  start = "publish",
   label,
   variant = "secondary",
   size,

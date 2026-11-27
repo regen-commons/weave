@@ -8,8 +8,12 @@ import { SavedMatching } from "../partners/PartnerExperience.tsx";
 import { StatusLine } from "../ui/StatusLine.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { NOT_PUBLIC_LINE, PUBLISH_ACTION, publicListingsLine } from "../initiative/status.ts";
+import { sharedEntries, sharedLine } from "../partners/use-network-matching.ts";
 
-/** Agreed status rows; their reviews retain server receipts, conflict handling and the exact retry command. */
+/**
+ * Agreed status rows; their reviews retain server receipts, conflict handling and the exact retry command. Nothing
+ * new is shared for matching (DL-155, step 4), so the sharing row shows only while something is still shared, to stop it.
+ */
 export function LiveExposure({ saved, owner, readOnly = false, online = true, onExpired, onChanged, team = false, refreshVersion = 0 }: {
   saved: SavedInitiative; owner: string; readOnly?: boolean; online?: boolean; team?: boolean;
   /** Changes when sharing changed elsewhere on the page, such as from Partners For You, so the rows read again. */
@@ -20,20 +24,20 @@ export function LiveExposure({ saved, owner, readOnly = false, online = true, on
   const [step, setStep] = useState<"share" | "publish" | null>(null);
   const [opened, setOpened] = useState({ share: false, publish: false });
   const [version, setVersion] = useState(0);
-  const [shared, setShared] = useState("Checking sharing status");
+  // The share row's line, or null when nothing is shared and there is nothing to stop; `stoppable` once a share is found.
+  const [shared, setShared] = useState<string | null>("Checking sharing status");
+  const [stoppable, setStoppable] = useState(false);
   const [published, setPublished] = useState("Checking public listings");
   useEffect(() => {
     const controller = new AbortController();
-    if (!online) { setShared("Reconnect to check sharing."); setPublished("Reconnect to check public listings."); return; }
+    if (!online) { setStoppable(false); setShared("Reconnect to check sharing."); setPublished("Reconnect to check public listings."); return; }
     void matchingRequest(saved.id, "state", {}, controller.signal).then(state => {
       if (controller.signal.aborted) return;
-      if (state.initiativeRevision !== saved.revision) { setShared("The saved entries changed. Reload before sharing."); return; }
-      const active = state.entries.filter(entry => entry.sharing === "shared" && entry.status === "open"
-        && (!entry.expiresAt || Date.parse(entry.expiresAt) > Date.now()));
-      setShared(active.length ? `${active.length} ${active.length === 1 ? "entry shared" : "entries shared"} with people signed in.`
-        : state.entries.some(entry => entry.sharing === "needs_review") ? "Changed entries need review before matching."
-          : `Not shared. Only ${team ? "your team sees" : "you see"} your needs and offers.`);
-    }).catch(() => { if (!controller.signal.aborted) setShared("Sharing status could not be checked."); });
+      if (state.initiativeRevision !== saved.revision) { setStoppable(false); setShared("The saved entries changed. Reload to check what is still shared."); return; }
+      const active = sharedEntries(state.entries.filter(entry => entry.status === "open"));
+      setShared(active.length ? sharedLine(active.length, team) : null);
+      setStoppable(active.length > 0);
+    }).catch(() => { if (!controller.signal.aborted) { setStoppable(false); setShared("Sharing status could not be checked."); } });
     void projectRequest({ action: "support_state", workspaceId: saved.id }, controller.signal).then(result => {
       if (controller.signal.aborted) return;
       const page = publicListingPage(result, saved.id);
@@ -51,11 +55,12 @@ export function LiveExposure({ saved, owner, readOnly = false, online = true, on
   }
   function show(next: "share" | "publish") { setOpened(current => ({ ...current, [next]: true })); setStep(next); }
   return <>
-    <StatusLine actions={!readOnly && <button className="rc-button" data-variant="primary" data-size="sm" type="button" disabled={!online}
-      onClick={() => show("share")}>Share For Matching</button>}>{shared}</StatusLine>
+    {shared !== null && <StatusLine actions={!readOnly && stoppable ? (
+      <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={!online}
+        onClick={() => show("share")}>Stop Sharing</button>) : undefined}>{shared}</StatusLine>}
     <StatusLine actions={!readOnly && <button className="rc-button" data-variant="secondary" data-size="sm" type="button" disabled={!online}
       onClick={() => show("publish")}>{PUBLISH_ACTION}</button>}>{published}</StatusLine>
-    <TaskDialog title="Share For Matching" open={step === "share"} onClose={() => close("share")} retainContents>
+    <TaskDialog title="Stop Sharing" open={step === "share"} onClose={() => close("share")} retainContents>
       {opened.share && <SavedMatching key={saved.revision} active={active} synced online={online} compact={false}
         onExpired={onExpired} fixture={false} team={team} readOnly={readOnly} presentation="sharing" visible={step === "share"} />
       }
