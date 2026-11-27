@@ -169,6 +169,8 @@ const requested = new Set<string>();
  * same personal project, so each keeps its own link, as each person's own project would have one.
  */
 const soloLinks = new Map<string, string>();
+/** The personal links made to publish from a draft, with no saved card behind them (DL-155). */
+const cardlessLinks = new Set<string>();
 // Deletion refuses a card that a project link or a support listing still refers to, as the database does.
 // Its sharing for matching and its saved partners go with it (weave-initiative-deletion-stale-references.sql).
 fixtureReferences((id) => [...soloLinks.values()].includes(id)
@@ -239,6 +241,24 @@ function supportCommand(token: string, actor: string, command: SupportCommand) {
   const projectUri = link[0].slice(actor.length + 1), repository = projectUri.split("/")[2]!;
   const rows = () => [...supportRows.values()].filter((row) => row.workspaceId === command.workspaceId);
   if (command.action === "support_state") return { workspaceId: command.workspaceId, listings: rows().map(supportResult), nextCursor: null };
+  if (command.action === "support_review" && "entry" in command) {
+    // As the draft review in weave-publish-from-draft.sql: the record is built from the fields sent, and
+    // no saved revision is named. A listing already public must be withdrawn first.
+    const earlier = supportRows.get(supportKey(command.workspaceId, command.kind, command.entryId));
+    if (earlier && earlier.status !== "withdrawn") throw new AccountError(409, "support_conflict");
+    if (command.expiresAt && Date.parse(command.expiresAt) <= Date.now()) throw new AccountError(400, "invalid_support_command");
+    // Publishing again after a withdrawal keeps the listing's first date, as the SQL does.
+    const { entry } = command, now = new Date().toISOString();
+    const createdAt = typeof earlier?.record.createdAt === "string" ? earlier.record.createdAt : now;
+    const record: JsonObject = { $type: "com.regencommons.weave.supportListing", projectUri, kind: command.kind,
+      ...(command.expiresAt ? { expiresAt: command.expiresAt } : {}), title: entry.title,
+      ...(entry.description ? { description: entry.description } : {}), capitalForms: [...entry.capitalForms],
+      ...(entry.lenses?.length ? { lenses: [...entry.lenses] } : {}), status: "open", createdAt, updatedAt: now };
+    const reviewId = crypto.randomUUID(), until = Date.now() + 10 * 60_000;
+    supportReviews.set(reviewId, { actor, workspaceId: command.workspaceId, kind: command.kind, entryId: command.entryId, record, until });
+    return { reviewId, audience: "public-atproto", destination: repository, record, expectedRevision: 0,
+      expectedEntryRevision: 0, reviewExpiresAt: new Date(until).toISOString() };
+  }
   if (command.action === "support_review") {
     const { saved } = fixtureInitiative(token, command.workspaceId);
     if (saved.revision !== command.expectedRevision) throw new AccountError(409, "support_conflict");
@@ -268,7 +288,9 @@ function supportCommand(token: string, actor: string, command: SupportCommand) {
       throw new AccountError(409, "support_conflict");
     supportReviews.delete(command.reviewId);
     const granted = publishPermission === "granted";
-    const row: SupportRow = { workspaceId: command.workspaceId, kind: review.kind, entryId: review.entryId, rkey: fixtureTid(),
+    // A listing published again after a withdrawal keeps its record key, so its address stays the same.
+    const rkey = supportRows.get(supportKey(command.workspaceId, review.kind, review.entryId))?.rkey ?? fixtureTid();
+    const row: SupportRow = { workspaceId: command.workspaceId, kind: review.kind, entryId: review.entryId, rkey,
       operationId: crypto.randomUUID(), status: granted ? "published" : "publish_pending", record: review.record,
       cid: granted ? fixtureCid() : null, attempted: granted, problem: granted ? null : "authorization_required", repository };
     supportRows.set(supportKey(command.workspaceId, review.kind, review.entryId), row);
@@ -317,20 +339,25 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
     if (command.action === "list_projects") return { projects: [...fixtureProjects, ...ownProjects(actor.userId)].filter(p =>
       command.target.kind === "personal" ? !p.groupDid : p.groupDid === command.target.groupDid),
       ...(command.target.kind === "group" ? { certifiedRole: command.target.groupDid === groupDid && actor.userId === FIXTURE_TEAM_ADMIN ? "owner" : "member" } : {}) };
-    // As the workspace candidate's link_result: a personal link opens only while its owner's card exists.
+    // As link_result in weave-publish-from-draft.sql: the person whose repository holds the project holds its
+    // personal link, with or without a saved card. Links here are kept per account, so the owner is the actor.
     const token = sessionCookies(false).token(request) ?? "";
     const soloLink = (projectUri: string) => {
       const workspaceId = soloLinks.get(`${actor.userId} ${projectUri}`);
       if (!workspaceId) return null;
-      try { fixtureInitiative(token, workspaceId); } catch { return { status: "access_required" } as const; }
       return { status: "linked", workspaceId, accessRole: "admin", projectUri, cid: "bafyfixture" } as const;
+    };
+    // As discovery: the workspace list names a personal link only with the saved card it is anchored on.
+    const anchored = (workspaceId: string) => {
+      if (cardlessLinks.has(workspaceId)) return false;
+      try { fixtureInitiative(token, workspaceId); return true; } catch { return false; }
     };
     if (command.action === "list_workspaces") return { workspaces: [
       ...(teamRoles.has(actor.userId) ? [{ workspaceId: FIXTURE_TEAM_ID,
         projectUri: groupUri, kind: "group", accessRole: teamRoles.get(actor.userId), project: fixtureProjects[0] }] : []),
       ...[...fixtureProjects, ...ownProjects(actor.userId)].flatMap((project) => {
         const link = soloLink(project.uri);
-        return link?.status === "linked" ? [{ workspaceId: link.workspaceId, projectUri: project.uri, kind: "personal", accessRole: "admin", project }] : [];
+        return link && anchored(link.workspaceId) ? [{ workspaceId: link.workspaceId, projectUri: project.uri, kind: "personal", accessRole: "admin", project }] : [];
       }),
     ], pendingSetups: [] };
     if (command.action === "lookup") {
@@ -339,14 +366,21 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
       return soloLink(command.projectUri)
         ?? { status: requested.has(command.projectUri) ? "pending" : "unlinked", projectUri: command.projectUri };
     }
-    // A personal project links to the person's saved card at its current revision, keeping the card's ID.
-    // A project already linked returns that canonical link, as the workspace candidate does.
+    // A personal project links to the person's saved card at its current revision, keeping the card's ID, or,
+    // to publish from a draft, to no card at a new ID (DL-155). A project already linked returns that
+    // canonical link, as the workspace candidate does.
     if (command.action === "link") {
       const project = [...fixtureProjects, ...ownProjects(actor.userId)].find(({ uri }) => uri === command.projectUri);
       if (!project) throw new AccountError(404, "project_not_found");
       if (project.groupDid) throw new AccountError(400, "invalid_project_command");
       const existing = soloLink(project.uri);
       if (existing) return existing;
+      if (command.initiativeId === undefined) {
+        const workspaceId = crypto.randomUUID();
+        cardlessLinks.add(workspaceId);
+        soloLinks.set(`${actor.userId} ${project.uri}`, workspaceId);
+        return soloLink(project.uri);
+      }
       if (fixtureInitiative(token, command.initiativeId).saved.revision !== command.expectedRevision)
         throw new AccountError(409, "project_conflict");
       soloLinks.set(`${actor.userId} ${project.uri}`, command.initiativeId);

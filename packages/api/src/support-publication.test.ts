@@ -181,6 +181,43 @@ test("listing validation rejects missing forms, duplicate forms, private fields,
     assert.throws(() => parseSupportPublicationCommand({ ...base, ...changed }));
 });
 
+test("a draft review takes the need or offer's public fields under the listing's own limits, and nothing else (DL-155)", () => {
+  const entry = { title: "A place to meet", description: "Fictional community support.", capitalForms: ["social", "cultural"], lenses: ["learning"] };
+  const draft = { action: "support_review", workspaceId: id(9), kind: "need", entryId: id(3), entry, expiresAt: null };
+  assert.deepEqual(parseSupportPublicationCommand(draft), draft);
+  const bare = { title: "A place to meet", capitalForms: ["social"] };
+  assert.deepEqual(parseSupportPublicationCommand({ ...draft, entry: bare, expiresAt: "2027-01-31T00:00:00.000Z" }),
+    { ...draft, entry: bare, expiresAt: "2027-01-31T00:00:00.000Z" }, "description and lenses may be left out");
+  // Every kind of support and type of work the account contract knows is accepted.
+  assert.deepEqual(parseSupportPublicationCommand({ ...draft, entry: { ...bare, capitalForms: CAPITALS, lenses: LENSES.slice(0, 5) } }),
+    { ...draft, entry: { ...bare, capitalForms: CAPITALS, lenses: LENSES.slice(0, 5) } });
+  const graphemes = (n: number) => "é".repeat(n);
+  assert.equal((parseSupportPublicationCommand({ ...draft, entry: { ...bare, title: graphemes(140) } }) as { entry: { title: string } }).entry.title,
+    graphemes(140), "a title is counted in graphemes, as a reader sees it");
+  for (const [label, changed] of [
+    ["no title", { title: undefined }], ["a blank title", { title: "  " }], ["a title of 141 graphemes", { title: graphemes(141) }],
+    ["a title over 1400 bytes", { title: "\u{1F469}‍\u{1F469}‍\u{1F467}".repeat(80) }], ["a lone surrogate", { title: "A \ud800 place" }],
+    ["a number for a title", { title: 7 }], ["a NUL in a title", { title: "A\u0000place" }], ["a NUL in a description", { description: "Fictional\u0000" }],
+    ["a blank description", { description: " " }], ["a null description", { description: null }],
+    ["a description of 601 graphemes", { description: "d".repeat(601) }], ["no kind of support", { capitalForms: [] }],
+    ["a repeated kind", { capitalForms: ["social", "social"] }], ["an unknown kind", { capitalForms: ["social", "money"] }],
+    ["nine kinds", { capitalForms: [...CAPITALS, "social"] }], ["kinds as text", { capitalForms: "social" }],
+    ["an unknown type of work", { lenses: ["gardening"] }], ["a repeated type of work", { lenses: ["research", "research"] }],
+    ["six types of work", { lenses: LENSES }], ["a private field", { purpose: "Private purpose" }],
+    ["a status", { status: "open" }], ["a project", { projectUri: `at://${alice}/org.hypercerts.collection/${key}` }],
+  ] as const) assert.throws(() => parseSupportPublicationCommand({ ...draft, entry: { ...entry, ...changed } }), { code: "invalid_support_command" }, label);
+  for (const [label, body] of [
+    ["an entry that is not an object", { ...draft, entry: [bare] }], ["a null entry", { ...draft, entry: null }],
+    ["a saved revision beside the draft", { ...draft, expectedRevision: 1 }],
+    ["an entry revision beside the draft", { ...draft, expectedEntryRevision: 1 }],
+    ["no end date key", (({ expiresAt: _, ...rest }) => rest)(draft)], ["a malformed end date", { ...draft, expiresAt: "soon" }],
+    ["an unknown kind of listing", { ...draft, kind: "gift" }], ["an entry ID that is not a UUID", { ...draft, entryId: "need-1" }],
+  ] as const) assert.throws(() => parseSupportPublicationCommand(body), { code: "invalid_support_command" }, label);
+  // The saved-card review keeps its shape until private saves retire.
+  assert.throws(() => parseSupportPublicationCommand({ action: "support_review", workspaceId: id(9), kind: "need", entryId: id(3),
+    expectedRevision: 0, expectedEntryRevision: 0, expiresAt: null }), { code: "invalid_support_command" });
+});
+
 test("the Lexicon lists exactly the values Weave publishes, and only kind is a closed set", async () => {
   const schema = JSON.parse(await readFile(new URL("../lexicons/com/regencommons/weave/supportListing.json", import.meta.url), "utf8"));
   const props = schema.defs.main.record.properties;

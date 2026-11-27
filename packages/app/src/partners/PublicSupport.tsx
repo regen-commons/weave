@@ -10,14 +10,17 @@ import { projectRequest } from "../initiative/projects-client.ts";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { matchingRequest } from "./matching-client.ts";
 
-/** Public publication is independent of the Weave share. Only reviewed fields reach AT Protocol. */
+/**
+ * Public publication is independent of the Weave share. Only reviewed fields reach AT Protocol. With no saved
+ * card, as for listings made public from the draft (DL-155), it lists, checks and withdraws them only.
+ */
 export function PublicSupport({ workspaceId, saved, readOnly, expanded = false, visible = true }: {
-  workspaceId: string; saved: SavedInitiative; readOnly: boolean; expanded?: boolean; visible?: boolean;
+  workspaceId: string; saved?: SavedInitiative; readOnly: boolean; expanded?: boolean; visible?: boolean;
 }) {
   const { state } = useAccount();
   return state?.user ? <AccountPublicSupport key={`${state.user.id}/${workspaceId}`} workspaceId={workspaceId} saved={saved} readOnly={readOnly} expanded={expanded} visible={visible} /> : null;
 }
-function AccountPublicSupport({ workspaceId, saved, readOnly, expanded, visible }: { workspaceId: string; saved: SavedInitiative; readOnly: boolean; expanded: boolean; visible: boolean }) {
+function AccountPublicSupport({ workspaceId, saved, readOnly, expanded, visible }: { workspaceId: string; saved: SavedInitiative | undefined; readOnly: boolean; expanded: boolean; visible: boolean }) {
   const [listings, setListings] = useState<PublicListing[]>([]), [review, setReview] = useState<PublicReview | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false), [notice, setNotice] = useState("");
@@ -33,7 +36,7 @@ function AccountPublicSupport({ workspaceId, saved, readOnly, expanded, visible 
       if (!controller.signal.aborted) setNotice("Public listing status could not be checked.");
     }).finally(() => { if (!controller.signal.aborted) setBusy(false); });
     return () => { controller.abort(); task.current?.abort(); };
-  }, [workspaceId, saved.revision, readOnly]);
+  }, [workspaceId, saved?.revision, readOnly]);
   async function load(signal: AbortSignal, after?: string) {
     const result = await projectRequest({ action: "support_state", workspaceId, ...(after ? { cursor: after } : {}) }, signal);
     signal.throwIfAborted();
@@ -69,13 +72,14 @@ function AccountPublicSupport({ workspaceId, saved, readOnly, expanded, visible 
           ? "withdraw-support" : "publish-support");
       setNotice(cause instanceof AccountFailure && cause.code === "support_group_lifecycle_unverified"
         ? "Public publishing for groups is paused until safe withdrawal is verified. Your Weave entries are unchanged."
-        : "The public request could not be confirmed. Your private entries are still saved.");
+        : saved ? "The public request could not be confirmed. Your private entries are still saved."
+          : "The public request could not be confirmed. Check its status again.");
     } finally {
       if (task.current === controller) { task.current = null; if (!controller.signal.aborted) setBusy(false); }
     }
   }
   async function prepare(kind: "need" | "offer", entryId: string) {
-    if (busy || readOnly || (task.current && !task.current.signal.aborted)) return;
+    if (!saved || busy || readOnly || (task.current && !task.current.signal.aborted)) return;
     initialLoad.current?.abort();
     const controller = new AbortController(); task.current = controller;
     setBusy(true); setNotice("");
@@ -95,15 +99,15 @@ function AccountPublicSupport({ workspaceId, saved, readOnly, expanded, visible 
       if (task.current === controller) { task.current = null; if (!controller.signal.aborted) setBusy(false); }
     }
   }
-  const entries = (["need", "offer"] as const).flatMap((kind) => saved.document[kind === "need" ? "needs" : "offers"]
+  const entries = !saved ? [] : (["need", "offer"] as const).flatMap((kind) => saved.document[kind === "need" ? "needs" : "offers"]
     .filter((entry) => entry.value.status === "open" && Array.isArray(entry.value.capitalForms) && entry.value.capitalForms.length > 0)
     .map((entry) => ({ kind, entryId: entry.id, title: String(entry.value.title) })));
   const Container = expanded ? "div" : "details";
   return <Container className="rc-stack" aria-busy={busy}>{!expanded && <summary>Public support listings</summary>}
     <p>Public listings can be read outside Weave. Publishing is separate from sharing for matching.</p>
-    <ul className="rc-ask-summary">{entries.map((e) => <li key={`${e.kind}/${e.entryId}`}><strong>{e.title}</strong>
+    {entries.length > 0 && <ul className="rc-ask-summary">{entries.map((e) => <li key={`${e.kind}/${e.entryId}`}><strong>{e.title}</strong>
       {!readOnly && <button className="rc-button" data-variant="quiet" type="button" disabled={busy || pending !== null}
-        onClick={() => void prepare(e.kind, e.entryId)}>Review Public Listing</button>}</li>)}</ul>
+        onClick={() => void prepare(e.kind, e.entryId)}>Review Public Listing</button>}</li>)}</ul>}
     {listings.length > 0 && <ul className="rc-ask-summary">{listings.map((l) => <li key={`${l.kind}/${l.entryId}`}><strong>{l.title}</strong>
       <p>{statuses[l.status]}</p>{!readOnly && <div className="rc-action-bar">
         <button className="rc-button" data-variant="quiet" type="button" disabled={busy || pending !== null}

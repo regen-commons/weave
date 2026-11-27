@@ -642,3 +642,54 @@ test("a projects request refused for a lapsed token is confirmed through /api/ac
   assert.ok(confirmations >= 1);
   service.dispose();
 });
+
+test("a project made public from a draft is linked with no other saved workspace, and saving the card privately still works (DL-155)", async () => {
+  const id = crypto.randomUUID(), person = crypto.randomUUID();
+  const { service, controller, request } = await fixture(person);
+  const document = JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8"));
+  await controller.replace(revise(loadedDraft({ id, document, revision: 1, updatedAt: "2026-11-11T00:00:00Z" }, person), { account: { saved: null, pending: null } }));
+  await service.reload();
+  const garden = "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/3mfixturegard";
+  // Make It Public linked the project in Weave with no saved card behind it.
+  const published = await request("", { action: "link", projectUri: garden }, "/api/projects");
+  assert.equal(published.status, "linked");
+  const link = await service.linkProject(garden);
+  assert.equal(link.uri, garden);
+  assert.equal(link.workspaceId, undefined, "the card is not told the project has another saved initiative");
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(String(input), origin);
+    return Response.json(await request(url.search, init?.body ? JSON.parse(String(init.body)) : undefined, url.pathname));
+  };
+  try {
+    await service.save(String(document.initiative.name), "private");
+  } finally { globalThis.fetch = originalFetch; }
+  assert.equal(controller.getSnapshot().draft.account.saved?.id, id, "the card is saved privately");
+  assert.equal(service.snapshot().project?.workspaceId, undefined, "and stays apart from the link the project was published through");
+  assert.ok(service.snapshot().cards.some((card) => card.id === id));
+});
+
+test("saving a second card for a project another saved card already holds is still refused, whatever the workspace list says", async () => {
+  const person = crypto.randomUUID(), first = crypto.randomUUID(), second = crypto.randomUUID();
+  const { service, controller, request } = await fixture(person);
+  const document = JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8"));
+  const garden = "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/3mfixturegard";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(String(input), origin);
+    return Response.json(await request(url.search, init?.body ? JSON.parse(String(init.body)) : undefined, url.pathname));
+  };
+  try {
+    // The first card is saved and becomes the project's workspace, as before DL-155.
+    await controller.replace(revise(loadedDraft({ id: first, document, revision: 1, updatedAt: "2026-11-11T00:00:00Z" }, person), { account: { saved: null, pending: null } }));
+    await service.reload();
+    await service.linkProject(garden);
+    await service.save(String(document.initiative.name), "private");
+    assert.equal(service.snapshot().project?.workspaceId, first);
+    // A second card on the device, linked to the same project. The account, not the workspace list, decides.
+    await controller.replace(revise(loadedDraft({ id: second, document, revision: 1, updatedAt: "2026-11-11T00:00:00Z" }, person), { account: { saved: null, pending: null } }));
+    await service.clearCard();
+    await service.linkProject(garden);
+    await assert.rejects(service.save(String(document.initiative.name), "private"), /already has another workspace/u);
+  } finally { globalThis.fetch = originalFetch; }
+});

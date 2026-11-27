@@ -83,14 +83,21 @@ Example public record with fictional data:
 
 ## Local publication lifecycle
 
-DL-155 changes this lifecycle. Publishing will start from the device draft with no
-private save, and an edit on the device will leave a published listing as it is
-until the person publishes again or withdraws it. Until step 3 of the
+Since DL-155, Make It Public publishes from the device draft with no private save.
+The app links the person's own project with `link` and no `initiativeId`, which
+makes a project link no saved card anchors; the verified Certified DID that owns the
+repository holds it. `support_review` with an `entry` (`title`, optional
+`description`, `capitalForms` and optional `lenses`) builds the public record from
+those fields alone, under the same limits `parseSupportListing` puts on the record,
+and Weave never sees the draft again. A review of a saved entry, with
+`expectedRevision` and `expectedEntryRevision`, still works until private saves
+retire, as step 4 of the
 [removal plan](../../../docs/platform/08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing)
-lands, this section describes the code as built.
+sets out. Both need `supabase/candidates/weave-publish-from-draft.sql` on Platform.
 
 `support_review` returns the exact public record, repository DID, audience
-`public-atproto`, saved revision, entry revision and a ten-minute review expiry.
+`public-atproto`, saved revision, entry revision and a ten-minute review expiry. A
+draft's review names revision 0 for both, and the app refuses any other answer.
 That review expiry is separate from the optional listing end date. The explicit
 `support_publish` command confirms that audience and the reviewed record. Personal
 writes require the repository owner and collection-limited create or delete consent.
@@ -103,9 +110,15 @@ and compare its content and CID. A definite authorization rejection can be retri
 after authority changes. An uncertain create that has never been observed remains
 pending; the server does not send a second create that might arrive after withdrawal.
 
-Editing published details, closing or deleting the entry, or confirming that the
-parent project was removed or unlisted queues withdrawal with the private change.
-Replacement details stay private until another explicit publish. Deletion sends the
+A listing published from a draft does not follow later edits: the public record stays
+as it is until the person withdraws it and publishes again, which keeps its record
+key and first date. For a listing published from a saved entry, editing published
+details or closing or deleting the entry queues withdrawal with the private change,
+and replacement details stay private until another explicit publish. Confirming that
+the parent project was removed or unlisted queues withdrawal of either. A saved card
+deleted with its account leaves its project link and Weave's record of the listing,
+so the withdrawal can still finish; the delete guard still refuses a card that a
+link refers to. Deletion sends the
 expected public CID as `swapRecord` and remains pending until independent public
 read-back confirms absence. Withdrawal remains available for a paused project when
 the editor has the required upstream authority. A provider outage leaves the request
@@ -120,7 +133,12 @@ may retain records that were previously public.
 
 `support_state` returns at most 100 current or historical publication rows and a
 workspace-bound `nextCursor`. Follow the cursor to reach older pending withdrawals,
-including listings whose private entries were removed.
+including listings whose private entries were removed. A project link no saved card
+anchors is not in `list_workspaces`; a signed-in device reaches it through `lookup`
+or `link` on the project, and `support_withdraw` takes its listings from there.
+Your Initiative's Public Listings does this for the person's own project, beside a
+card linked to it. Make It Public reads back a listing already public exactly as
+previewed and sends nothing for it.
 
 The standalone public-reader fixture in
 [`support-publication.test.ts`](../src/support-publication.test.ts) discovers a need
