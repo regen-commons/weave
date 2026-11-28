@@ -7,17 +7,19 @@ This document describes the shape of the system: the parts, what each owns, how 
 
 ## First-release architecture
 
-These diagrams describe the target for Certified projects, private saving,
-sharing and matching. The sections below describe the wider platform, including
+These diagrams describe the target for Certified projects, drafts, publishing
+and matching. The sections below describe the wider platform, including
 later phases. Use the [technical spec](05-technical-spec.md#certified-project-integration-target)
 for API and data contracts and the
 [build plan](05-technical-spec.md#76-build-plan-and-ui-handoff) for preview
 evidence and release checks.
 
-**Revised 26 November 2026 (DL-155):** needs and offers live in two places, the
-device and public listings in the project's AT repository. The private save, the
-team workspace's needs and offers and sharing for matching in these diagrams are
-being retired, and the diagrams are redrawn in step 8 of the
+**Redrawn 28 November 2026 (DL-155, D48):** a need or offer lives in one of three
+places. A personal project's draft is on the person's device. A group project's
+shared team draft is in its team workspace on Platform. A published need or offer
+is a `com.regencommons.weave.supportListing` record in the project's AT
+repository. New personal private saves stopped in step 4 and sharing for matching
+ended in step 5 of the
 [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
 
 ### System and data ownership
@@ -27,15 +29,18 @@ flowchart TB
   subgraph Device["Browser"]
     draft["Device drafts, source files and suggestions"]
     app["Weave app"]
-    funding["Local funding matching"]
+    funding["Local funding and partner matching"]
+    shortlist["Shortlist of partners and initiatives"]
     app <--> draft
     draft --> funding
+    funding --> shortlist
   end
   certified["Certified person identity"]
   bridge["Weave identity bridge"]
   auth["Platform Auth"]
-  api["Weave API: account, project and matching commands"]
-  platform["Platform: workspaces, grants, needs, offers and share revisions"]
+  api["Weave API: account, project, publishing and matching commands"]
+  platform["Platform: workspaces, grants, group team drafts and Weave's record of published listings"]
+  snapshot["Public snapshot: project evidence and published listings"]
   groupService["Certified Group Service: group roles and scoped writes"]
   editors["Ma Earth or Certified: public organization and project editors"]
   repo["AT repositories: public project records and support listings"]
@@ -45,18 +50,23 @@ flowchart TB
   bridge <-->|"Verify person's DID"| certified
   bridge -->|"Verified identity"| auth
   auth -->|"Weave session"| app
-  app <-->|"Explicit save and authorized actions"| api
+  app <-->|"Reviewed publishing, withdrawal, links and team-draft edits"| api
   api <--> platform
   api <-->|"Check roles and perform approved group actions"| groupService
   groupService -->|"Write reviewed records"| repo
   api <-->|"Verify public records and read back writes"| repo
+  platform -->|"Published, read-back listings"| snapshot
+  snapshot -->|"Bounded public read"| funding
 ```
 
 A person DID identifies the actor. A group DID identifies a publishing account.
 The project AT URI identifies one public project, and its CID identifies the
 observed version. The Weave UUID identifies the workspace and stays stable
-across saves. Working files and private queries remain on the device. Saving
-uploads the selected initiative fields and entries to Platform.
+across team-draft edits. Working files and private queries remain on the device.
+A personal project's needs and offers leave the device only when the person
+publishes the ones they reviewed. A group project's editors save the team draft's
+initiative fields and entries to its team workspace on Platform, where teammates
+with a Weave grant read them.
 
 ### Project and entry lifecycle
 
@@ -76,24 +86,28 @@ flowchart TB
   certifiedEditor --> readback
   readback -->|"Explicit selection and verification"| select
   readback -.->|"Private upstream draft or unavailable discovery"| keepWorking["Keep private work and funding matching available"]
-  solo --> workspace["Open the one linked workspace"]
-  grant --> workspace
+  solo --> deviceDraft["Keep the needs and offers in the device draft"]
+  grant --> workspace["Open the group project's team workspace"]
   approve -->|"Activate workspace and apply explicit grants"| workspace
-  workspace --> entry["Save a need or offer to the workspace"]
-  entry --> share["Review and share for Weave matching"]
-  entry --> publish["Review and publish to AT Protocol"]
+  workspace --> teamDraft["Editors and admins change the shared team draft"]
+  deviceDraft --> publish["Review and publish chosen needs and offers to AT Protocol"]
+  teamDraft -->|"Current group member with a Weave editor or admin grant"| publish
   publish --> confirmed["Confirm the public record by read-back"]
-  confirmed -->|"Close, change public fields or lose project visibility"| withdraw["Request withdrawal and report its state"]
+  confirmed -->|"Withdraw, close or lose project visibility"| withdraw["Request withdrawal and report its state"]
   workspace -.->|"Project deleted or made unlisted"| paused["Pause matching and preserve team work"]
   paused -->|"Same project restored and reviewed"| workspace
 ```
 
-A setup request grants no access and keeps the draft private. Team saves
-are visible to teammates with current access. Sharing and public publishing
-are independent actions. A person removed from the Certified group loses
-workspace access. Eligible team entries can stay live under the remaining
-authorized teammates. Confirmed project deletion or unlisting also requests
-withdrawal of public listings.
+A setup request grants no access and keeps the draft on the device. A group
+project's team draft is visible to teammates with current access, and its editors
+and admins publish from it; group publishing stays off in production until
+`WEAVE_SUPPORT_GROUP_LIFECYCLE_VERIFIED` is set. A personal project publishes from
+the device draft, and later edits there leave the public record as it is until the
+person publishes again or withdraws it. Nothing is shared for matching short of
+publishing. A person removed from the Certified group loses workspace access.
+Published team listings can stay live under the remaining authorized teammates.
+Confirmed project deletion or unlisting also requests withdrawal of public
+listings.
 
 The [12 November editor decision](open-decisions.md#public-project-editors-decided-12-november-2026)
 replaces inline public project creation in this target. The handoff may require
@@ -109,20 +123,23 @@ flowchart TB
   upstream["Eligible public Certified projects"] --> feed["Hypercerts public index"]
   feed --> jobs["Resumable ingestion and refresh"]
   jobs --> evidence["Platform evidence index: passages, AT URI, CID and freshness"]
-  linked["Authorized, linked workspace"] --> query{"Which matching path?"}
-  query -->|"Private need or offer"| local["On-device comparison with a bounded public snapshot"]
+  listings["Published support listings, confirmed by read-back"]
+  draft["The draft on the device"] --> local["On-device ranking against a bounded public snapshot"]
   evidence -->|"Public snapshot"| local
-  query -->|"Current shared need or offer"| matcher["Weave API: authorized retrieval and shortlist"]
-  shares["Current approved shares from other teams"] --> matcher
+  listings -->|"Other projects' listings, at most ten per project"| local
+  own["The project's own published listings"] --> matcher["Weave API: listing_search, for members of the project's workspace"]
+  listings --> matcher
   evidence --> matcher
-  matcher --> direct["Direct matches ranked by relevance"]
-  matcher --> possible["Possible fits ranked by relevance"]
-  local --> possible
-  direct --> result["Supporting evidence, unknowns and source"]
+  local --> direct["Direct fits: another project's published need or offer"]
+  local --> possible["Possible fits from public evidence"]
+  matcher --> direct
+  matcher --> possible
+  direct --> result["Partners For You: supporting evidence, unknowns and source"]
   possible --> result
+  result -->|"Bookmark"| shortlist["Shortlist on the device"]
 ```
 
-Results distinguish a confirmed shared entry, a public statement and an
+Results distinguish a published need or offer, a public statement and an
 inference. A relevant capability or potential use can appear when an important
 detail is unknown. The result names what to verify. A known conflict rules out
 the pair. The launch target covers all eligible Certified projects the index can
@@ -142,7 +159,7 @@ See the [validation register](open-decisions.md#project-integration-and-support-
 | Exchange | Everything that leaves or enters the platform: email, Murmurations, KOI events, knowledge commons exports, later commitment pools | Identifiers, hashes, consent scopes, retraction | Vercel functions, Edge Functions |
 | Stewardship | Curation, verification, challenges, metrics, catalog research | Steward commands, pulse controls, research workflow | Steward desk on regencommons.com; repository automation |
 
-The ordering is deliberate: a person can get value from the Experience and Intelligence layers with nothing stored anywhere but their device. Records begin only when a person saves, and they stay private until that person shares them. Exchange begins only with consent. Stewardship tidies; it never gates publishing in the open tier.
+The ordering is deliberate: a person can get value from the Experience and Intelligence layers with nothing stored anywhere but their device. Records begin only when a person publishes a need or offer, which makes it public, or when a group project keeps its shared team draft, which only teammates with a Weave grant can read. Exchange begins only with consent. Stewardship tidies; it never gates publishing in the open tier.
 
 ## 2. Context
 
@@ -235,7 +252,7 @@ What each container owns:
 - App shell: routing, theme and components from the [design system](../../DESIGN.md), offline cache, capability detection, consent dialogs.
 - Conversation guide: the state machine for the three steps, prompts, confirmation cards, nudges; works with any tier including "no model".
 - AI workers: Whisper transcription, extraction with a small instruct model or the browser's built-in model, the embedding model already shipped by Funding Commons. Nothing in a worker touches the network except pinned model files from the app origin.
-- Local store: drafts (IndexedDB), the local AI ledger, cached models (Cache API), bounded public snapshots for private matching. Authenticated shared entries never become public offline assets.
+- Local store: drafts (IndexedDB), the local AI ledger, cached models (Cache API), bounded public snapshots for private matching, and the shortlist. A group project's team draft never becomes a public offline asset.
 - Account and matching API: enforces the caller's session and owned initiative, reads current approved projections, retrieves a bounded shortlist and returns source-backed reasons. Local workers can refine relevance but cannot upgrade evidence or permissions.
 - Public project indexer: validates permitted records, preserves source identity/version and supporting passages, and computes search representations once per changed input. The index is derived data, not a second project editing authority. External indexing creates no Weave account, need or offer.
 - Certified bridge: proves person identity and establishes the internal session. It is separate from the matching API and indexing job; no additional login is introduced.
@@ -275,11 +292,11 @@ erDiagram
 
 Concepts and their owners:
 
-- Initiative, Need, Offer: an authenticated account owns a Weave initiative, and its needs and offers belong to that initiative. An owner saves privately, then chooses the exact current entries and initiative summary to share for network matching. The public directory has its own visibility choice. See [saving and accounts](08-accounts-and-saving.md).
+- Initiative, Need, Offer: needs and offers belong to an initiative. A personal project's initiative is a draft on the person's device; a group project's is its shared team draft in the team workspace. A person with authority for the project chooses which needs and offers to publish, and only published listings take part in other initiatives' matching (DL-155, D48). The public directory has its own visibility choice. See [saving and accounts](08-accounts-and-saving.md#where-work-lives).
 - Place: a reference, never typed free-hand into records; bioregion, subrealm, realm, basin, country, custom.
 - Funder, Program, conditions, rules: owned by the research workflow; the platform reads, never edits.
-- Match: computed, explained, versioned; a person's reactions (save, dismiss, contact) are owned by them.
-- External project evidence: a source passage about work, resources or a stated request, with provenance. It can support an inferred capability or potential use of an offer; it cannot assert current availability or create an owner-confirmed entry. Both external evidence and shared entries appear in Partners, with distinct labels and actions.
+- Match: computed, explained, versioned; a person's reactions (the shortlist bookmark, contact) are owned by them, and the shortlist stays on their device (DL-153).
+- External project evidence: a source passage about work, resources or a stated request, with provenance. It can support an inferred capability or potential use of an offer; it cannot assert current availability or create an owner-confirmed entry. Both external evidence and published listings appear in Partners, with distinct labels and actions.
 - Recipe: a partnership forming around a base; owned by its lead; joiners bring ingredients.
 - Consent and AI run: the audit spine for anything that leaves the device or the platform.
 - Offering and Commitment: the bridge to commitment pooling; off-chain records with hashes until Phase 3.
@@ -295,8 +312,9 @@ sequenceDiagram
   participant G as Guide (browser)
   participant W as AI worker (browser)
   participant C as Cloud proxy (only with consent)
-  participant D as Weave account API and Supabase
+  participant D as Weave API and Platform
   participant I as Certified sign-in via bridge
+  participant R as Project's AT repository
   U->>G: talk / type / drop a deck / paste a link
   G->>W: transcribe audio (Whisper) · parse files · build text
   W-->>G: transcript + text
@@ -311,18 +329,22 @@ sequenceDiagram
   W-->>G: draft + confidence
   G-->>U: show the four-field card and derived details for correction
   U->>G: reviews and checks the initiative
-  G-->>U: funding and permitted public-source discovery
-  opt person saves or adds an owned need or offer
+  G-->>U: funding and partner suggestions from a bounded public snapshot, nothing sent
+  opt person publishes chosen needs or offers
     G->>G: persist device draft
     U->>I: sign in with Certified
     I-->>G: restore task with Weave session
-    U->>G: explicitly choose Save
-    G->>D: checked document, revision and request ID
-    D-->>U: saved privately, no email or publication
+    U->>G: choose Make It Public and the entries
+    G->>D: reviewed public fields for the linked project
+    D-->>U: exact records and destination, held for ten minutes
+    U->>D: confirm once
+    D->>R: write support listings
+    D->>R: read them back
+    D-->>U: published, with each record's address
   end
-  opt owner participates in network matching
-    U->>D: preview and share selected open needs or offers
-    D-->>U: matching shared entries and attributed public project suggestions
+  opt project has published listings
+    U->>D: listing_search on the project's own listings
+    D-->>U: other projects' listings as direct fits, and attributed public project suggestions
   end
 ```
 
@@ -330,19 +352,22 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-  A[Owned initiative A<br/>open shared needs and offers] --> Retrieve[Matching API<br/>keyword and semantic retrieval]
-  B[(Current eligible shared entries)] --> Retrieve
+  A[Project A's own<br/>published needs and offers] --> Retrieve[Matching API: listing_search<br/>keyword and semantic retrieval]
+  B[(Other projects' current<br/>published listings)] --> Retrieve
   X[Permitted Certified project records] --> Job[Background indexing<br/>passages, provenance, embeddings]
   Job --> E[(Derived public evidence index)] --> Retrieve
   Retrieve --> Rules[Compatibility and evidence rules<br/>bounded, explained shortlist]
   Rules --> Local[Optional local refinement<br/>baseline results remain usable]
-  Local --> Partners[Partners<br/>confirmed entries, published statements,<br/>inferred capability or potential use]
-  Private[Unshared device or account draft] --> PrivateSearch[Local matching<br/>bounded public snapshot only]
-  E -->|permitted public snapshot| PrivateSearch --> Partners
-  D[Checked device or account card] --> SS[Solo opportunity score<br/>existing rubric: thematic fit,<br/>readiness, research priority]
+  Local --> Partners[Partners For You<br/>published needs and offers, public statements,<br/>inferred capability or potential use]
+  Private[The draft on the device] --> PrivateSearch[Local matching<br/>bounded public snapshot only]
+  E -->|permitted public snapshot| PrivateSearch
+  B -->|at most ten per project| PrivateSearch
+  PrivateSearch --> Partners
+  D[Checked device draft] --> SS[Solo opportunity score<br/>existing rubric: thematic fit,<br/>readiness, research priority]
   Pr[(Programs, conditions, rules)] --> SS
   SS --> Funding[Funding results]
-  Partners -->|save or dismiss privately| FB[Feedback]
+  Partners -->|bookmark| SL[Shortlist on the device]
+  SL -.->|later, only with consent| FB[Feedback]
   FB -.->|offline evaluation, versioned changes| Rules
 ```
 
@@ -373,7 +398,18 @@ flowchart TB
   SR --- KC
 ```
 
+Since DL-155, a need or offer uses only two of these levels: draft, on the
+device or in a group project's team draft, and public, as a support listing in
+the project's AT repository. The private and network levels no longer hold needs
+or offers.
+
 ### 5.4 Weekly pulse
+
+**Open question ([D50](open-decisions.md#for-the-builders)):** the composer below
+picks saved initiatives, and personal saves are gone, so a person has no saved
+initiative to compose a pulse for. A group project's team draft still could be
+one. The user has not chosen a replacement; the passage stays as designed until
+then.
 
 Composer selects eligible initiatives (saved, pulse consent, confirmed within 180 days or due for a confirmation prompt), gathers new partner matches, closing opportunities in the initiative's themes and places, nearby needs its offers could meet, recipes needing its ingredient, applies exposure caps, writes one outbox row per recipient with an idempotency key, and the sender delivers through Resend in batches with retries. Every pulse carries the one-tap "still accurate" link that refreshes the record's confirmed date.
 
@@ -381,8 +417,8 @@ Composer selects eligible initiatives (saved, pulse consent, confirmed within 18
 
 The council's open question was how to avoid building a new centre. The answer is structural, not aspirational:
 
-1. Local first. Drafts, transcription, extraction, and private funding and public-source matching can run on the device. Shared-entry matching uses the API and a derived public project index to avoid downloading and reprocessing an entire network per visitor. Only bounded public snapshots are used for private local queries; sending a private query or its embedding to a server is a separate disclosed choice.
-2. Owned records. People save and share their own records, see where they went, and can withdraw them; retraction propagates to every network they were shared with.
+1. Local first. Drafts, transcription, extraction, and private funding and public-source matching can run on the device. Matching a project's published listings uses the API and a derived public project index to avoid downloading and reprocessing an entire network per visitor. Only bounded public snapshots are used for private local queries; sending a private query or its embedding to a server is a separate disclosed choice.
+2. Owned records. People publish their own records to their project's repository, see where they went, and can withdraw them; retraction propagates to every network they were shared with.
 3. Open identifiers and schemas. Every public record has a stable reference identifier and a content hash; profiles are published in Murmurations schemas; exports are JSON and CSV; vocabularies are published.
 4. One node among nodes. Later interoperability uses KOI and Murmurations publishing. Weave's search index is a rebuildable projection of permitted evidence, not a replacement for upstream records or a claim of complete network coverage. Knowledge enters the Regen Knowledge Commons only through that project's review, never by direct write.
 5. Forkable. Open-source code, an open data licence and a documented deploy let another network run its own instance with its own Supabase project; instances exchange through the same open channels. The Regen Commons instance is the first, not the only.
@@ -428,7 +464,7 @@ reviewed pull requests; nothing recurring merges or deploys on its own.
 | A6 | Offerings and off-chain commitments now, pools later | Wallets at launch | Phase 3 anchoring without data migration; no web3 friction in intake |
 | A7 | Places as references (One Earth bioregions, HydroBASINS, countries) | Free-text regions only | Enables watershed curation and regional pulses; requires licence confirmation and a geocoder |
 | A8 | React PWA on the shared design system | Vanilla HTML like the main site | Worker-heavy conversational UI needs a component model; tokens and patterns keep the brand consistent |
-| A9 | Saving is separate from sharing; private by default; stewards cannot read private initiatives | Publish as one step; device-only until public | People can keep work across devices without going public; the privacy promise changes and needs row-level security tests |
+| A9 | Saving is separate from sharing; private by default; stewards cannot read private initiatives. Superseded on 26 November 2026 by DL-155, which chose device-only until public, and revised by D48 on 28 November 2026 for a group project's team draft | Publish as one step; device-only until public | People can keep work across devices without going public; the privacy promise changes and needs row-level security tests |
 | A10 | `DESIGN.md` as the single token source, with layered CSS and a pattern library in this repository | Copy tokens per app; a shared repository from day one | One source for all surfaces; moves to a shared repository when a second app needs more than tokens |
 | A11 | Agent scaffolding before UI code | Add guidance as problems appear | Agents write most of the code, so instructions and checks are part of the foundation |
 | A12 | Shared keyword/vector index with local assistance and optional refinement | Reanalyse every external project in every browser; call a cloud LLM for every match | Both owner-shared entries and public evidence participate; bounded downloads, explicit privacy paths and measured quality/latency precede UI polish |

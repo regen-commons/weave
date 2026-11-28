@@ -368,13 +368,13 @@ Certified is the only Weave sign-in flow, per the [6 November decision](open-dec
 - The Weave callback establishes a host-only HttpOnly session cookie, Secure outside loopback, holding the Supabase access token for at most one hour, and a second host-only HttpOnly `SameSite=Strict` cookie holding Supabase's refresh token. Keep AT tokens and OAuth exchange state server-side. Neither token reaches JavaScript storage or a response body. `/api/account` renews the access token when under five minutes remain or it has lapsed, rotating both cookies and running the access predicate on the renewed session; the app checks back when the server says to. The matching, projects and project-consent endpoints renew the same way before their own authorization, so their 401 means the session ended. The renewal cookie lapses after 14 idle days, and no renewal succeeds 30 days or more after the original sign-in, read from the earliest `amr` timestamp in the token Supabase returns: Weave then revokes the session. Neither cookie is set to outlive the cap, so a browser stops at it; an access token copied out of a browser stays valid at Supabase until its own expiry, at most an hour later. A renewed token without `amr` timestamps is allowed and bounded only by the idle limit. A refused renewal (revoked, reused past Supabase's reuse window, expired or banned) ends the session and clears both cookies; an outage keeps a still-valid token and ends nothing. Sign-out renews a lapsed token if it must, then revokes the Supabase session with its refresh tokens. Use one-use, browser-bound state and PKCE on each leg, an allowlisted return task, and an explicit SameSite/CSRF design for callback correlation. Ordinary writes retain same-origin JSON checks.
 - Weave's private access predicate requires an authoritative `auth.identities` record for the exact trusted provider and validated issuer/DID subject, plus an active session owned by that user, unexpired validity, non-anonymous status and no active ban. Confirmed email alone is insufficient. User-editable metadata never grants access. The database must enforce these rules for direct RPC/table access as well as the API.
 - `AccountUser.email` is nullable. Do not invent an email, confirm an absent email or derive identity from a display label. Contact details belong to a separately consented future service. Shared website/steward Auth settings are outside this change; narrowing Weave authorization does not disable their sign-in.
-- Sign-in restores the task but never saves, loads or merges a draft. Save uses a persisted request UUID and expected revision; an identical retry returns the same result. Load atomically backs up the complete device state before replacement. Saving sends only checked fields, not source text, files or AI history.
+- Sign-in restores the task but never saves, loads or merges a draft. A save to a group project's team draft uses a persisted request UUID and expected revision; an identical retry returns the same result. Opening a team draft, or a private save made before DL-155, on the device atomically backs up the complete device state before replacement. A team-draft save sends only checked fields, not source text, files or AI history; publishing sends only the reviewed public fields.
 - Certified outage, denial or expiry preserves device work and offers retry through Certified. Sign-out revokes the Weave session and clears its cookie; test the disposition of associated bridge sessions separately. Never claim global Certified logout or deletion of local drafts. Recovery must restore the same Certified identity; replacement identities do not inherit saved work.
-- Account, membership and authority to publish a project are distinct. The first build grants only owner-private saving. Membership, teams and public publishing do not follow from sign-in.
+- Account, membership and authority to publish a project are distinct. Membership, team access and public publishing do not follow from sign-in.
 
 ### 5.1 First build: Certified sign-in and private saving
 
-**Superseded in part on 26 November 2026 by DL-155:** Certified sign-in stays, but private saving is being retired, and needs and offers live only on the device or in public listings. This section describes the code as built until step 4 of the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing) lands.
+**Superseded in part on 26 November 2026 by DL-155:** Certified sign-in stays; personal private saving does not. Since step 4 of the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing) (27 November 2026), `/api/account` refuses a new save with 410 `private_saves_retired`. Saves made earlier stay readable, downloadable and deletable under D49 until step 7 removes them, no earlier than 26 January 2027. A need or offer now lives on the device, in a group project's shared team draft (D48) or in public listings. This section is the record of the first build and its proof; its Save outcome no longer describes the product.
 
 **Outcome:** a person with a new or existing Certified identity signs in, explicitly
 saves an ordinary initiative privately, signs out, returns through Certified and
@@ -646,76 +646,84 @@ Step 3 implements plain text, Markdown, CSV text and PDF text with approved `pdf
 ### 7.1 Representations
 
 - Reuse the existing embedding contract as the first candidate: `mixedbread-ai/mxbai-embed-xsmall-v1` (256 dimensions, q8). Pin model revision, tokenizer, pooling, normalization and text projection together. Compare its partner-retrieval quality with the lexical baseline before enabling it. Never compare vectors from different model contracts.
-- Compute public project passage embeddings once in the indexing job, then only for changed content. Compute shared Weave entry embeddings from the exact reviewed projection in a restricted job; local vectors may accelerate a query but cannot determine authority or evidence class. Private query embeddings remain local. The public fund vectors continue to be generated at build time.
+- Compute public project passage embeddings once in the indexing job, then only for changed content. Compute published listing embeddings from the exact public record in a restricted job; local vectors may accelerate a query but cannot determine authority or evidence class. Private query embeddings remain local. The public fund vectors continue to be generated at build time.
 - Structured features: capital forms, lenses, themes (snapped), place set (basin, bioregion, subrealm, realm, country, global flag), stage, eligibility details, freshness (`confirmed_at`), status.
 
 ### 7.2 Cross-initiative matching (R12, R16)
 
-**Superseded in part on 26 November 2026 by DL-155:** matching moves from entries shared with signed-in Weave users to published listings, and a draft is compared on the device. This section describes the code as built until step 5 of the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing) lands.
+**Revised 26 to 28 November 2026 by DL-155 and D48:** matching moved from entries
+shared with signed-in Weave users to published listings, and a draft is compared
+on the device. Steps 4 and 5 of the
+[removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing)
+are live. This section describes that build.
 
-**Outcome.** A person signs in with Certified, creates or opens a Weave initiative
-they own, adds a need or offer, and chooses which entries to share for matching.
-Partners searches both current entries shared by other owners and permitted
-public project evidence. The counterpart does not have to use Weave or have
-stated a need or offer. Both result types are part of this build, with different
-evidence labels and actions. The deployed preview works without a project
-link. The [project integration target](#certified-project-integration-target)
-adds verified representation as a requirement for network participation.
-Certified proves the person's identity. Weave separately checks who may act
-for a particular project.
+**Outcome.** A person describes an initiative and its needs and offers on the
+device. Partners For You ranks the draft on the device against a bounded public
+snapshot of public project evidence and other projects' published listings, and
+nothing about the draft is sent. Once the project has published listings, the
+server also matches those listings against other projects' published listings
+and public project evidence, and Partners For You adds those results. The
+counterpart does not have to use Weave or have stated a need or offer. Both
+result types are part of this build, with different evidence labels and actions.
+Partners For You on a draft needs the card linked to a project (the user, 27
+November 2026). Certified proves the person's identity. Weave separately checks
+who may act for a particular project.
 
 #### Ownership and storage
 
-- Reuse Platform's existing `weave.initiatives` row and owner ID, and its
-  `weave.needs` and `weave.offers` child rows. The deployed private-saving
-  schema already stores the entries separately and assembles the version 1
-  document on read. Keep those initiative IDs, ask IDs and account associations.
-  The broader schema sketches in section 4 describe the target model. Extend
-  the existing tables through the website-owned migration path in section 3.3.
-- Create, edit, share and withdraw commands derive the actor from
-  `private.weave_actor()`. Check ownership of the parent initiative and the
-  revision of each affected record inside the transaction. An initiative link,
-  a client-supplied owner ID and the fact that the user is signed in cannot
-  authorize edits to someone else's initiative.
-- Extend the current Save transaction to reconcile child rows by stable ID.
-  Today it deletes and reinserts all needs and offers. Preserve the version 1
-  Save/Load contract for existing clients and preserve matching state for
-  unchanged entries. Reordering an entry alone keeps its share state. An edit
-  to shared content requires the owner to review the new revision before it
-  becomes discoverable. Existing records start private.
+- A personal project's needs and offers live in the device draft. Platform holds
+  none of them; Make It Public sends only the reviewed public fields.
+- A group project's shared team draft is one `weave.initiatives` row with
+  `team_workspace_id` set, and its `weave.needs` and `weave.offers` child rows.
+  Teammates with current group membership and a Weave grant read it; editors and
+  admins save it with an expected revision and request ID (D48). It is private
+  to the team, not end-to-end encrypted.
+- Personal rows saved before DL-155 stay owner-only and read-only until step 7
+  removes them (D49). Their `matching_*` columns no longer change: step 5
+  withdrew every share and Platform refuses the share functions.
+- Weave's working record of what it publishes, in `weave_workspace.support_listings`,
+  is keyed by project link and entry. It holds the public record, its address,
+  version and read-back state, and the request and state data needed to publish
+  and withdraw safely. Matching and public pages read a listing as current only
+  through one shared rule for a current, read-back listing (D47).
+- Commands derive the actor from `private.weave_actor()` and check project
+  authority, workspace grants and revisions inside the transaction. A
+  client-supplied owner ID or the fact that the user is signed in cannot
+  authorize a write.
 
-#### Sharing and matching
+#### Matching on published listings
 
-- Save keeps the initiative and its entries private. **Share for matching** is
-  a separate action that previews the selected entries and the initiative
-  summary others will see. For the first build, the proposed audience is
-  signed-in Weave users. Public profile publication remains a separate choice.
-  Store the reviewed entry revision, audience and confirmation time. The
-  private owner view includes drafts and closed entries.
-- Matching against other owners' shared entries requires a live Certified session
-  and an authorized initiative with at least one open entry shared for matching.
-  The target also requires that workspace to have a verified project link. One
-  open need or offer is enough to start. A needs-only initiative can match with
-  an offers-only initiative.
+- On the device: the draft is ranked against the public snapshot, which includes
+  other projects' current listings, at most ten per project. Another project's
+  published need or offer is a direct fit, labeled as that project's own ("The
+  project published this offer"). Inferred capability and potential use stay
+  possible fits.
+- On the server: `listing_search` on `/api/matching` takes one of the project's
+  own published listings as its query, for members of that project's workspace
+  only (the user, 27 November 2026). It searches other projects' published
+  listings, returned as direct fits under their own `listing:` address, and
+  public project evidence. `listing_shortlist` in the workspace command offers
+  the workspace's ten most recent listings, eight words each, to choose from.
 - Rank pairs in both directions. Match A's needs to B's offers and A's offers
   to B's needs. Require evidence on at least one pair before place, theme or
   lens boosts apply. Reject conflicts in terms, place or timing where both
   sides are explicit. Keep missing details visible as unknowns. Return the
   counterpart and the exact entries that explain the result. Reward
-  reciprocity when both directions are supported.
-- Read and rank eligible entries on demand in the first build. Use the caller's
-  session and a narrowly scoped read projection with only the fields approved
-  for matching. Keep private initiative and entry rows owner-only. Enforce
-  audience, current shared revision, open status and expiry at read time.
-  Closing, withdrawing, editing or expiring an entry removes it from new
-  results without waiting for a scheduled job. Authenticated results use
-  private, non-cacheable responses.
+  reciprocity when both directions are supported. A project that fits an entry
+  twice is named once.
+- Read and rank current listings on demand. A listing that is withdrawn,
+  closed, expired or not yet read back leaves new results without waiting for a
+  scheduled job. Authenticated results use private, non-cacheable responses.
+- A partner is kept with the shortlist bookmark on the device (DL-153). The
+  server keeps no saved or hidden partners: `/api/matching` refuses `preview`,
+  `share`, `renew`, `withdraw`, `search`, `leads` and `set_lead` with 410
+  `matching_shares_retired`.
 
 #### Certified project integration target
 
-This extends the current preview. The existing account, private Save/Load and
-matching APIs remain the starting point. The verified link, workspace grants,
-unclassified private entries and AT Protocol writes are implementation work.
+This extends the current preview. The existing account, project, publishing and
+matching APIs are the starting point. The verified link, workspace grants, team
+drafts with unclassified entries and AT Protocol writes are implementation work.
 The [decision register](open-decisions.md#project-integration-and-support-listing-validation)
 tracks what still needs evidence or a decision.
 
@@ -737,37 +745,37 @@ selection; linking still uploads no private entries.
 
 The app's legacy creator only resumes an existing frozen intent, and an unreadable
 intent blocks a new external handoff. The server's create command is retained for
-older clients; full retirement still needs review. Private saving and independent
-public support listings are unchanged. No hosted configuration is changed by this
+older clients; full retirement still needs review. Public support listings are
+unchanged. No hosted configuration is changed by this
 slice; real external publication and return remain release checks.
 
 | Data or state | Authority and lifecycle | Module or API boundary |
 |---|---|---|
 | Person and session | Certified proves the person's DID. Platform issues the Weave session and retains the same internal account ID across sign-ins. | Keep the identity bridge, `/api/sign-in` and the existing account session flow. Project consent is scoped to the action that needs it and returns to the same Weave session. |
-| Working draft and suggestions | The browser keeps source text, files, pending edits and local AI suggestions. Suggestions remain editable until a person approves the entry for sharing. | Reuse `src/describe` for draft storage and `src/intake` for capital suggestions across extracted and typed entries. React holds the current editor and request state. |
-| Private workspace and entries | Platform holds the initiative UUID, stable need and offer IDs, reviewed revisions, workspace roles and saved leads. A private entry may have zero to eight distinct forms. | Extend `/api/account` for backward-compatible reads and saves. Test old documents and clients before accepting empty arrays on private saves. Keep authenticated records out of public caches. |
+| Working draft and suggestions | The browser keeps source text, files, pending edits and local AI suggestions. Suggestions remain editable until a person publishes the entry. | Reuse `src/describe` for draft storage and `src/intake` for capital suggestions across extracted and typed entries. React holds the current editor and request state. |
+| Group project's team draft | Platform holds a group project's shared team draft: the initiative UUID, stable need and offer IDs, revisions and workspace roles (D48). A team-draft entry may have zero to eight distinct forms. Personal saves made before DL-155 stay read-only until step 7 removes them (D49). | `team_load` and `team_save` on `/api/projects`, with an expected revision and request ID. `/api/account` lists, opens, downloads and deletes earlier personal saves and refuses new ones with 410 `private_saves_retired`. Keep authenticated records out of public caches. |
 | Certified project and verified link | The upstream repository owns the public project profile, created through the chosen external editor. Platform associates its DID-based AT URI with one workspace and records the verification evidence, observed CID and link state. | The project API lists eligible projects and verifies/links explicit selections after return. Keep editor handoff and project commands outside the identity bridge. The browser sends the intended project reference, never the actor or their role. |
-| Reviewed network sharing | Platform owns approved entry and summary revisions, audience, expiry and withdrawals. Each shared entry requires one to eight approved forms. | Extend the existing `/api/matching` review, share and search checks to enforce verified links, workspace roles, current revisions and active share state. |
-| Public support listing | Platform owns the editable entry. The AT repository holds the public fields explicitly published under the [draft Lexicon](../../packages/api/lexicons/README.md), with their own AT URI and CID. | The first release includes an explicit publish action after the pilot passes. Keep it separate from private Save and network sharing. Track the requested revision and publication outcome on the server. |
+| Matching on published listings | Platform reads a listing as current only through one rule for a current, read-back listing. Sharing with signed-in Weave users ended in step 5, and Platform refuses its functions. Partners are kept on the device's shortlist. | `listing_search` on `/api/matching`, for members of the listing's project workspace. The share and lead commands return 410 `matching_shares_retired`. |
+| Public support listing | The device draft, or a group project's team draft, holds the editable entry. The AT repository holds the public fields explicitly published under the [draft Lexicon](../../packages/api/lexicons/README.md), with their own AT URI and CID. Each listing needs one to eight kinds of support. | Make It Public reviews the entries from the draft; a group publishes from its team draft. Track the reviewed record and publication outcome on the server. |
 | Public project evidence | The Platform index holds a rebuildable snapshot of permitted source passages, AT URI, CID and freshness. It never owns the project or confirms an inferred need or offer. | Keep ingestion and reindexing in bounded background jobs. Search a bounded API shortlist for network matching. The browser can refine it or use a bounded public snapshot for local previews. |
 
 **Link and access.** Resolve the project to its canonical AT URI. The person's
 DID identifies the actor, the project repository DID identifies the publisher,
-and the workspace UUID identifies the private Weave record. Verify authority for
+and the workspace UUID identifies the Weave workspace. Verify authority for
 personal and existing group projects. Keep existing personal project links
 solo and preserve their canonical URI. Moving a project to a group
 repository would change that URI and is outside the first release.
 A database uniqueness constraint prevents simultaneous requests
 from creating two workspaces for one project. If a workspace already exists,
 check its grants and offer the access path without exposing private data.
-An eligible private save can become the workspace with its IDs intact. Keep
-other private saves separate. Moving their content into a team workspace
-requires an explicit choice. Sign-in and a public AT URI confer no workspace
-role.
+A personal project links from the draft with `link` and no saved card (step 3
+of the removal plan); a group project's workspace holds its team draft. No new
+private save can become a workspace. Sign-in and a public AT URI confer no
+workspace role.
 
 **Existing group projects.** A verified group member can request workspace
 setup for the project's canonical AT URI. Store the request separately from
-the workspace. The requester can keep preparing a private draft. Pending
+the workspace. The requester can keep preparing the draft on the device. Pending
 requests grant no access, reserve no project link, and expose none of the
 draft. On approval, verify that the actor is a current Certified admin or
 owner for the project's repository group. Establish the single linked
@@ -797,18 +805,18 @@ Certified's project editor. Refresh Weave's view from the verified record at the
 same AT URI.
 Record the current CID and refresh time, and index changed public content
 under its new version. Refreshing public fields leaves the private workspace
-fields, entry revisions and approved share summaries intact.
+draft, entry revisions and published listings intact.
 
 **Workspace access and visibility.** For a workspace linked to a Certified
 group project, an admin can grant access only after Weave verifies the
 recipient's current membership in that group. Enforce both membership and
 an explicit Weave grant for team access. Teammates with read access can
-see saved needs and offers before sharing. Keep personal saves outside
-this scope. Saving to the workspace creates no network share. Matching readers
-receive only the approved projection of explicitly shared revisions. On
+see the team draft's needs and offers before they are published. A person's
+device drafts stay outside this scope. Saving the team draft publishes nothing;
+other initiatives see only what an editor publishes. On
 confirmed removal from a Certified group, suspend the person's workspace
-grants and reject their subsequent reads and commands. Keep personal saves
-and other workspace grants intact. Rejoining the group makes the person
+grants and reject their subsequent reads and commands. Keep their device
+drafts and other workspace grants intact. Rejoining the group makes the person
 eligible for admin review of their grant. A verification outage is distinct
 from confirmed removal.
 
@@ -836,32 +844,32 @@ duplicate grants. Keep the workspace ID, entries and team work intact.
 Leave the workspace unchanged if owner verification is unavailable or an
 active admin is already present.
 
-**Workspace sharing.** A current workspace edit grant allows a teammate to
-review and share selected entries for matching, including entries another
-teammate drafted. Enforce that grant and current project and entry eligibility
-on the server when confirming the reviewed share. Workspace edit access
-does not grant permission to publish to AT Protocol.
+**Workspace publishing.** A current group member with a Weave editor or admin
+grant can review and publish selected needs and offers from the team draft,
+including entries another teammate drafted (the user, 28 November 2026). Enforce
+that grant, current group membership and project and entry eligibility on the
+server when confirming the reviewed record; Certified also enforces the record's
+author permissions on each write. Group publishing stays off in production until
+`WEAVE_SUPPORT_GROUP_LIFECYCLE_VERIFIED` is set.
 
-**Share lifetime.** The target uses an optional share end date. When omitted,
-the share remains discoverable while the reviewed revision is current, the
-entry is open and the workspace is eligible. Close or withdraw removes it
-from subsequent results. Show any applicable end date in review and enforce
-it on reads. Keep the share lifetime separate from the short-lived review
-used to confirm the exact revision. The preview currently caps every share
-at 90 days. Update the contract, database checks and client before enabling
-open-ended shares. Preserve dates on existing shares until an editor reviews
-a change.
+**Listing lifetime.** A listing can carry an optional end date (`expiresAt`).
+Without one it stays current while it is open, read back and its project is
+eligible. Closing or withdrawing it removes it from subsequent results. Show
+any end date in review and enforce it on reads. Keep the listing lifetime
+separate from the ten-minute review used to confirm the exact record. Sharing
+for matching, with its 90-day cap, ended in step 5 of the removal plan.
 
 **Command contract.** Project discovery returns authorized project references
 and the link state for the active initiative. Setup requests accept the
 project URI and return a pending status. Approval accepts the request ID,
 rechecks group authority and returns the linked workspace or an existing
 workspace access result. Link accepts the chosen project URI and expected
-initiative revision. Link returns the existing or newly linked workspace
+initiative revision; a personal link from the draft sends no saved card. Link
+returns the existing or newly linked workspace
 and confirmed project reference, or a recoverable result such as access
 required or project verification unavailable. Recheck the
-actor, grants and revision on the server before committing. Keep private
-Save/Load and the public index independent of these operations.
+actor, grants and revision on the server before committing. Keep team-draft
+saves and the public index independent of these operations.
 
 The existing inline Create implementation accepts reviewed public fields, group
 handle, expected initiative revision and a request ID. Retain its frozen intent,
@@ -870,17 +878,16 @@ handles every pending operation. An interrupted legacy creation is not a reason
 to create another group in an external editor. A handle match cannot establish
 ownership. Preserve the intended AT URI and private work while reconciling it.
 
-**State changes.** Treat the project link, entry sharing and public publication
-as separate states. A workspace can be unlinked, linked or paused pending
-verification. An entry can remain private, be shared for its current reviewed
-revision, or become ineligible through a change, closure, withdrawal or expiry.
-A stale or revoked project verification pauses new sharing, matching eligibility
-and new publication until verified again. Keep private saves available under their
-Weave grants. A teammate's departure alone leaves existing team shares and
-listings active when other authorized teammates still represent the project.
+**State changes.** Treat the project link and public publication as separate
+states. A workspace can be unlinked, linked or paused pending verification. A
+listing can be pending, public and current, or ineligible through closure,
+withdrawal or expiry. A stale or revoked project verification pauses matching
+eligibility and new publication until verified again. Keep the team draft
+available under its Weave grants. A teammate's departure alone leaves existing
+team listings active when other authorized teammates still represent the project.
 They can update or withdraw the team's entries under the relevant permissions.
-If the project link itself is paused for loss of authority, require a fresh
-review before its old shares become eligible again. Confirmed deletion or
+If the project link itself is paused for loss of authority, require fresh
+verification before its listings take part in matching again. Confirmed deletion or
 unlisting pauses matching for the linked project and removes its public
 evidence from new results. Queue withdrawal for the project's Weave-published
 listings, and suppress those listings in Weave while withdrawal is pending.
@@ -888,39 +895,41 @@ A temporary source outage does not trigger withdrawal. Keep team work
 accessible to authorized teammates.
 Only restoration and verification of the same project AT URI can recover the
 link in the first release. A replacement project has a different workspace.
-On initiative switch or sign-out, clear private network state and ignore
+On initiative switch or sign-out, clear workspace state and ignore
 responses from the previous workspace or session.
 
 **Public support publishing.** Public project creation belongs to the selected
 external editor; it is separate from this Weave-owned listing command. Preview
-the exact public support fields and destination before a write. Any workspace
-editor can publish a
-listing with a verified right to make that write in the Certified repository.
-Check the scoped AT Protocol grant and the current reviewed revision before
-sending. Certified can distinguish creating a listing from updating one
+the exact public support fields and destination before a write. A personal
+project publishes from the device draft, confirmed by the person whose verified
+Certified DID owns the repository. A group project publishes from its team draft,
+confirmed by a current group member with a Weave editor or admin grant and a
+verified right to make that write in the Certified repository. Check the scoped
+AT Protocol grant and the reviewed record before sending. Certified can distinguish creating a listing from updating one
 authored by another teammate. Use a durable operation record with the intended
 repository, record key and expected revision. On retry after an uncertain response, read back the same AT
 URI and check the result before attempting another write. Store the confirmed
-CID and surface a pending or failed outcome without losing the private entry.
-For exported listings, keep a stable record key across edits. When an edit
-changes published fields, record a withdrawal request for the old revision
-with the private save. Closing an entry ends matching immediately and queues
-public withdrawal in the same operation. An editor can also stop sharing for
-matching while leaving the entry open. Suppress withdrawn revisions in Weave
+CID and surface a pending or failed outcome without losing the draft. Keep a
+stable record key across republishing. A listing published from the device
+draft does not follow later edits: it stays as published until the person
+publishes again at the same key or withdraws it, from any device signed in with
+authority for the project. A listing published from a group's team draft
+follows it: editing published fields, or closing or deleting the entry, queues
+withdrawal with the team-draft change, and closing ends matching in the same
+operation. Suppress withdrawn revisions in Weave
 and show withdrawal as pending until upstream read-back confirms it. Allow
 withdrawal even when the project link is paused, provided the actor has the
 required upstream authority. If authority is unavailable, keep the request
-visible for an authorized editor to resolve. Keep replacement details private
-until explicitly republished. Use the expected public CID and operation
+visible for an authorized editor to resolve. Replacement details stay in the
+draft until explicitly republished. Use the expected public CID and operation
 ordering so a delayed withdrawal cannot remove a replacement.
 
 When another AT Protocol app withdraws a listing, verified read-back changes
-only the public listing state. Keep the private entry and any eligible
-Weave share. Independent readers can retain previously public records.
+only the public listing state. Keep the draft entry. Independent readers can retain previously public records.
 
 **Build order.** Prove personal and group authority, scoped consent and read-back
 in test projects first. Then implement links and workspace grants without
-replacing existing saves. Extend private entry validation and editable capital
+replacing earlier saves. Extend private entry validation and editable capital
 suggestions, then enforce project and entry eligibility in network matching.
 Test creation in each external editor and return to verified discovery, a
 second project under one organization, private upstream drafts, canceled handoff
@@ -930,7 +939,7 @@ failed Weave grant. Prove a member can request setup but only a current
 Certified admin or owner can approve. Test competing approvals, authority
 lost before approval and an existing workspace that accepts only access
 requests. Test duplicate links, revocation, unclassified save and reload. Verify an external public profile update refreshes the displayed
-project and its index without changing private work or approved shares. Preserve
+project and its index without changing the team draft or published listings. Preserve
 legacy create recovery for lost group/project responses, occupied handles and
 confirmed groups with a pending project. Validate the
 independent support listing in a disposable repository. The first-release
@@ -949,21 +958,21 @@ commands. Creation uses a saved initiative revision, a reviewed public
 profile and a stable request ID. A normal link or grant verifies current
 Certified membership on the server. Adding a current Weave user to the
 Certified group also requires approval of the wider group permissions.
-**Team saving and matching.** In the local backend, a group workspace can
-save one initiative document under its workspace ID. It starts empty and
-keeps personal drafts separate. Teammates with a current Certified membership
+**Team drafts and matching.** In the local backend, a group workspace can
+save one initiative document under its workspace ID: the group project's
+shared team draft (D48). It starts empty and keeps personal drafts separate. Teammates with a current Certified membership
 and an active Weave grant can load it. Editors and admins can save using a
-request ID and expected revision. A private need or offer can be saved before
-its forms of capital are chosen.
+request ID and expected revision. A team-draft need or offer can be saved
+before its kinds of support are chosen.
 
 Matching checks the same workspace access and verifies the linked Certified
-project. Viewing matching state and results uses read access. Reviewing or
-changing shares and saving leads uses edit access. Unclassified entries
-cannot be shared. The network matcher reads only current reviewed shares
-from linked projects. If the server confirms that a project disappeared or
+project. `listing_search` uses read access, for members of the project's
+workspace. Unclassified entries cannot be published. The network matcher reads
+only current, read-back listings from linked projects; reviewing shares and
+saving leads ended in step 5 of the removal plan. If the server confirms that a project disappeared or
 became unlisted, it pauses matching and keeps team work accessible to
-authorized teammates. A restored link needs fresh review before old entries
-can reappear in matches. The database cutover removes direct matching RPC
+authorized teammates. A restored link needs fresh verification before its
+listings can reappear in matches. The database cutover removes direct matching RPC
 access for browser sessions.
 
 Pending invites for people without a Weave account and public listing
@@ -982,10 +991,10 @@ lists the isolated configuration and verification cases.
 
 | Query and evidence | Allowed result | Required limit |
 |---|---|---|
-| Owned need and a current owner-confirmed offer | A direct need-to-offer match | Enforce the reviewed revision, audience, terms, capacity, place, timing and expiry. Confirmation is a representative's statement, not a guarantee of delivery. |
+| Owned need and another project's current published offer | A direct need-to-offer match | Enforce read-back, open status, terms, capacity, place, timing and expiry. Confirmation is a representative's statement, not a guarantee of delivery. |
 | Owned need and a publicly stated offer or resource | A published offer to check | Preserve the source's words and unknown availability or terms; fetching a page does not confirm capacity. |
 | Owned need and a passage describing relevant work | An inferred capability | Relevant experience only; no claim that help is available. |
-| Owned offer and a current shared need or public request | A direct match to a shared need, or a published request to check | Distinguish owner confirmation from a statement found in a source. |
+| Owned offer and another project's current published need, or a public request | A direct match to a published need, or a published request to check | Distinguish a published listing from a statement found in a source. |
 | Owned offer and project activities that could use it | A potential use of the offer | Explain the supported activity and label the benefit as inferred. Do not create a need on behalf of that project. |
 
 Evidence belongs to a particular assertion, not a whole project's badge. Store
@@ -1001,29 +1010,31 @@ clearly labeled by evidence. A published request is not a capability, historical
 work is not current capacity, and the same theme alone is not a useful match.
 One-way fit is sufficient. Do not fill absent reciprocal asks with invented or
 zero-valued answers. A linked workspace can see public-source suggestions
-for private entries under the separate privacy path in section 7.5.
+for draft entries under the separate privacy path in section 7.5.
 
-In the first release, someone can save a match as a lead and open its
-supporting source. For a shared entry, show only the approved projection
-and the linked project's public profile. For an external suggestion, link
-to the public evidence. On reopen, recheck availability before displaying
-the supporting details. Existing public contact routes are available
-through the source. Saving a lead sends no invitation.
+Someone can keep a match with the shortlist bookmark on the device (DL-153) and
+open its supporting source. For a published listing, show the public record and
+the linked project's public profile. For an external suggestion, link to the
+public evidence. On reopen, recheck availability before displaying the
+supporting details. Existing public contact routes are available through the
+source. A bookmark sends no invitation.
 
-The [build order and acceptance checklist](#76-build-plan-and-ui-handoff) require
-both a two-account shared-entry match and external evidence in both directions.
+The [acceptance checklist](#release-acceptance-to-revisit) requires both a
+two-account match between published listings and external evidence in both
+directions.
 The starter public-source catalog is a small lexical prototype, not a Certified
 project index. Its experience and published statements must never become
 confirmed needs or offers. The existing funding engine remains a separate path.
 
 #### Retrieval and ranking contract
 
-1. Query each open shared entry separately. A need retrieves offers and capability
+1. Query each open published listing, or each open entry of the draft on the
+   device, separately. A need retrieves offers and capability
    evidence; an offer retrieves needs, public requests and evidenced potential uses.
    Retrieve with full-text search and embeddings, fuse ranked lists rather than
    adding incomparable raw scores, and keep a lexical-only fallback. Start the
    experiment with 50 to 100 passages per entry; tune the cap using recall and cost.
-2. Apply access, sharing revision, open status and expiry checks in the database
+2. Apply access, read-back, open status and expiry checks in the database
    before returning any data. Apply explicit terms, place, timing and audience
    conflicts to each pair. Unknown geography is not proof of local availability;
    a global or remote offer does not need an arbitrary shared-watershed boost.
@@ -1127,10 +1138,10 @@ Step 5 implements [Team slots](../../packages/app/src/ui/TeamSlots.tsx) as devel
   volume warrants it. Check recall with restrictive filters, not only unfiltered
   latency. [Hybrid search](https://supabase.com/docs/guides/ai/hybrid-search),
   [pgvector filtering](https://github.com/pgvector/pgvector#filtering).
-- Shared entries are eligible immediately after a successful sharing command.
-  Lexical results work while embeddings are pending. A stale embedding or
-  background job cannot revive an edited, withdrawn or expired entry: join its
-  revision to the current eligible row before returning it. Return a bounded
+- A published listing is eligible once read-back confirms it. Lexical results
+  work while embeddings are pending. A stale embedding or background job cannot
+  revive a withdrawn, closed or expired listing: join it to the current eligible
+  row before returning it. Return a bounded
   shortlist for optional local refinement; never download all authenticated
   entries to the browser or cache them as public PWA assets.
 - Local workers can assist entry creation, embed a private query and refine a
@@ -1143,14 +1154,14 @@ Step 5 implements [Team slots](../../packages/app/src/ui/TeamSlots.tsx) as devel
 
 #### Privacy and freshness
 
-- Shared-entry searches use the caller's verified session, owned initiative ID
-  and selected shared revisions. The server reads the approved projections,
-  not an entire private document. Draft query text is not sent to Certified or
+- Listing searches use the caller's verified session and workspace membership,
+  with one of the project's own published listings as the query. The server
+  reads public records, not a draft. Draft query text is not sent to Certified or
   Hypercerts search as a side effect of this path.
 - Under the [public-source decision](open-decisions.md#public-source-partner-suggestions-while-private),
   check the Certified session, workspace access and verified link before
   offering personalized suggestions. A linked initiative can see names and
-  evidence without sharing. Match private entries locally against bounded public
+  evidence without publishing. Match draft entries locally against bounded public
   snapshots and show their coverage. A later broader API search for private
   entries needs explicit disclosure of what query data would leave the device.
   Keep private queries on the device in the first release.
@@ -1164,30 +1175,38 @@ Step 5 implements [Team slots](../../packages/app/src/ui/TeamSlots.tsx) as devel
   response in memory for up to five minutes and ranks kept entries in a
   worker. The request contains no entry text, IDs or embeddings. The UI
   shows source evidence, unknowns and the age and limits of the collection.
-  The `/workspaces/<workspaceId>` view loads the team's saved needs,
-  offers and current access role. Editors and admins can add or change
-  entries, save them to the team, then choose entries for the existing
-  matching review. Viewers see the entries and matching state with read-only
-  controls. The client keeps team documents in memory, apart from the
-  personal device draft. Opening public suggestions requires no sharing action.
-  A save uses its expected revision and a stable request ID. Failed or
-  conflicting saves keep the form available for recovery. A saved edit
-  invalidates its earlier shared revision before a new match can return it.
+  The `/workspaces/<workspaceId>` view loads the group project's team draft,
+  its needs and offers and the current access role. Editors and admins can add
+  or change entries, save them to the team draft, then publish chosen entries.
+  Viewers see the entries and publication state with read-only controls. The
+  client keeps team documents in memory, apart from the personal device draft.
+  Opening public suggestions requires no publishing. A save uses its expected
+  revision and a stable request ID. Failed or conflicting saves keep the form
+  available for recovery. A saved edit to a published entry queues withdrawal
+  of the old listing before a new match can return it.
   Each match search checks eligibility again, so changes or withdrawals
   disappear when the other initiative refreshes results.
 - Compute matches on demand. Recheck audience, revision, status and expiry at
   every authenticated read; return non-cacheable responses and clear transient
   network results on sign-out. Public evidence can use versioned caches. Source
   withdrawal takes effect when observed; report index freshness and uncertainty
-  rather than promising immediate cross-network revocation. Saved leads retain
-  references and history, not a permanently valid offer assertion.
-- A later nightly job may refresh results for pulses. Recheck underlying records
+  rather than promising immediate cross-network revocation. A shortlist
+  bookmark keeps a reference, not a permanently valid offer assertion.
+- A later nightly job may refresh results for pulses, once D50 settles what a
+  pulse attaches to. Recheck underlying records
   again when a stored result is read or sent. Scheduled recommendation generation
   is not a prerequisite for the first working matcher.
 - Exposure caps: in pulses, no initiative or funder appears to more than 10 percent of recipients in a week; ties are broken toward records with fewer prior impressions (an envy-reducing rotation, not a full stable matching).
 - Feedback: `state` transitions on `matches` and introduction outcomes are the training signal; weights are tuned offline and shipped as a new `engine_version`. No online learning in the first year.
 
 ### 7.6 Build plan and UI handoff
+
+**Historical since DL-155:** this plan and its evidence record the shared-entry
+build of 8 to 11 November 2026. Its private Save/Load, sharing and saved-lead
+work is retired by the
+[removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing);
+[section 7.2](#72-cross-initiative-matching-r12-r16) describes matching now. The
+[release acceptance](#release-acceptance-to-revisit) list below is current.
 
 This is the single execution plan for the next build, revised 11 November 2026.
 The outcome is an authenticated owner adding, saving and sharing needs/offers,
@@ -1656,20 +1675,21 @@ checks remain open.
 
 #### Release acceptance to revisit
 
-- [ ] Two different Certified identities create owned initiatives. A shares a
-  need, B shares a compatible offer, and each sees the exact supporting pair.
+- [ ] Two different Certified identities link their own projects. A publishes a
+  need, B publishes a compatible offer, and each sees the exact supporting pair.
   Add reciprocity and verify both explanations; one direction remains useful
-  without it. Keep a second entry private and prove it is not exposed.
+  without it. Keep a second entry unpublished and prove it is not exposed.
 - [ ] A sees an external project's relevant capability for its need and a
   potential use of its offer, without the project joining Weave. Source passages,
   dates, inference labels and unknown availability are visible. No source text
   silently becomes an owner-confirmed entry or funding eligibility evidence.
-- [ ] Editing, closing, withdrawing, expiring and changing audience invalidate
-  affected results; stale workers, caches, retries and old vectors cannot restore
+- [ ] Closing, withdrawing and expiring a listing, and editing a team-draft
+  entry that is published, invalidate affected results; stale workers, caches, retries and old vectors cannot restore
   them. Source updates/deletions follow observed refresh with visible lag.
-- [ ] The four first/returning flows preserve private initiatives, entry IDs,
-  share state and saved leads through sign-out, sign-in and an app/bridge redeploy.
-  Callback success alone still performs no Save, Load or Share.
+- [ ] The four first/returning flows preserve the device draft, a group's team
+  draft, entry IDs, published listings and the device shortlist through
+  sign-out, sign-in and an app/bridge redeploy. Callback success alone still
+  publishes, saves or loads nothing.
 - [ ] Tests reject outsider writes, guessed IDs, revoked sessions and direct
   database access to private records. Public snapshots contain only permitted
   public evidence; a private query never silently leaves the device.
@@ -1702,10 +1722,12 @@ have separate scope and release checks.
 
 ## 9. Pulse and email (R23, R24)
 
+**Open question ([D50](open-decisions.md#for-the-builders)):** the composer below enqueues a pulse per initiative whose owner opted in, which assumed a saved initiative with an owner. Personal saves are gone (DL-155), so a person has no such initiative; a group project's team draft still could be one. The user has not chosen what a pulse attaches to, and this section stays as designed until then.
+
 - Composer: a Supabase Edge Function `pulse-compose` scheduled by `pg_cron` every Monday 07:00 UTC enqueues one `weave.outbox` row per eligible initiative whose owner opted in, and skips empty weeks, with the rendered payload: new partner matches since last pulse (max 3), opportunities closing within 21 days in the initiative's themes and places (max 5, from the existing Funding Pulse logic), open needs in the same basin or bioregion that the initiative's offers could meet (max 3), recipes forming that need an ingredient the initiative carries (max 2), and the one-tap confirmation link (signed token, extends `confirmed_at`).
 - Sender: Edge Function `outbox-send` claims rows with a lease, renders React Email templates, calls Resend `/emails/batch` in groups of 100 with `Idempotency-Key = outbox.idempotency_key`, records `provider_message_id` or a fixed failure code, and retries up to three times over 24 hours (the website's retry rule).
 - Deliverability: send pulses from `mail.regencommons.com` (new verified subdomain), website/steward auth mail remains separate; Certified owns Weave sign-in messages, with DMARC on the root; disable click tracking on transactional mail; `List-Unsubscribe` and `List-Unsubscribe-Post` headers on every pulse; a per-profile `digest_frequency`; regional pulses for stewards and funders are opt-in audiences in Resend.
-- Volumes: 150 initiatives and 50 regional subscribers means under 1,000 pulse emails a month, inside Resend's monthly free allowance. Private saving sends no Weave email. Future opted-in notifications contribute to sending limits; do not infer contact addresses from authentication. Move to the USD 20 Pro tier when daily sends approach 100 or before a large public invitation.
+- Volumes: 150 initiatives and 50 regional subscribers means under 1,000 pulse emails a month, inside Resend's monthly free allowance. Publishing and team drafts send no Weave email. Future opted-in notifications contribute to sending limits; do not infer contact addresses from authentication. Move to the USD 20 Pro tier when daily sends approach 100 or before a large public invitation.
 
 ## 10. Interoperability (R29 to R32)
 
@@ -1740,7 +1762,7 @@ The existing desk (`regencommons.com/admin`) gains a `weave` section group using
 - Write endpoints require a same-origin `Origin` header and JSON; bodies capped (64 KB; files go directly to Storage with RLS).
 - Rate limits: sign-in requests throttled client-side and by Supabase; save, share and intro commands limited per account per hour in a `private.limits` table (the website's intake quota pattern).
 - Secrets: provider keys, KOI private key and geocoder keys only in Vercel and Supabase secrets; a restricted Postgres role for jobs; no service-role key anywhere in app code.
-- Privacy posture documented on a public page: what stays local, what is stored, what is shared where, how to retract, how to export, retention (drafts stay on the device until saved; saved and shared records until withdrawn or deleted; AI ledger 24 months; outbox payloads 30 days). It also says that people who administer the database can technically read stored records under the data policy, so "Only you" describes the product, not the database.
+- Privacy posture documented on a public page: what stays local, what is stored, what is shared where, how to retract, how to export, retention (drafts stay on the device; a group project's team draft while its workspace lasts; published listings until withdrawn, though other readers may keep copies; private saves made before DL-155 until step 7 removes them; AI ledger 24 months; outbox payloads 30 days). It also says that people who administer the database can technically read stored records under the data policy, so "Only you" describes the product, not the database.
 - Abuse: honeypot fields, steward hide with reason, duplicate detection by name and link similarity when a record is shared, no public email addresses, intro relay with accept gate.
 
 ## 13. Observability and operations

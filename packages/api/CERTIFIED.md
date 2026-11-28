@@ -764,7 +764,9 @@ database fixtures separately from a real Certified browser and write proof.
 
 ### Local team saving and workspace matching
 
-Apply the local `weave-team-content.sql` candidate after the matching and
+A group project keeps its shared team draft here (D48, revised 28 November 2026):
+teammates with a Weave grant read it, and editors and admins save it and publish
+from it. Apply the local `weave-team-content.sql` candidate after the matching and
 project workspace migrations. `POST /api/projects` accepts `team_load` with a
 `workspaceId`, or `team_save` with the same ID, `expectedRevision`,
 `requestId`, and checked `document`. Use revision zero for the first save.
@@ -773,9 +775,11 @@ Load returns `saved` and the current `accessRole` (`viewer`, `editor` or
 Certified session and require current group membership and a Weave grant.
 Use the `membership` consent action if the session has not granted it.
 
-The migration closes the old direct matching RPC path. Release it together
-with the workspace-aware matching handler when the pilot can be enabled.
-Keep the hosted candidate disabled until then. The disposable
+The migration closes the old direct matching RPC path for browser sessions.
+Sharing for matching ended in step 5 of the
+[removal plan](../../docs/platform/08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing);
+workspace matching is now `listing_search` on the project's own published
+listings, for members of its workspace. The disposable
 `project-workspaces-postgres.test.ts` suite uses a loopback database named
 `weave_workspace_test` and the checked-in account baseline from the website
 repository. It tests workspace and matching permissions with synthetic
