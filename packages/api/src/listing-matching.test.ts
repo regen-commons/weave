@@ -191,3 +191,31 @@ test("the listing search leaves out exactly the words the partner matcher treats
   assert.equal(new Set(words).size, words.length, "no word may be listed twice");
   assert.deepEqual([...words].sort(), [...PARTNER_GENERIC_TERMS].sort());
 });
+
+test("a listing from the workspace's own repository is never its partner, even if Platform sent one", async () => {
+  const own = { ...candidate("offer", "Weekend volunteers for a seed library", "3mlstcaaaaaaa"),
+    uri: uri(anaProject, "3mlstcaaaaaaa"), projectUri: anaProject, projectName: "Ana's other project",
+    record: listingRecord(anaProject, "offer", "Weekend volunteers for a seed library") };
+  const result = await listingSearch(shortlist([own, candidate("offer", "Weekend volunteers for a seed library", "3mlstdaaaaaaa")]));
+  assert.deepEqual(result.results.filter(({ evidence }) => evidence.type === "listing").map(({ counterpart }) => counterpart.id), [benProject]);
+});
+
+test("a published listing is never a saved partner on the server", () => {
+  const base = { action: "set_lead", initiativeId: workspace, requestId: "50000000-0000-4000-8000-000000000001",
+    entry: { kind: "need", entryId: ownNeed, revision: 1, shareVersion: 1 }, disposition: "saved" };
+  assert.throws(() => parseMatchingCommand({ ...base, candidateId: `listing:${uri(benProject, "3mlstdaaaaaaa")}` }));
+  assert.equal(parseMatchingCommand({ ...base, candidateId: `public:${benProject}` }).action, "set_lead");
+});
+
+test("the share search names no model when its public evidence was not a list", async () => {
+  const { PROJECT_MODEL_VERSION } = await import("./project-index-vector.ts");
+  const entry = { kind: "need", entryId: ownNeed, revision: 1, shareVersion: 1, initiativeId: workspace, confirmedAt: at,
+    expiresAt: null, summary: { name: "Ana", description: "", isGlobal: false, locations: [], lenses: [], themes: [] },
+    value: { title: "Volunteers for our seed library", description: null, capitalForms: ["social"], amount: null, timeframe: null,
+      urgency: null, placeScope: "anywhere", exchangeTerms: ["open"], purpose: null, capacity: null, audience: null, status: "open" } };
+  const result = await createMatchingProvider(async () => ({
+    groups: [{ entry, candidates: [], publicEvidence: "not a list", publicModelVersion: PROJECT_MODEL_VERSION }],
+    externalCoverage: null,
+  })).execute("", { action: "search", initiativeId: workspace }) as MatchingSearch;
+  assert.equal(result.coverage.modelVersion, null);
+});

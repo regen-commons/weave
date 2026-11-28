@@ -49,11 +49,16 @@ export function createMatchingHandlers({ provider, secureCookies = true, origin 
 function configuredHandlers() {
   try {
     const config = accountConfiguration(process.env);
-    if (config) return createMatchingHandlers({
-      provider: createMatchingProvider(createSupabaseWeaveRpc(config.supabase, config.key)),
-      secureCookies: config.secureCookies,
-      origin: config.origin,
-    });
+    if (config) {
+      const provider = createMatchingProvider(createSupabaseWeaveRpc(config.supabase, config.key));
+      return createMatchingHandlers({
+        // A listing search needs a verified project workspace, which only the project runtime has.
+        provider: { execute: (token, command) => command.action === "listing_search"
+          ? Promise.reject(new AccountError(503, "matching_unavailable")) : provider.execute(token, command) },
+        secureCookies: config.secureCookies,
+        origin: config.origin,
+      });
+    }
   } catch { /* Invalid configuration stays unavailable and discloses no details. */ }
   return createMatchingHandlers({ provider: null });
 }

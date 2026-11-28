@@ -73,6 +73,7 @@ function entriesOf(project: Project, additionalNeed: boolean): PartnerEntry[] {
 
 async function openWorkspace(page: Page, project: Project, counterpart: Project, {
   confirmed = true, additionalNeed = true, publicAvailable = true, extraEvidence = [] as ProjectEvidence[],
+  listings = [] as unknown[],
 } = {}) {
   const queries = entriesOf(project, additionalNeed);
   const uri = uriOf(project.did);
@@ -119,7 +120,8 @@ async function openWorkspace(page: Page, project: Project, counterpart: Project,
       case "public_evidence":
         if (!publicAvailable) return route.fulfill({ status: 503, json: { error: "public_evidence_unavailable" } });
         return route.fulfill({ json: { workspaceId: project.id, corpusVersion: "fixture", status: "bounded",
-          indexedAt: date, availableUntil: new Date(Date.now() + 600_000).toISOString(), truncated: false, evidence: publicEvidence } });
+          indexedAt: date, availableUntil: new Date(Date.now() + 600_000).toISOString(), truncated: false, evidence: publicEvidence,
+          listings, listingsTruncated: false } });
       default:
         return route.fulfill({ status: 400, json: { error: "invalid_request" } });
     }
@@ -245,5 +247,33 @@ for (const colorScheme of ["light", "dark"] as const) {
         await page.screenshot({ path: info.outputPath("partial-fits-375.png") });
       }
     }
+  });
+}
+
+// DL-155, step 5: another project's published offer, from the snapshot, is a direct fit under its own heading.
+const seedKeepers = { did: "did:plc:efghijklmnopqrstuvwxyzab", name: "Valley Seed Keepers" };
+const publishedOffer = {
+  kind: "offer", uri: `at://${seedKeepers.did}/com.regencommons.weave.supportListing/3mlstoffraaaa`, cid: `b${"q".repeat(58)}`,
+  projectUri: uriOf(seedKeepers.did), projectName: seedKeepers.name,
+  record: {
+    $type: "com.regencommons.weave.supportListing", projectUri: uriOf(seedKeepers.did), kind: "offer",
+    title: "Community groups to trial a pilot app", capitalForms: ["experiential"], status: "open", createdAt: date,
+    description: "Our community groups can trial the app, test documenting activities and reviewing evidence, and give feedback.",
+  },
+};
+for (const colorScheme of ["light", "dark"] as const) {
+  test(`a published offer from another project shows under Published Offers in ${colorScheme}`, async ({ page }, info) => {
+    await page.emulateMedia({ colorScheme });
+    const partners = await openWorkspace(page, greenGoods, techAndSun, { additionalNeed: false, listings: [publishedOffer] });
+    const need = partners.getByRole("region", { name: greenGoods.need.value.title, exact: true });
+    await expect(need.getByRole("heading", { name: "Published Offers", exact: true })).toBeVisible();
+    const card = need.locator(".rc-card", { has: page.getByRole("heading", { name: seedKeepers.name, exact: true }) });
+    await expect(card).toBeVisible();
+    await expect(card.getByRole("button", { name: /Save|Hide/ })).toHaveCount(0);
+    const why = card.getByText("Why this fits", { exact: true });
+    await why.focus();
+    await page.keyboard.press("Enter");
+    await expect(card.getByText("The project published this offer. Check the details before making plans.")).toBeVisible();
+    if (process.env.WEAVE_PARTNER_PROOF) await need.screenshot({ path: info.outputPath(`published-offer-${colorScheme}.png`) });
   });
 }

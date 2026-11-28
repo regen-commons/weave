@@ -305,7 +305,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
         actions={((evidence.type === "public" && projectAddress(evidence.projectUri))
           || (evidence.type === "listing" && projectAddress(match.counterpart.id)) || !compact) && (
           <>
-            {!compact && !readOnly && (
+            {!compact && !readOnly && evidence.type !== "listing" && (
               <LeadButton label={lead ? "Remove From Saved" : "Save"} name={name}
                 variant={lead ? "quiet" : "secondary"} disabled={disabled || readOnly}
                 onClick={() => lead
@@ -314,7 +314,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
             )}
             {evidence.type === "public" && <InitiativeLink uri={evidence.projectUri} name={name} />}
             {evidence.type === "listing" && <InitiativeLink uri={match.counterpart.id} name={name} />}
-            {!compact && !readOnly && (
+            {!compact && !readOnly && evidence.type !== "listing" && (
               <LeadButton label="Hide" name={name} disabled={disabled || readOnly}
                 onClick={() => onChange(entry, match.candidateId, "dismissed")} />
             )}
@@ -337,8 +337,11 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
         const heading = `${id}-need-${need.entryId}`;
         const confirmed = fits.filter(({ entry, match }) => entry.kind === "need"
           && entry.entryId === need.entryId && match.evidenceKind === "confirmed_offer");
+        const listingCards = publicResults?.renderCards(
+          ({ kind, entryId }) => kind === "need" && entryId === need.entryId, needCardLevel, "listings",
+        );
         const publicCards = publicResults?.renderCards(
-          ({ kind, entryId }) => kind === "need" && entryId === need.entryId, needCardLevel,
+          ({ kind, entryId }) => kind === "need" && entryId === need.entryId, needCardLevel, "public",
         );
         const partialCards = publicResults?.renderCards(
           ({ kind, entryId }) => kind === "need" && entryId === need.entryId, needCardLevel, "partial",
@@ -356,6 +359,12 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                 </CardGrid>
               </>
             )}
+            {listingCards && (
+              <>
+                <Evidence className="rc-heading" data-size="section">Published Offers</Evidence>
+                {listingCards}
+              </>
+            )}
             {publicCards && (
               <>
                 <Evidence className="rc-heading" data-size="section">From Public Project Details</Evidence>
@@ -368,7 +377,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                 {partialCards}
               </>
             )}
-            {search && publicResults?.checked && !confirmed.length && !publicCards && !partialCards && <p>No partners found for this need yet.</p>}
+            {search && publicResults?.checked && !confirmed.length && !listingCards && !publicCards && !partialCards && <p>No partners found for this need yet.</p>}
           </section>
         );
       })}

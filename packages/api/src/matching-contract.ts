@@ -227,8 +227,10 @@ export function parseMatchingCommand(value: unknown): MatchingCommand {
     case "set_lead": {
       exact(o, [...base, "entry", "candidateId", "disposition", "requestId"]);
       const disposition = option(o.disposition, ["saved", "dismissed", "removed"]);
-      const common = { initiativeId, action: o.action, candidateId: matchingCandidateId(o.candidateId),
-        requestId: identifier(o.requestId) } as const;
+      const candidateId = matchingCandidateId(o.candidateId);
+      // Saved partners are a shared entry's or a public project's; a published listing is kept on the device.
+      if (candidateId.startsWith("listing:")) invalid();
+      const common = { initiativeId, action: o.action, candidateId, requestId: identifier(o.requestId) } as const;
       const entry = record(o.entry);
       if (disposition === "removed") {
         // Older clients can still send a full reference. Only the key identifies the lead.

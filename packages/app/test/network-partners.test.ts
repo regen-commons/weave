@@ -462,3 +462,21 @@ test("a draft's kept need finds another project's published offer in the snapsho
   assert.equal(project?.name, "Ben's seed library");
   assert.equal(project?.fits.length, 1);
 });
+
+test("a project with two published offers that fit one need names that need once (DL-155)", async () => {
+  const { privatePartnerQueries, projectSuggestions, rankCertifiedSuggestions } = await import("../src/partners/certified-suggestions.ts");
+  const workspace = crypto.randomUUID();
+  const benProject = "at://did:plc:benbbbbbbbbbbbbbbbbbbbbb/org.hypercerts.collection/3mlistingben1";
+  const listing = (title: string, rkey: string) => ({
+    uri: `at://did:plc:benbbbbbbbbbbbbbbbbbbbbb/com.regencommons.weave.supportListing/${rkey}`, cid: `b${"d".repeat(58)}`,
+    projectUri: benProject, projectName: "Ben's seed library", kind: "offer" as const, title, description: "",
+    capitalForms: ["intellectual"], createdAt: new Date(Date.now() - 60_000).toISOString(), expiresAt: null,
+  });
+  const queries = privatePartnerQueries(workspace, 0, [ask("Weekend volunteers for our seed library")], []);
+  const matches = rankCertifiedSuggestions(workspace, queries, [], [
+    listing("Seed library volunteers on weekends", "3mlstdaaaaaaa"), listing("Weekend seed library volunteers", "3mlsteaaaaaaa")]);
+  assert.equal(matches.length, 2);
+  const [project] = projectSuggestions(matches, queries);
+  assert.equal(project?.fits.length, 1);
+  assert.equal(project?.fits[0]?.match, matches[0]);
+});

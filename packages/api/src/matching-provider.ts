@@ -27,9 +27,11 @@ function rank(initiativeId: string, payload: unknown): MatchingSearch {
     if (entry.initiativeId !== initiativeId) throw Error("invalid_data");
     const key = `${entry.kind}:${entry.entryId}`;
     sharedByEntry[key] = candidates;
-    if (publicModelVersion === PROJECT_MODEL_VERSION) read.modelUsed();
     const parsed = read.passages(publicEvidence);
-    if (parsed) publicEvidenceByEntry[key] = publicEvidenceForMatching(entry, parsed);
+    if (!parsed) return;
+    // As before: a model counts as used only for evidence that was a list.
+    if (publicModelVersion === PROJECT_MODEL_VERSION) read.modelUsed();
+    publicEvidenceByEntry[key] = publicEvidenceForMatching(entry, parsed);
   });
   return parseMatchingSearch({ initiativeId, coverage: read.coverage(groups.length > 0, raw.externalCoverage), results: rankPartnerMatches({
     queries: groups.map(group => group.entry),
@@ -51,7 +53,9 @@ function rankListings(workspaceId: string, payload: unknown): MatchingSearch {
   const read = readPublicEvidence();
   for (const { query, projectUri, candidates, publicEvidence } of groups) {
     const key = `${query.kind}:${query.entryId}`;
-    listingsByEntry[key] = candidates;
+    // Platform leaves out the project's own repository; so does this, rather than trust it alone.
+    const repository = projectUri.split("/")[2];
+    listingsByEntry[key] = candidates.filter(listing => listing.projectUri.split("/")[2] !== repository);
     const parsed = read.passages(publicEvidence);
     if (parsed) publicEvidenceByEntry[key] = publicEvidenceForMatching(query, parsed.filter(row => row.projectUri !== projectUri));
   }

@@ -24,8 +24,16 @@ type SnapshotState = { workspaceId: string } & (
 
 export type CertifiedPartnerResults = {
   checked: boolean;
-  renderCards: (select: (query: PartnerEntry) => boolean, level: 3 | 4 | 5 | 6, group?: "matches" | "partial") => ReactNode;
+  /**
+   * Cards for the selected entries. "matches" is every fit but the partial ones; beside other results, "listings"
+   * keeps other projects' published needs and offers (DL-155, step 5) apart from "public" project details.
+   */
+  renderCards: (select: (query: PartnerEntry) => boolean, level: 3 | 4 | 5 | 6,
+    group?: "matches" | "partial" | "listings" | "public") => ReactNode;
 };
+const inGroup = (match: RankedPartnerMatch, group: "matches" | "partial" | "listings" | "public") =>
+  group === "partial" ? !!match.partial
+    : !match.partial && (group === "matches" || (match.evidence.type === "listing") === (group === "listings"));
 
 export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compact, online, onAccessLost, renderResults }: {
   workspaceId: string;
@@ -113,7 +121,7 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
   const PartialHeading = compact ? "h4" : "h3";
   const renderCards: CertifiedPartnerResults["renderCards"] = (select, level, group = "matches") => {
     // A project that fits several entries within this group shows once, naming each.
-    const projects = matches ? projectSuggestions(matches.filter((match) => !!match.partial === (group === "partial")), queries.filter(select), compact ? 2 : undefined) : [];
+    const projects = matches ? projectSuggestions(matches.filter((match) => inGroup(match, group)), queries.filter(select), compact ? 2 : undefined) : [];
     if (!projects.length) return null;
     const Title = `h${level}` as const;
     return (
