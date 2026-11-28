@@ -39,7 +39,6 @@ test("with the live account, the line says where the card is kept, and no step o
     line: "",
     unsaved: false,
     save: null,
-    sharing: null,
     publishing: null,
   });
   const draft = revise(newDraft(), { composer: "a few words" });
@@ -54,7 +53,7 @@ test("with the live account, the line says where the card is kept, and no step o
   assert.equal(cardStatus(savedBefore, "saved", null, "none").line, "On this device.", "signed in, the account answers for itself");
 
   const signedOut = cardStatus(complete, "saved", null, "signed-out");
-  assert.deepEqual([signedOut.state, signedOut.save, signedOut.sharing, signedOut.publishing], ["device", null, null, null]);
+  assert.deepEqual([signedOut.state, signedOut.save, signedOut.publishing], ["device", null, null]);
   const signedIn = cardStatus(complete, "saved", null, "none");
   assert.deepEqual([signedIn.state, signedIn.save], ["device", null], "signing in saves nothing and offers no private save");
 
@@ -87,7 +86,7 @@ test("a need with no kind of support stays on the device, and publishing leaves 
 test("signing in saves nothing, and a private save made earlier reads as kept and no longer changing", async () => {
   const example = createSocialFixture("draft", "2026-11-04");
   const visitor = cardStatus(complete, "saved", example.snapshot(), "signed-out");
-  assert.deepEqual([visitor.state, visitor.save, visitor.sharing], ["device", null, null]);
+  assert.deepEqual([visitor.state, visitor.save], ["device", null]);
   assert.equal(visitor.publishing, null, "nothing to say about publishing before a project is linked");
   await example.signIn();
   const signedIn = cardStatus(complete, "saved", example.snapshot(), "signed-out");
@@ -107,8 +106,8 @@ test("a linked project decides what publishing waits on, and only a team workspa
   await team.linkProject(ORCHARD_RECORD.uri);
   const open = cardStatus(complete, "saved", team.snapshot(), "signed-out");
   assert.deepEqual(
-    [open.state, open.line, open.save, open.sharing],
-    ["saved", "Saved in the Upper valley growers workspace. Teammates with access can see it.", null, null],
+    [open.state, open.line, open.save],
+    ["saved", "Saved in the Upper valley growers workspace. Teammates with access can see it.", null],
   );
   assert.deepEqual(open.publishing, { state: "off", line: NOT_PUBLIC_LINE, waits: null });
   const editedInTeam = cardStatus(renamed, "saved", createSocialFixture("workspace", "2026-11-04").snapshot(), "signed-out");
@@ -148,8 +147,8 @@ test("a linked project decides what publishing waits on, and only a team workspa
   const solo = createSocialFixture("private", "2026-11-04");
   await solo.linkProject(WATER_NOTES_RECORD.uri);
   const personal = cardStatus(complete, "saved", solo.snapshot(), "signed-out");
-  assert.deepEqual([personal.line, personal.save, personal.sharing],
-    ["Also kept as a private save in Weave, which no longer changes. Only you can see it.", null, null]);
+  assert.deepEqual([personal.line, personal.save],
+    ["Also kept as a private save in Weave, which no longer changes. Only you can see it.", null]);
   assert.deepEqual(personal.publishing, { state: "off", line: NOT_PUBLIC_LINE, waits: null });
 });
 
@@ -197,7 +196,7 @@ test("publishing says what is out, who can see it, and when it changed since, wi
     line: "1 need, 1 offer published on 4 November 2026, for anyone to read.",
     waits: null,
   });
-  assert.equal(published.sharing, null, "sharing for matching has no row (DL-155, step 4)");
+  assert.equal("sharing" in published, false, "sharing for matching has no row (DL-155)");
   assert.deepEqual(cardStatus(renamed, "saved", example.snapshot(), "signed-out").publishing, {
     state: "changed",
     line: "Changed since publishing. The earlier listing is being withdrawn, and your changes stay private until you publish again.",
@@ -219,7 +218,6 @@ test("publishing says what is out, who can see it, and when it changed since, wi
 
   const seeded = createSocialFixture("published", "2026-11-04");
   const listed = cardStatus(renamed, "saved", seeded.snapshot(), "signed-out");
-  assert.equal(listed.sharing, null);
   assert.equal(listed.publishing?.line, "1 need, 1 offer published on 2 November 2026, for anyone to read.");
   await seeded.signOut();
   const signedOut = cardStatus(complete, "saved", seeded.snapshot(), "signed-out");
@@ -328,7 +326,7 @@ test("a project already on Certified is never read as unpublished: the row and b
   assert.equal(PUBLISH_ACTION, "Publish Needs And Offers");
   assert.equal(publicListingsLine(1), "1 need or offer public on Certified.");
   assert.equal(publicListingsLine(3), "3 needs and offers public on Certified.");
-  for (const file of ["../src/social/LiveExposure.tsx", "../src/social/Share.tsx", "../src/initiative/status.ts"]) {
+  for (const file of ["../src/social/LiveExposure.tsx", "../src/social/Publish.tsx", "../src/initiative/status.ts"]) {
     const source = readFileSync(new URL(file, import.meta.url), "utf8");
     assert.doesNotMatch(source, /Publish On Certified|"Not published\."/u, file);
   }
@@ -342,7 +340,8 @@ test("a project already on Certified is never read as unpublished: the row and b
 test("sharing for matching has ended: nothing lists, stops or withdraws a share, and partners are kept on the shortlist", () => {
   for (const file of ["../src/partners/PartnerExperience.tsx", "../src/partners/CertifiedSuggestions.tsx",
     "../src/social/LiveExposure.tsx", "../src/pages/TeamWorkspace.tsx", "../src/pages/YourInitiative.tsx",
-    "../src/partners/ExamplePartners.tsx", "../src/partners/TeamEntries.tsx", "../src/ui/TeamSlots.tsx"]) {
+    "../src/partners/ExamplePartners.tsx", "../src/partners/TeamEntries.tsx", "../src/ui/TeamSlots.tsx",
+    "../src/social/Publish.tsx", "../src/social/gate.ts"]) {
     const source = readFileSync(new URL(file, import.meta.url), "utf8");
     assert.doesNotMatch(source, /Stop Sharing|Withdraw From Matching|Share For Matching|Shared before|SavedMatching|set_lead|Remove From Saved|"withdraw"/u, file);
   }

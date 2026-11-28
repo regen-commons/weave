@@ -5,7 +5,7 @@ import { createServer } from "node:http";
 import { once } from "node:events";
 import { createAccountHandlers, GET } from "./account.ts";
 import { createSupabaseAccountProvider, AccountError, type AccountProvider } from "./account-provider.ts";
-import { ASK_LIMIT, STORED_ASK_LIMIT, parseDocument, parseSaved, parseSavedAsk } from "./account-contract.ts";
+import { ASK_LIMIT, STORED_ASK_LIMIT, parseDocument, parseSaved } from "./account-contract.ts";
 const document = parseDocument(
   JSON.parse(readFileSync(new URL("./test-data/account.json", import.meta.url), "utf8")),
 );
@@ -26,7 +26,6 @@ function fixture() {
     signOut: async () => {},
     list: async () => [{ id, revision: 1, name: "Synthetic initiative", updatedAt: saved.updatedAt }],
     load: async () => saved,
-    save: async (_token, command) => ({ ...saved, document: command.document }),
     deleteInitiative: async (_token, command) => {
       calls.push(`delete:${command.id}:${command.expectedRevision}:${command.requestId}`);
       return { id: command.id, deleted: true, revision: command.expectedRevision, removed: [command.id], kept: 2 };
@@ -163,7 +162,7 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
               ? true
               : req.url === "/rest/v1/rpc/list_initiatives"
                 ? []
-                : req.url === "/rest/v1/rpc/save_initiative" || req.url === "/rest/v1/rpc/load_initiative"
+                : req.url === "/rest/v1/rpc/load_initiative"
                   ? saved
                   : {},
       ),
@@ -197,7 +196,6 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
   assert.deepEqual(await provider.authorize("test.access.token"), user);
   await provider.list("test.access.token", 0);
   assert.deepEqual(await provider.load("test.access.token", id), saved);
-  await provider.save("test.access.token", { id, requestId, expectedRevision: 0, document });
   await provider.signOut("test.access.token");
   for (const item of seen) {
     assert.equal(item.headers.apikey, "sb_publishable_synthetic");
@@ -209,7 +207,7 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
   }
   fail = true;
   await assert.rejects(
-    provider.save("test.access.token", { id, requestId, expectedRevision: 1, document }),
+    provider.deleteInitiative("test.access.token", { id, requestId, expectedRevision: 1 }),
     (error) =>
       error instanceof AccountError && error.code === "save_conflict" && error.message === "save_conflict",
   );
@@ -251,23 +249,23 @@ test("only Supabase's expired-flow code reports an expired sign-in; its message 
   await assert.rejects(exchange(500, { code: 500, error_code: "flow_state_expired", msg: detail }), rejected("account_unavailable"));
 });
 
-test("a private save is refused by name whichever account the cookie names, and nothing is written", async () => {
+test("a private save is refused by name whichever account the cookie names, and the provider is never reached", async () => {
   const { provider } = fixture();
-  let writes = 0;
   provider.authorize = async () => ({ ...user, id: "b1000000-0000-4000-8000-000000000002" });
-  provider.save = async () => {
-    writes++;
-    return saved;
-  };
-  const result = await createAccountHandlers({ provider }).POST(
-    post({ action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document }),
-  );
+  const reached: string[] = [];
+  const watched = new Proxy(provider, { get(target, key, receiver) {
+    reached.push(String(key));
+    return Reflect.get(target, key, receiver);
+  } });
+  const handlers = createAccountHandlers({ provider: watched });
+  reached.length = 0;
+  const result = await handlers.POST(post({ action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document }));
   assert.equal(result.status, 410);
   assert.deepEqual(await result.json(), { error: "private_saves_retired" });
-  assert.equal(writes, 0);
+  assert.deepEqual(reached, [], "no session check, no read and no write");
 });
 
-test("private save and load round-trip unclassified entries while matching still requires classification", async () => {
+test("an earlier private save with an unclassified entry still loads", async () => {
   const draft = structuredClone(document);
   const need = draft.needs[0];
   assert.ok(need);
@@ -280,12 +278,10 @@ test("private save and load round-trip unclassified entries while matching still
     calls.push(String(url).split("/").pop()!);
     return Response.json(receipt);
   });
-  assert.deepEqual(await provider.save("fixture.token", { id, expectedRevision: 0, requestId, document: checked }), receipt);
   assert.deepEqual(await provider.load("fixture.token", id), receipt);
   // The browser parses the same receipt after the server's provider boundary.
   assert.deepEqual(parseSaved(receipt), receipt);
-  assert.deepEqual(calls, ["save_initiative", "load_initiative"]);
-  assert.throws(() => parseSavedAsk(need), /invalid_data/u);
+  assert.deepEqual(calls, ["load_initiative"]);
 });
 
 test("a card saved under the earlier limits stays readable: five needs, five offers, six links and long answers", async () => {

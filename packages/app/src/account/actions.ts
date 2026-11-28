@@ -1,68 +1,11 @@
-import { measureInitiativeSave, type ReportUsage } from "../usage.ts";
 import type { DraftController } from "../describe/controller.ts";
-import { revise } from "../describe/contracts.ts";
 import { accountRequest, accountSessionSignal, AccountFailure, assertAccount, parseSaved } from "./client.ts";
-import { loadedDraft, saveCommand } from "./document.ts";
-import { releaseDeletedCard } from "./delete-card.ts";
-import { deviceChoosers } from "../social/project-choice.ts";
+import { loadedDraft } from "./document.ts";
 
-/** The save went through, but the draft that asked for it is no longer on this device as it was. */
-export class SaveDetached extends Error {
-  constructor() {
-    super("Your card was saved to your account, but the draft on this device was removed or replaced meanwhile, so it is not linked to that save. Open the saved card from Your Initiatives to continue it.");
-  }
-}
-
-/** Send one save. A removed ID releases the device draft so the next Save makes a new card. */
-export async function sendSave(controller: DraftController, command: { id: string }, signal: AbortSignal, report: ReportUsage) {
-  report("initiative-save-requested");
-  try {
-    const receipt = parseSaved((await accountRequest("", { action: "save", ...command }, "/api/account", signal)).saved);
-    report("initiative-save-accepted");
-    return receipt;
-  } catch (error) {
-    if (error instanceof AccountFailure && error.code === "initiative_deleted") await releaseDeletedCard(controller, command.id);
-    throw error;
-  }
-}
-
-/** The account panel's Save operation; device recovery metadata is durable before the cloud write. */
-export async function saveAccountCard(controller: DraftController, owner: string, refresh: () => Promise<unknown>) {
-  return measureInitiativeSave(async report => {
-    const signal = accountSessionSignal();
-    signal.throwIfAborted();
-    const asking = controller.getSnapshot().draft;
-    const { binding, command } = saveCommand(asking, owner, deviceChoosers(asking.id));
-    controller.change(current => revise(current, { account: { ...current.account, pending: binding } }));
-    await controller.settled();
-    signal.throwIfAborted();
-    if (controller.getSnapshot().storage !== "saved")
-      throw new Error("Your save request could not be kept safely on this device. Copy your words and try device storage again first.");
-    const receipt = await sendSave(controller, command, signal, report);
-    signal.throwIfAborted();
-    if (receipt.id !== command.id || JSON.stringify(receipt.document) !== binding.contentKey)
-      throw new AccountFailure("account_unavailable");
-    // The receipt goes to the draft that asked, by its ID, wherever the tab is now: a person may
-    // have opened or started another initiative while the save was in flight (DL-112). Only a
-    // draft still waiting for this request is bound. One removed, restored or loaded meanwhile,
-    // and any other draft, never inherits the saved card.
-    const bound = await controller.amend(asking.id, current =>
-      current.account.pending?.requestId === binding.requestId
-        ? revise(current, { account: { ...current.account, saved: {
-            id: receipt.id, owner, revision: receipt.revision, contentKey: binding.contentKey,
-          }, pending: null } })
-        : null);
-    if (!bound) {
-      await refresh();
-      throw new SaveDetached();
-    }
-    await refresh();
-    signal.throwIfAborted();
-    return binding.contentKey;
-  });
-}
-
-/** The account panel's explicit Load operation, including its atomic device backup and replacement. */
+/**
+ * The account panel's explicit Load operation, including its atomic device backup and replacement. Weave takes
+ * no new private save (DL-155), so opening an earlier one on this device is the only account card operation left.
+ */
 export async function loadAccountCard(controller: DraftController, owner: string, id: string) {
   const signal = accountSessionSignal();
   signal.throwIfAborted();

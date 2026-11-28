@@ -40,7 +40,7 @@ function ExampleFits({ state, compact }: { state: SocialState; compact: boolean 
   const { draft, ready } = useDraft();
   // A share the card has moved on from is out of matching until it is shared again.
   // Sharing for matching is retired (DL-155), so nothing shared can be out of date.
-  const access = partnerAccessOf(state, true);
+  const access = partnerAccessOf(state);
   const search = routeSearch();
   const query = useMemo(() => localPartnerQuery(draft.needs, draft.offers, draft.confirmed?.locations),
     [draft.needs, draft.offers, draft.confirmed?.locations]);

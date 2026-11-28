@@ -26,7 +26,7 @@ import { adoptPlan, readPlan, takeMakePublic } from "../initiative/publish-plan.
 import { DuplicateNotice } from "../social/DuplicateNotice.tsx";
 import { ProjectAction, WorkspaceRow } from "../social/Project.tsx";
 import { editorStorage, PROJECT_EDITORS, readEditorHandoff } from "../initiative/editor-handoff.ts";
-import { ShareAction } from "../social/Share.tsx";
+import { PublishAction } from "../social/Publish.tsx";
 import { useSocialFixture, useSocial } from "../social/context.tsx";
 import { waitingAction, waitingLine } from "../social/words.ts";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
@@ -312,7 +312,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                   )}
                   {project && <WorkspaceRow primary={steps.lead === "workspace"} />}
                   {steps.publishing && (
-                    <StatusLine actions={<ShareAction start="publish" variant="secondary" size="sm" />}>
+                    <StatusLine actions={<PublishAction variant="secondary" size="sm" />}>
                       {steps.publishing.line}
                     </StatusLine>
                   )}

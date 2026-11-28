@@ -6,10 +6,9 @@ import {
   partnerAccessOf,
   savedPlace,
   SEED_LIBRARY_RECORD,
-  sharingEnds,
   WATER_NOTES_RECORD,
 } from "../src/social/fixture.ts";
-import { exposureLabel, shareGate } from "../src/social/gate.ts";
+import { publishGate, publishLabel } from "../src/social/gate.ts";
 import { deviceTeamWorkspace, projectOpening } from "../src/social/project-open.ts";
 import { discoveryLine, linkEffect, projectLine, publicFacts, replacesCard, workspaceLine } from "../src/social/words.ts";
 
@@ -25,7 +24,6 @@ test("signing in only identifies the person: nothing is saved, linked or shared 
   assert.equal(service.snapshot().identity, null);
   await assert.rejects(service.save(card.name), /Sign in/);
   await assert.rejects(service.linkProject(ORCHARD_RECORD.uri), /Sign in/);
-  await assert.rejects(service.share(["need-1"], "key"), /Sign in/);
   await assert.rejects(service.publish(["need-1"], "key"), /Sign in/);
   await service.signIn();
   const signed = service.snapshot();
@@ -71,7 +69,6 @@ test("linking decides where saved work goes: a team workspace, a request to set 
   assert.equal((await waiting.linkProject(SEED_LIBRARY_RECORD.uri)).workspace, "absent");
   assert.equal(waiting.snapshot().saved?.place, "private", "the person keeps working privately");
   await assert.rejects(waiting.save(card.name, "workspace"), /no team workspace/);
-  await assert.rejects(waiting.share(["need-1"], "key"), /no team workspace/);
   await waiting.requestWorkspace();
   assert.deepEqual(
     [waiting.snapshot().project?.workspace, waiting.snapshot().project?.requestedOn],
@@ -81,17 +78,16 @@ test("linking decides where saved work goes: a team workspace, a request to set 
   await waiting.checkAgain();
   assert.equal(waiting.snapshot().project?.workspace, "open");
   assert.equal(waiting.snapshot().saved?.place, "private", "approval moves nothing into the workspace");
-  await assert.rejects(waiting.share(["need-1"], "key"), /Save to the team workspace first/);
   await waiting.save(card.name, "workspace", "key");
   assert.equal(waiting.snapshot().saved?.place, "workspace");
   assert.deepEqual(waiting.snapshot().cards, [], "the workspace holds the copy now");
-  await waiting.share(["need-1"], "key");
 
   const solo = createSocialFixture("private", "2026-11-04");
   assert.equal((await solo.linkProject(WATER_NOTES_RECORD.uri)).workspace, "solo");
   assert.equal(solo.snapshot().saved?.place, "private", "a personal project stays with one person");
   await assert.rejects(solo.requestWorkspace(), /does not need a workspace request/);
-  await solo.share(["need-1"], "key");
+  await solo.publish(["need-1"], "key");
+  assert.deepEqual(solo.snapshot().published?.entries, ["need-1"], "a personal project's owner publishes from the private save");
   await assert.rejects(solo.linkProject("at://nowhere"), /not on Certified any more/);
 });
 
@@ -150,23 +146,18 @@ test("opening a team workspace or a private save loads what is there and saves n
   assert.equal(service.snapshot().cards.length, 1);
 });
 
-test("sharing for matching and publishing are separate actions, and neither undoes the other", async () => {
+test("publishing leaves an earlier share as it was, and a withdrawal waits for Certified", async () => {
   let outcome: "ok" | "fail" = "ok";
   const service = createSocialFixture("workspace", "2026-11-04", () => outcome);
-  assert.equal(sharingEnds("2026-11-04"), null);
   assert.equal(partnerAccessOf(service.snapshot()), "public");
-  await assert.rejects(service.share([], "key"), /at least one need or offer/);
+  await assert.rejects(service.publish([], "key"), /at least one need or offer/);
   await assert.rejects(service.notify("partners", true), /Share a need or offer/);
-  await service.share(["need-1"], "key-1");
-  assert.deepEqual(service.snapshot().shared, { entries: ["need-1"], until: null, key: "key-1" });
-  assert.equal(service.snapshot().published, null, "sharing for matching does not publish");
-  assert.equal(partnerAccessOf(service.snapshot()), "network");
-  assert.equal(
-    partnerAccessOf(service.snapshot(), false),
-    "public",
-    "a share the card moved on from opens public sources only",
-  );
-  await service.notify("partners", true);
+  // Only the seeded examples hold a share from before DL-155; nothing in the example service makes one now.
+  const shared = createSocialFixture("shared", "2026-11-04");
+  assert.deepEqual(shared.snapshot().shared, { entries: "all", until: null, key: null });
+  assert.equal(partnerAccessOf(shared.snapshot()), "network");
+  await shared.publish(["need-1"], "key-1");
+  assert.deepEqual(shared.snapshot().shared, { entries: "all", until: null, key: null }, "publishing does not touch the share");
   await service.publish(["need-1", "offer-1"], "key-2");
   assert.deepEqual(service.snapshot().published, {
     on: "2026-11-04",
@@ -174,10 +165,7 @@ test("sharing for matching and publishing are separate actions, and neither undo
     key: "key-2",
     withdrawal: null,
   });
-  await service.stopSharing();
-  assert.equal(service.snapshot().shared, null);
-  assert.equal(service.snapshot().published?.key, "key-2", "a published listing stays published");
-  assert.equal(service.snapshot().notifications.partners, false, "partner updates stop with sharing");
+  assert.equal(service.snapshot().shared, null, "publishing shares nothing for matching");
   assert.equal(partnerAccessOf(service.snapshot()), "public");
   outcome = "fail";
   await assert.rejects(service.publish(["need-1"], "key-3"), /did not confirm the record/);
@@ -193,35 +181,30 @@ test("sharing for matching and publishing are separate actions, and neither undo
 test("a review opens on the first step still missing, and a group member reads why they cannot publish", async () => {
   const save = { needs: "save", label: "Save privately", note: "" } as const;
   const service = createSocialFixture("draft", "2026-11-04");
-  assert.equal(shareGate(service.snapshot(), { save: null }, "share"), "sign-in");
+  assert.equal(publishGate(service.snapshot(), { save: null }), "sign-in");
   await service.signIn();
-  assert.equal(shareGate(service.snapshot(), { save }, "share"), "project");
+  assert.equal(publishGate(service.snapshot(), { save }), "project");
   await service.linkProject(WATER_NOTES_RECORD.uri);
-  assert.equal(shareGate(service.snapshot(), { save }, "share"), "save");
-  assert.equal(shareGate(service.snapshot(), { save: null }, "share"), "card", "an unchecked card has nothing to save yet");
+  assert.equal(publishGate(service.snapshot(), { save }), "save");
+  assert.equal(publishGate(service.snapshot(), { save: null }), "card", "an unchecked card has nothing to save yet");
   await service.save(card.name);
-  assert.equal(shareGate(service.snapshot(), { save: null }, "share"), null);
-  assert.equal(shareGate(service.snapshot(), { save: null }, "publish"), null, "a personal project's owner can publish");
+  assert.equal(publishGate(service.snapshot(), { save: null }), null, "a personal project's owner can publish");
 
   // A group member waits for the team workspace, then needs edit access in it to publish (28 November 2026).
   const member = createSocialFixture("private", "2026-11-04");
   await member.linkProject(SEED_LIBRARY_RECORD.uri);
-  assert.equal(shareGate(member.snapshot(), { save: null }, "share"), "workspace");
-  assert.equal(shareGate(member.snapshot(), { save: null }, "publish"), "workspace", "the workspace comes first");
+  assert.equal(publishGate(member.snapshot(), { save: null }), "workspace", "the workspace comes first");
   await member.requestWorkspace();
   await member.checkAgain();
-  assert.equal(shareGate(member.snapshot(), { save: null }, "publish"), "authority", "no edit access until an admin grants it");
+  assert.equal(publishGate(member.snapshot(), { save: null }), "authority", "no edit access until an admin grants it");
   await assert.rejects(member.publish(["need-1"], "key"), /Only teammates who can edit the team workspace can publish/);
   const editor = { ...member.snapshot(), project: { ...member.snapshot().project!, accessRole: "editor" as const } };
-  assert.notEqual(shareGate(editor, { save: null }, "publish"), "authority", "a member with an editor grant can publish");
+  assert.notEqual(publishGate(editor, { save: null }), "authority", "a member with an editor grant can publish");
 
-  assert.equal(exposureLabel("share", undefined), "Share for matching");
-  assert.equal(exposureLabel("share", "on"), "Change or stop sharing");
-  assert.equal(exposureLabel("share", "changed"), "Share the changes");
-  assert.equal(exposureLabel("publish", "off"), "Publish needs and offers");
-  assert.equal(exposureLabel("publish", "on"), "Change or withdraw");
-  assert.equal(exposureLabel("publish", "changed"), "Publish again");
-  assert.equal(exposureLabel("publish", "withdrawing"), "Check again");
+  assert.equal(publishLabel("off"), "Publish needs and offers");
+  assert.equal(publishLabel("on"), "Change or withdraw");
+  assert.equal(publishLabel("changed"), "Publish again");
+  assert.equal(publishLabel("withdrawing"), "Check again");
 });
 
 test("reminders need a saved initiative, saved partners need a linked project, and deleting resets only the example account", async () => {

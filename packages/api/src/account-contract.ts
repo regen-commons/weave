@@ -121,8 +121,8 @@ function initiative(value: unknown): JsonObject {
     languages,
   };
 }
-export function parseSavedAsk(value: unknown): SavedAsk { return checkedAsk(value, false); }
-function checkedAsk(value: unknown, allowUnclassified: boolean): SavedAsk {
+/** A saved need or offer. One without a kind of support yet stays valid: a saved card keeps the entries as checked. */
+function checkedAsk(value: unknown): SavedAsk {
   const row = exact(value, ["id", "value"]);
   if (!uuid(row.id)) throw Error("invalid_data");
   const o = exact(row.value, [
@@ -141,7 +141,7 @@ function checkedAsk(value: unknown, allowUnclassified: boolean): SavedAsk {
   ]);
   const capitalForms = list(o.capitalForms, 8, 80, CAPITALS),
     terms = list(o.exchangeTerms, 5, 80, TERMS);
-  if ((!allowUnclassified && !capitalForms.length) || !terms.length || (terms.includes("open") && terms.length !== 1))
+  if (!terms.length || (terms.includes("open") && terms.length !== 1))
     throw Error("invalid_data");
   let amount: Json = null;
   if (o.amount !== null) {
@@ -185,9 +185,9 @@ export const ASK_LIMIT = 4;
  * saveable, so this contract accepts them; it cannot tell an old list of five from a new one.
  */
 export const STORED_ASK_LIMIT = 5;
-function asks(value: unknown, allowUnclassified: boolean): SavedAsk[] {
+function asks(value: unknown): SavedAsk[] {
   if (!Array.isArray(value) || value.length > STORED_ASK_LIMIT) throw Error("invalid_data");
-  const rows = value.map(row => checkedAsk(row, allowUnclassified));
+  const rows = value.map(row => checkedAsk(row));
   if (new Set(rows.map((row) => row.id.toLowerCase())).size !== rows.length) throw Error("invalid_data");
   return rows;
 }
@@ -243,23 +243,23 @@ function funding(value: unknown): JsonObject {
   }
   return { form, programAnswers: answers };
 }
-export function parseDocument(value: unknown): AccountDocument { return checkedDocument(value, true); }
-export function parseTeamDocument(value: unknown): AccountDocument { return checkedDocument(value, true); }
-function checkedDocument(value: unknown, allowUnclassified: boolean): AccountDocument {
+export function parseDocument(value: unknown): AccountDocument { return checkedDocument(value); }
+export function parseTeamDocument(value: unknown): AccountDocument { return checkedDocument(value); }
+function checkedDocument(value: unknown): AccountDocument {
   const o = exact(value, ["version", "initiative", "needs", "offers", "funding"]);
   if (o.version !== 1) throw Error("invalid_data");
   const result: AccountDocument = {
     version: 1,
     initiative: initiative(o.initiative),
-    needs: asks(o.needs, allowUnclassified),
-    offers: asks(o.offers, allowUnclassified),
+    needs: asks(o.needs),
+    offers: asks(o.offers),
     funding: funding(o.funding),
   };
   if (new TextEncoder().encode(JSON.stringify(result)).length > 60000) throw Error("document_too_large");
   return result;
 }
-export function parseSaved(value: unknown): SavedInitiative { return checkedSave(value, true); }
-export function parseTeamSaved(value: unknown): SavedInitiative { return checkedSave(value, true); }
+export function parseSaved(value: unknown): SavedInitiative { return checkedSave(value); }
+export function parseTeamSaved(value: unknown): SavedInitiative { return checkedSave(value); }
 export type WorkspaceAccessRole = "viewer" | "editor" | "admin";
 export function parseTeamWorkspace(value: unknown) {
   const row = record(value);
@@ -272,7 +272,7 @@ export function parseTeamWorkspace(value: unknown) {
 }
 export type TeamWorkspaceState = ReturnType<typeof parseTeamWorkspace>;
 
-function checkedSave(value: unknown, allowUnclassified: boolean): SavedInitiative {
+function checkedSave(value: unknown): SavedInitiative {
   const o = record(value);
   if (
     !uuid(o.id) ||
@@ -286,7 +286,7 @@ function checkedSave(value: unknown, allowUnclassified: boolean): SavedInitiativ
     id: o.id,
     revision: Number(o.revision),
     updatedAt: o.updatedAt,
-    document: checkedDocument(o.document, allowUnclassified),
+    document: checkedDocument(o.document),
   };
 }
 /** What one account deletion removed and how many personal saved cards the account kept. */

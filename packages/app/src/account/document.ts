@@ -103,32 +103,3 @@ export function ownDocument(draft: DeviceDraft, owner: string, chosenBy: readonl
   if (belongsToAnotherAccount(draft, owner, chosenBy)) throw new AnotherAccountsCard();
   return accountDocument(draft);
 }
-
-export function saveCommand(draft: DeviceDraft, owner: string, chosenBy: readonly string[] = []) {
-  const document = ownDocument(draft, owner, chosenBy),
-    contentKey = JSON.stringify(document),
-    saved = draft.account.saved;
-  const pending = draft.account.pending;
-  const binding =
-    pending?.owner === owner && pending.contentKey === contentKey
-      ? pending
-      : {
-          // Past the refusal, a saved card is this account's own and keeps its ID. A card whose ID
-          // was retired by a deletion gets a new one, so the next save never meets the removed ID.
-          id: saved ? saved.id : draft.account.retired?.includes(draft.id) ? crypto.randomUUID() : draft.id,
-          owner,
-          revision: saved ? saved.revision : 0,
-          contentKey,
-          requestId: crypto.randomUUID(),
-        };
-  return {
-    binding,
-    command: {
-      accountId: owner,
-      id: binding.id,
-      expectedRevision: binding.revision,
-      requestId: binding.requestId,
-      document,
-    },
-  };
-}

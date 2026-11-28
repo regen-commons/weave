@@ -9,10 +9,7 @@ import type { Entries, PublicCard, SocialState, WorkspaceState } from "../social
 
 /** The card's one-line state: where it is kept, and the widest audience that can see any of it. */
 export type CardState = "none" | "device" | "memory" | "saved" | "shared" | "published";
-/**
- * One of the two ways an entry leaves the team: sharing for matching, or publishing.
- * Each is its own explicit action, so each has its own state and line.
- */
+/** Publishing, the one way an entry leaves the team now (DL-155), with its own state and line. */
 export interface Exposure {
   /** `locked` needs an earlier step first; `changed` means the card moved on since; `withdrawing` waits on Certified. */
   readonly state: "locked" | "off" | "on" | "changed" | "withdrawing";
@@ -36,7 +33,6 @@ export interface CardStatus {
   /** Null while the card is unchecked and once the saved copy is current. */
   readonly save: SaveStep | null;
   /** Null where the service is not built, so the page shows no row for it. */
-  readonly sharing: Exposure | null;
   readonly publishing: Exposure | null;
 }
 
@@ -202,7 +198,7 @@ const OPENS: Record<"project" | "workspace" | "save", string> = {
 /**
  * Chooses the rows for the saving and sharing section. A closed step gets no row of its own: one line
  * says what opens it, so the page never shows a button that cannot be used. Sharing for matching has no
- * row: nothing new is shared (DL-155, step 4), and a share still on is stopped from Partners For You.
+ * row: it ended with DL-155.
  */
 export function openSteps(status: CardStatus, workspace: WorkspaceState | null): OpenSteps {
   const lead: OpenSteps["lead"] = status.save ? "save" : workspace === "absent" || workspace === "requested" ? "workspace" : null;
@@ -239,8 +235,6 @@ export function cardStatus(
   account: AccountSave,
 ): CardStatus {
   const signed = example ? !!example.identity : account !== "signed-out";
-  // Sharing for matching with people signed in is retired (DL-155, step 4); a share still on stops from Partners.
-  const sharing: Exposure | null = null;
   const publishing = example ? publishingOf(draft, example) : null;
   const saved = example
     ? signed
@@ -251,9 +245,9 @@ export function cardStatus(
       : null;
   const unsaved =
     !!saved && (example ? saved.key !== null && saved.key !== publicKey(draft) : account === "changed");
-  // Where a save goes now: only a linked project's open team workspace (until step 6).
+  // Where a save goes now: only a linked project's open team workspace, its shared team draft (D48).
   const team = signed && example?.project?.workspace === "open" ? example.project.group : null;
-  const rows = { unsaved, save: saveStep(draft, signed, saved, unsaved, team), sharing, publishing };
+  const rows = { unsaved, save: saveStep(draft, signed, saved, unsaved, team), publishing };
   if (saved) {
     const group = saved.place === "workspace" ? example?.project?.group : null;
     return {

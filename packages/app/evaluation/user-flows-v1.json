@@ -197,7 +197,7 @@
     },
     {
      "file": "packages/api/src/account.test.ts",
-     "test": "private save and load round-trip unclassified entries while matching still requires classification",
+     "test": "an earlier private save with an unclassified entry still loads",
      "class": "module"
     },
     {
@@ -223,7 +223,7 @@
     },
     {
      "file": "packages/api/src/account.test.ts",
-     "test": "a private save is refused by name whichever account the cookie names, and nothing is written",
+     "test": "a private save is refused by name whichever account the cookie names, and the provider is never reached",
      "class": "module"
     }
    ]
@@ -275,8 +275,8 @@
    "behavior": "Retries reuse the same request and never duplicate a write",
    "evidence": [
     {
-     "file": "packages/app/test/account.test.ts",
-     "test": "save retries reuse the same request only for the same owner and checked payload",
+     "file": "packages/app/test/account-actions.test.ts",
+     "test": "the account a card belongs to can still copy it into its team, and a retry sends the same request",
      "class": "module"
     },
     {
@@ -418,7 +418,7 @@
    "evidence": [
     {
      "file": "packages/app/test/network-partners.test.ts",
-     "test": "sharing for matching has ended: an earlier share still reads, and every share command is refused by name",
+     "test": "sharing for matching has ended: state still reads, and every share command is refused by name",
      "class": "module"
     },
     {
@@ -433,7 +433,7 @@
     },
     {
      "file": "packages/api/src/matching.test.ts",
-     "test": "the provider matches both directions with shared entries and public evidence without confusing evidence classes",
+     "test": "sharing for matching is retired: a preview, a share, a renewal, a withdrawal, a share search and saved partners are refused by name before any RPC (DL-155)",
      "class": "module"
     },
     {
@@ -662,7 +662,7 @@
     },
     {
      "file": "packages/app/test/delete-card.test.ts",
-     "test": "a save answered after the person opened another initiative is bound to the draft that asked, and to no other",
+     "test": "a draft still marked as waiting for an earlier save's answer can be removed",
      "class": "module"
     },
     {

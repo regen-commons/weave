@@ -1,11 +1,9 @@
-import { CAPITALS, LENSES, parseSavedAsk, record, uuid, type JsonObject } from "./account-contract.ts";
-import type { ListingPartnerEntry, PartnerEntry, PartnerMatch, ProjectEvidence, SharedPartnerEntry } from "./partner-matcher.ts";
+import { CAPITALS, record, uuid } from "./account-contract.ts";
+import type { ListingPartnerEntry, PartnerEntry, PartnerMatch, ProjectEvidence } from "./partner-matcher.ts";
 
 export type MatchingKind = "need" | "offer";
 export type MatchingShare = "private" | "shared" | "needs_review" | "withdrawn" | "expired";
 export type MatchingEntryStatus = "open" | "met" | "withdrawn" | "expired";
-export type LeadDisposition = "saved" | "dismissed" | "removed";
-export type LeadEvidenceStatus = "current" | "unavailable" | "unknown";
 export interface MatchingEntryKey {
   kind: MatchingKind;
   entryId: string;
@@ -20,37 +18,10 @@ export interface MatchingEntryState extends MatchingEntryRef {
   confirmedAt: string | null;
   expiresAt: string | null;
 }
-export interface MatchingSummary extends JsonObject {
-  name: string;
-  description: string;
-  locations: string[];
-  isGlobal: boolean;
-  lenses: string[];
-  themes: string[];
-}
 export interface MatchingState {
   initiativeId: string;
   initiativeRevision: number;
   entries: MatchingEntryState[];
-}
-export interface MatchingPreview {
-  reviewId: string;
-  initiativeId: string;
-  initiativeRevision: number;
-  audience: "weave_users";
-  expiresAt: string | null;
-  summary: MatchingSummary;
-  entries: (MatchingEntryRef & { value: JsonObject })[];
-}
-export interface MatchingLead extends MatchingEntryKey {
-  candidateId: string;
-  disposition: Exclude<LeadDisposition, "removed">;
-  updatedAt: string;
-  evidenceStatus: LeadEvidenceStatus;
-}
-export interface MatchingLeads {
-  initiativeId: string;
-  leads: MatchingLead[];
 }
 export interface MatchingCoverage {
   shared: "available" | "not_joined";
@@ -64,27 +35,16 @@ export interface MatchingSearch {
   results: PartnerMatch[];
   coverage: MatchingCoverage;
 }
-export type MatchingProjection = SharedPartnerEntry & MatchingEntryRef;
-export type MatchingLeadUpdate = { candidateId: string; requestId: string } & (
-  | { disposition: "removed"; entry: MatchingEntryKey | MatchingEntryRef }
-  | { disposition: "saved" | "dismissed"; entry: MatchingEntryRef }
-);
-export type MatchingCommand = { initiativeId: string } & (
-  | { action: "state" | "leads" }
-  | { action: "preview"; initiativeRevision: number; entries: MatchingEntryRef[]; expiresAt?: string }
-  | { action: "share" | "renew"; reviewId: string; requestId: string }
-  | { action: "withdraw"; entries: MatchingEntryRef[]; requestId: string }
-  | { action: "search"; entries?: MatchingEntryRef[] }
-  // DL-155, step 5: partners for a linked project's published listings. `initiativeId` names the workspace.
-  | { action: "listing_search" }
-  | ({ action: "set_lead" } & MatchingLeadUpdate)
-);
+/**
+ * What the matching endpoint still answers (DL-155): `state`, the entry revisions a team draft publishes from, and
+ * `listing_search`, partners for a linked project's published listings, where `initiativeId` names the workspace.
+ */
+export type MatchingCommand = { initiativeId: string; action: "state" | "listing_search" };
 
 const invalid = (): never => { throw Error("invalid_data"); };
-function exact(value: unknown, required: readonly string[], optional: readonly string[] = []) {
+function exact(value: unknown, required: readonly string[]) {
   const o = record(value);
-  if (required.some(key => !Object.hasOwn(o, key)) ||
-    Object.keys(o).some(key => !required.includes(key) && !optional.includes(key))) invalid();
+  if (required.some(key => !Object.hasOwn(o, key)) || Object.keys(o).some(key => !required.includes(key))) invalid();
   return o;
 }
 function identifier(value: unknown) { return uuid(value) ? value.toLowerCase() : invalid(); }
@@ -103,24 +63,14 @@ function date(value: unknown) {
 }
 const nullableDate = (value: unknown) => value === null ? null : date(value);
 const kind = (value: unknown) => option(value, ["need", "offer"]);
-const entryKeys = ["kind", "entryId"];
-const refKeys = [...entryKeys, "revision", "shareVersion"];
-function entryKey(o: Record<string, unknown>): MatchingEntryKey {
-  return { kind: kind(o.kind), entryId: identifier(o.entryId) };
-}
 function entryRef(o: Record<string, unknown>): MatchingEntryRef {
-  return { ...entryKey(o), revision: version(o.revision),
+  return { kind: kind(o.kind), entryId: identifier(o.entryId), revision: version(o.revision),
     shareVersion: version(o.shareVersion, 0) };
 }
 function array<T>(value: unknown, max: number, parse: (value: unknown) => T): T[] {
   return Array.isArray(value) && value.length <= max ? value.map(parse) : invalid();
 }
-function selections(value: unknown) {
-  const refs = array(value, 10, item => entryRef(exact(item, refKeys)));
-  if (!refs.length || new Set(refs.map(ref => `${ref.kind}:${ref.entryId}`)).size !== refs.length) invalid();
-  return refs;
-}
-export function matchingCandidateId(value: unknown) {
+function matchingCandidateId(value: unknown) {
   const id = text(value, 640);
   const [source, initiativeId, entryKind, entryId, extra] = id.split(":");
   if (source === "weave" && uuid(initiativeId) && ["need", "offer"].includes(entryKind ?? "") && uuid(entryId) && extra === undefined)
@@ -193,63 +143,10 @@ export function parseListingShortlist(value: unknown, workspaceId: string) {
   };
 }
 export function parseMatchingCommand(value: unknown): MatchingCommand {
-  const o = record(value), initiativeId = identifier(o.initiativeId), base = ["action", "initiativeId"];
-  switch (o.action) {
-    case "state":
-    case "leads":
-      exact(o, base);
-      return { initiativeId, action: o.action };
-    case "preview": {
-      exact(o, [...base, "initiativeRevision", "entries"], ["expiresAt"]);
-      let expiresAt: string | undefined;
-      if (o.expiresAt !== undefined) {
-        const input = date(o.expiresAt);
-        if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/u.test(input)) invalid();
-        expiresAt = new Date(input).toISOString();
-        if (expiresAt.slice(0, 19) !== input.slice(0, 19)) invalid();
-      }
-      return { initiativeId, action: o.action, initiativeRevision: version(o.initiativeRevision, 1, 2147483647),
-        entries: selections(o.entries), ...(expiresAt === undefined ? {} : { expiresAt }) };
-    }
-    case "share":
-    case "renew":
-      exact(o, [...base, "reviewId", "requestId"]);
-      return { initiativeId, action: o.action, reviewId: identifier(o.reviewId), requestId: identifier(o.requestId) };
-    case "withdraw":
-      exact(o, [...base, "entries", "requestId"]);
-      return { initiativeId, action: o.action, entries: selections(o.entries), requestId: identifier(o.requestId) };
-    case "search":
-      exact(o, base, ["entries"]);
-      return { initiativeId, action: o.action, ...(o.entries === undefined ? {} : { entries: selections(o.entries) }) };
-    case "listing_search":
-      exact(o, base);
-      return { initiativeId, action: o.action };
-    case "set_lead": {
-      exact(o, [...base, "entry", "candidateId", "disposition", "requestId"]);
-      const disposition = option(o.disposition, ["saved", "dismissed", "removed"]);
-      const candidateId = matchingCandidateId(o.candidateId);
-      // Saved partners are a shared entry's or a public project's; a published listing is kept on the device.
-      if (candidateId.startsWith("listing:")) invalid();
-      const common = { initiativeId, action: o.action, candidateId, requestId: identifier(o.requestId) } as const;
-      const entry = record(o.entry);
-      if (disposition === "removed") {
-        // Older clients can still send a full reference. Only the key identifies the lead.
-        const { kind, entryId } = Object.keys(entry).length === entryKeys.length
-          ? entryKey(exact(entry, entryKeys))
-          : entryRef(exact(entry, refKeys));
-        return { ...common, disposition, entry: { kind, entryId } };
-      }
-      return { ...common, disposition, entry: entryRef(exact(entry, refKeys)) };
-    }
-    default: return invalid();
-  }
-}
-function matchingSummary(value: unknown): MatchingSummary {
-  const o = exact(value, ["name", "description", "locations", "isGlobal", "lenses", "themes"]);
-  if (typeof o.isGlobal !== "boolean") return invalid();
-  return { name: text(o.name, 200), description: text(o.description, 800), isGlobal: o.isGlobal,
-    locations: array(o.locations, 8, item => text(item, 120)),
-    lenses: array(o.lenses, 5, item => option(item, LENSES)), themes: array(o.themes, 10, item => text(item, 60)) };
+  const o = record(value), initiativeId = identifier(o.initiativeId);
+  if (o.action !== "state" && o.action !== "listing_search") return invalid();
+  exact(o, ["action", "initiativeId"]);
+  return { initiativeId, action: o.action };
 }
 export function parseMatchingState(value: unknown): MatchingState {
   const o = record(value);
@@ -259,38 +156,6 @@ export function parseMatchingState(value: unknown): MatchingState {
       return { ...entryRef(e), status: option(e.status, ["open", "met", "withdrawn", "expired"]),
         sharing: option(e.sharing, ["private", "shared", "needs_review", "withdrawn", "expired"]),
         confirmedAt: nullableDate(e.confirmedAt), expiresAt: nullableDate(e.expiresAt) };
-    }) };
-}
-function reviewedEntry(value: unknown) {
-  const e = record(value), ref = entryRef(e);
-  return { ...ref, value: parseSavedAsk({ id: ref.entryId, value: e.value }).value };
-}
-export function parseMatchingPreview(value: unknown): MatchingPreview {
-  const o = record(value);
-  return { reviewId: identifier(o.reviewId), initiativeId: identifier(o.initiativeId),
-    initiativeRevision: version(o.initiativeRevision), audience: option(o.audience, ["weave_users"]),
-    expiresAt: nullableDate(o.expiresAt), summary: matchingSummary(o.summary), entries: array(o.entries, 10, reviewedEntry) };
-}
-function projection(value: unknown): MatchingProjection {
-  const o = record(value);
-  return { ...reviewedEntry(o), initiativeId: identifier(o.initiativeId), confirmedAt: date(o.confirmedAt),
-    expiresAt: nullableDate(o.expiresAt), summary: matchingSummary(o.summary) };
-}
-export function parseMatchingShortlist(value: unknown): { entry: MatchingProjection; candidates: MatchingProjection[]; publicEvidence: unknown; publicModelVersion: unknown }[] {
-  return array(value, 10, item => {
-    const o = record(item);
-    return { entry: projection(o.entry), candidates: array(o.candidates, 75, projection),
-      publicEvidence: o.publicEvidence, publicModelVersion: o.publicModelVersion };
-  });
-}
-export function parseMatchingLeads(value: unknown): MatchingLeads {
-  const o = record(value);
-  return { initiativeId: identifier(o.initiativeId),
-    leads: array(o.leads, 500, item => {
-      const e = record(item);
-      return { kind: kind(e.kind), entryId: identifier(e.entryId), candidateId: matchingCandidateId(e.candidateId),
-        disposition: option(e.disposition, ["saved", "dismissed"]), updatedAt: date(e.updatedAt),
-        evidenceStatus: option(e.evidenceStatus, ["current", "unavailable", "unknown"]) };
     }) };
 }
 export function parseProjectEvidence(value: unknown): ProjectEvidence {

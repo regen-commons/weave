@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import postgres from "postgres";
 import type { AccountDocument } from "./account-contract.ts";
-import { parseMatchingShortlist, parseMatchingState } from "./matching-contract.ts";
+import { parseMatchingState } from "./matching-contract.ts";
 
 const database = process.env.WEAVE_WORKSPACE_TEST_DATABASE_URL;
 const baseline = process.env.WEAVE_WORKSPACE_TEST_BASELINE;
@@ -537,7 +537,8 @@ test("open-ended shares retain direct and lexical public evidence through the ve
   assert.equal(external.modelVersion, null);
   assert.ok(external.evidence.some((row: { projectUri: string }) => row.projectUri === projectUri));
   const shortlist = await content(1, need, "matching_shortlist");
-  const groups = parseMatchingShortlist(shortlist.groups);
+  // The share shortlist is read raw: Weave no longer parses it (DL-155, step 7), and Platform refuses it.
+  const groups = shortlist.groups as { entry: { expiresAt: string | null }; candidates: { initiativeId: string; expiresAt: string | null }[] }[];
   assert.equal(groups[0]!.entry.expiresAt, null);
   assert.ok(groups[0]!.candidates.some(candidate => candidate.initiativeId === offer && candidate.expiresAt === null));
   assert.ok((shortlist.groups[0].publicEvidence as Array<{ projectUri: string }>).some(row => row.projectUri === projectUri));

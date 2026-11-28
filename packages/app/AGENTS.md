@@ -72,8 +72,9 @@ production. Account saving uses the same-origin API and stays unavailable until 
 - Signing in only identifies the person. Publishing is its own tap with its own row, shows
   what leaves and who sees it first, and a refusal changes nothing (DL-032). Nothing is saved
   privately or shared for matching any more (DL-155, step 4): the server refuses both by name.
-  Private saves made before stay in Your Initiatives to open, download, make public or delete,
-  and a share still on can only be withdrawn. Only a team's open workspace still takes a save.
+  Private saves made before stay in Your Initiatives to open, download, make public or delete
+  (D49), and no share is still on. Only a group project's team workspace, its shared team draft,
+  still takes a save (D48).
 - Drafts stay on the device until the person makes them public. The browser uses same-origin account endpoints; the server calls Supabase only after configuration. The content security policy in `vercel.json` allows only this origin. Widen it only
   with the change that needs it, such as the Supabase project or model files.
 - Keep the words a person said or typed, their files and unfinished edits in the device draft. A
