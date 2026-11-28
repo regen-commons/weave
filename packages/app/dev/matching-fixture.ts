@@ -7,7 +7,7 @@ import { parseTeamDocument, type AccountDocument, type JsonObject, type SavedIni
 import { createProjectHandler } from "../../api/src/project-http.ts";
 import { sessionCookies } from "../../api/src/account-http.ts";
 import { AccountError } from "../../api/src/account-provider.ts";
-import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureDeleted, fixtureInitiative, fixtureReferences } from "./account-fixture.ts";
+import { FIXTURE_ACCOUNT_ID, fixtureActor, fixtureInitiative } from "./account-fixture.ts";
 import accountExample from "../../api/src/test-data/account.json" with { type: "json" };
 
 const DAY = 86_400_000;
@@ -156,11 +156,6 @@ const requested = new Set<string>();
 const soloLinks = new Map<string, string>();
 /** The personal links made to publish from a draft, with no saved card behind them (DL-155). */
 const cardlessLinks = new Set<string>();
-// Deletion refuses a card that a project link or a support listing still refers to, as the database does.
-fixtureReferences((id) => [...soloLinks.values()].includes(id)
-  || [...supportRows.values()].some((row) => row.workspaceId === id));
-// A deleted card's entries leave matching state with it.
-fixtureDeleted((id) => { cards.delete(id); });
 const teamSaves = new Map<string, SavedInitiative>();
 const saveRequests = new Map<string, { input: string; saved: SavedInitiative }>();
 export function fixtureTeam(token: string, id: string) {

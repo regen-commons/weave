@@ -28,9 +28,6 @@ function fixture(renew: (refreshToken: string) => Promise<AccountSessionTokens> 
     renew: async (refreshToken) => { calls.push(`renew:${refreshToken}`); return renew(refreshToken); },
     authorize: async (token) => { calls.push(`authorize:${token === fresh ? "fresh" : "old"}`); return user; },
     signOut: async (token) => { calls.push(`signOut:${token === fresh ? "fresh" : "old"}`); },
-    list: async () => [],
-    load: async () => { throw Error("not used"); },
-    deleteInitiative: async () => { throw Error("not used"); },
   };
   return { provider, calls, handlers: createAccountHandlers({ provider, now: () => now }) };
 }
@@ -130,33 +127,22 @@ test("a renewed session the access predicate rejects is revoked at Supabase", as
 
 test("a failure after renewal still delivers the rotated cookies", async () => {
   const { handlers, provider } = fixture();
-  provider.list = async () => { throw new AccountError(503, "account_unavailable"); };
+  provider.authorize = async () => { throw new AccountError(503, "account_unavailable"); };
   const response = await handlers.GET(get(cookie(jwt(10), "first-refresh")));
   assert.equal(response.status, 503);
   assert.deepEqual(setCookies(response), renewedCookies);
 });
 
-test("a write near expiry renews first and writes with the new token", async () => {
-  const { handlers, provider, calls } = fixture();
-  let deletedWith = "";
-  provider.deleteInitiative = async (token, command) => {
-    deletedWith = token === fresh ? "fresh" : "old";
-    return { id: command.id, deleted: true, revision: command.expectedRevision, removed: [command.id], kept: 0 };
-  };
-  const response = await handlers.POST(post({ action: "delete", id, requestId, expectedRevision: 1 }, cookie(undefined, "first-refresh")));
-  assert.equal(response.status, 200);
-  assert.equal(deletedWith, "fresh");
-  assert.deepEqual(calls, ["renew:first-refresh", "authorize:fresh"]);
-  assert.deepEqual(setCookies(response), renewedCookies);
-});
-
-test("a private save is refused by name before any session work, since saves retired (DL-155)", async () => {
-  const { handlers, provider, calls } = fixture();
-  const response = await handlers.POST(post({ action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document },
-    cookie(undefined, "first-refresh")));
-  assert.equal(response.status, 410);
-  assert.deepEqual(await response.json(), { error: "private_saves_retired" });
-  assert.deepEqual(calls, [], "no renewal and no account read");
+test("a private save or deletion is refused by name before any session work, since saves retired (DL-155)", async () => {
+  for (const body of [{ action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document },
+    { action: "delete", id, requestId, expectedRevision: 1 }]) {
+    const { handlers, calls } = fixture();
+    const response = await handlers.POST(post(body, cookie(undefined, "first-refresh")));
+    assert.equal(response.status, 410);
+    assert.deepEqual(await response.json(), { error: "private_saves_retired" });
+    assert.deepEqual(calls, [], "no renewal and no account read");
+    assert.deepEqual(setCookies(response), []);
+  }
 });
 
 test("sign-out revokes the session, renewing an expired token first, and clears every session cookie", async () => {

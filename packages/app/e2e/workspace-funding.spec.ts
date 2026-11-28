@@ -23,7 +23,7 @@ async function fixtureAccount(page: Page, project: typeof greenGoods) {
   const uri = `at://${repoDid}/org.hypercerts.collection/funding-qa`;
   const publicProject = { uri, repoDid, groupDid: repoDid, cid: "test", title: project.name, description: project.description };
   await page.route("**/api/account", (route) => route.fulfill({ json: {
-    available: true, signIn: "certified", user: { id: "00000000-0000-4000-8000-000000000033" }, items: [],
+    available: true, signIn: "certified", user: { id: "00000000-0000-4000-8000-000000000033" },
   } }));
   await page.route("**/api/projects", (route) => {
     const command = route.request().postDataJSON();

@@ -14,9 +14,9 @@ import { speechSetupStore, type SpeechSetupStore } from "./describe/speech-setup
 import { memorySpeechRecord } from "./describe/speech-fallback.ts";
 import { memoryConsent, type BrowserSpeechConsent } from "./describe/speech-consent.ts";
 /**
- * Where the example card stands: nothing yet, on this device, saved privately, saved in a
- * linked project's team workspace, shared for matching, published, or a signed-in return
- * with nothing on this device.
+ * Where the example card stands: nothing yet, on this device, signed in with no project (with a
+ * private save seeded from before, which the card no longer claims), saved in a linked project's
+ * team workspace, shared for matching, published, or a signed-in return with nothing on this device.
  */
 export type Scenario = "visitor" | "draft" | "private" | "workspace" | "shared" | "published" | "returning";
 export const SCENARIOS: readonly Scenario[] = [

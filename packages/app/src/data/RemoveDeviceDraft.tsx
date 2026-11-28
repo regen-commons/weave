@@ -5,14 +5,13 @@ import { backedUpMessage, backUpDraft, backUpWarning, deviceRemovalFailure, draf
 import { useDraft } from "../describe/use-draft.ts";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 
-/** A draft in Your Initiatives, and whether a copy of it is saved in the account, which removal leaves alone. */
-export type RemovableDraft = { readonly draft: DeviceDraft; readonly savedInAccount: boolean };
+/** A draft in Your Initiatives. */
+export type RemovableDraft = { readonly draft: DeviceDraft };
 
 /**
  * Choose one of this browser's drafts, then confirm moving it to the device backups by name. Nothing
  * is deleted: the backup is restored or deleted for good in Settings, under Device Backups. Before the
- * QA notes of 25 November 2026 only the draft open in this tab could be removed, from Settings, so a
- * draft whose saved card was deleted stayed in the list with no way to clear it here.
+ * QA notes of 25 November 2026 only the draft open in this tab could be removed, from Settings.
  */
 export function RemoveDeviceDraft({ open, drafts, onClose, onRemoved }: {
   open: boolean;
@@ -51,7 +50,7 @@ export function RemoveDeviceDraft({ open, drafts, onClose, onRemoved }: {
         {chosen ? (
           <>
             <p><strong>Move {draftTitle(chosen.draft)} to the device backups?</strong></p>
-            <p>{backUpWarning(chosen.draft, chosen.savedInAccount)}</p>
+            <p>{backUpWarning(chosen.draft)}</p>
             {problem && <p className="rc-notice" data-tone="warning" role="alert">{problem}</p>}
             {busy && <p role="status">Moving</p>}
             <div className="rc-action-bar">
@@ -67,14 +66,14 @@ export function RemoveDeviceDraft({ open, drafts, onClose, onRemoved }: {
           </>
         ) : drafts.length ? (
           <>
-            <p>Choose a draft to take out of Your Initiatives. It is kept as a device backup, and a saved copy in your account is not changed.</p>
+            <p>Choose a draft to take out of Your Initiatives. It is kept as a device backup.</p>
             <ul className="rc-stack">
               {drafts.map((item) => (
                 <li key={item.draft.id}>
                   <p>
                     <strong>{draftTitle(item.draft)}</strong>
                     <br />
-                    <span className="rc-meta">{item.savedInAccount ? "Also saved in your account." : "Only on this device."}</span>
+                    <span className="rc-meta">Only on this device.</span>
                   </p>
                   <button className="rc-button" data-variant="secondary" type="button" data-draft-id={item.draft.id}
                     aria-label={`Remove from this device: ${draftTitle(item.draft)}`}

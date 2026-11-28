@@ -6,8 +6,6 @@ const EVENTS = new Set([
   "sign-in-cancelled", "sign-in-expired", "sign-in-failed",
   "funding-search-started", "funding-search-results", "funding-search-empty", "funding-search-unavailable",
   "initiative-search-started", "initiative-search-results", "initiative-search-empty", "initiative-search-unavailable",
-  "initiative-save-started", "initiative-save-requested", "initiative-save-accepted",
-  "initiative-save-completed", "initiative-save-failed", "initiative-save-account-changed",
 ]);
 const burst = { limit: 40, windowMs: 60_000 };
 const capacity = { limit: 300, windowMs: 60_000 };

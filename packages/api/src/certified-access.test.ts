@@ -104,7 +104,7 @@ integration("email-only sessions cannot read or save, and revocation removes acc
     assert.equal((await tx`select weave.account_access() allowed`)[0]!.allowed, false);
   });
 });
-test("real local Auth and PostgREST support the same session for private Save and Load", {
+test("real local Auth and PostgREST support the same session for the account state, and private saves stay retired", {
   skip: !database || !process.env.WEAVE_PRIVATE_TEST_API_URL, timeout: 120000,
 }, async () => {
   const api = process.env.WEAVE_PRIVATE_TEST_API_URL!, key = process.env.WEAVE_PRIVATE_TEST_PUBLISHABLE_KEY!, secret = process.env.WEAVE_PRIVATE_TEST_JWT_SECRET!;
@@ -124,15 +124,13 @@ test("real local Auth and PostgREST support the same session for private Save an
     const cookie = `__Host-weave_account=${token}`, origin = "https://weave.example.test";
     const get = (query = "") => handlers.GET(new Request(`${origin}/api/account${query}`, { headers: { Cookie: cookie } }));
     const status = await get(); assert.equal(status.status, 200);
-    const account = await status.json() as { user: { id: string; email: string | null }; items: unknown[] };
-    assert.equal(account.user.id, user.id); assert.equal(account.user.email, null); assert.deepEqual(account.items, []);
+    const account = await status.json() as { user: { id: string; email: string | null } };
+    assert.equal(account.user.id, user.id); assert.equal(account.user.email, null); assert.equal("items" in account, false);
     const document = JSON.parse(await readFile(new URL("./test-data/account.json", import.meta.url), "utf8")), id = randomUUID();
     const command = { action: "save", accountId: user.id, id, requestId: randomUUID(), expectedRevision: 0, document };
-    const save = () => handlers.POST(new Request(`${origin}/api/account`, { method: "POST", headers: { Cookie: cookie, Origin: origin, "Content-Type": "application/json" }, body: JSON.stringify(command) }));
-    const first = await save(); assert.equal(first.status, 200); const saved = await first.json();
-    assert.deepEqual(await (await save()).json(), saved);
-    const loaded = await get(`?id=${id}`); assert.equal(loaded.status, 200);
-    assert.deepEqual((await loaded.json() as { saved: unknown }).saved, (saved as { saved: unknown }).saved);
+    const saved = await handlers.POST(new Request(`${origin}/api/account`, { method: "POST", headers: { Cookie: cookie, Origin: origin, "Content-Type": "application/json" }, body: JSON.stringify(command) }));
+    assert.equal(saved.status, 410);
+    assert.equal((await get(`?id=${id}`)).status, 410);
     await sql`delete from auth.sessions where id=${user.session}`;
     const revoked = await get(); assert.equal(revoked.status, 401); assert.match(revoked.headers.get("set-cookie")!, /Max-Age=0/);
   } finally { await sql`delete from auth.users where id=${user.id}`; }

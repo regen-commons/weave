@@ -150,7 +150,7 @@ export class AccountSession {
     this.invalidate();
     this.unverified = false;
     this.retryIn = RETRY_SECONDS;
-    this.update({ available: true, fixture: false, ...this.state, user: null, items: [] }, ending);
+    this.update({ available: true, fixture: false, ...this.state, user: null }, ending);
     if (publish) this.announce("ended");
   }
   /** The session ended without this tab's Sign Out. The screen says so. */

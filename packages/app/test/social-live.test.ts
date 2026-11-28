@@ -35,7 +35,7 @@ async function fixture(id = FIXTURE_TEAM_ADMIN, { device = new Map<string, strin
   const seed = blank ? newDraft() : revise(newDraft(), { composer: "Unfinished private words" });
   const repo = shared ?? new MemoryDraftRepository(seed), controller = new DraftController(repo);
   await controller.initialize();
-  const account: AccountState = { available: true, fixture: true, user: { id, email: null }, items: [] };
+  const account: AccountState = { available: true, fixture: true, user: { id, email: null } };
   const request = async (path = "", body?: unknown, endpoint = "/api/account", signal?: AbortSignal) => {
     signal?.throwIfAborted();
     if (body) bodies.push(body as Record<string, unknown>);
@@ -49,9 +49,7 @@ async function fixture(id = FIXTURE_TEAM_ADMIN, { device = new Map<string, strin
     return result;
   };
   const stored = new Map<string, string>();
-  const service = createLiveSocialService({ account, controller, request, refreshAccount: async () => {
-    const result = await request(); return { ...account, items: result.items as AccountState["items"] };
-  },
+  const service = createLiveSocialService({ account, controller, request, refreshAccount: async () => { await request(); return account; },
     // As browser storage is: its keys can be listed, which is how a card's choosers are read.
     storage: keyed(stored),
     ...(noDevice ? {} : { choices: refuse ? { ...keyed(device), setItem() { throw Error("quota"); } } : keyed(device) }),
@@ -84,13 +82,13 @@ test("a member explicitly requests setup after choosing a public project, with n
   assert.equal(bodies.some(body => body.action === "request_setup"), false);
   await service.requestWorkspace();
   assert.equal(service.snapshot().project?.workspace, "requested");
-  service.syncAccount({ available: true, fixture: true, user: { id: FIXTURE_GROUP_MEMBER, email: null }, items: [] });
+  service.syncAccount({ available: true, fixture: true, user: { id: FIXTURE_GROUP_MEMBER, email: null } });
   await service.reload();
   assert.equal(service.snapshot().project?.workspace, "requested", "an acknowledged request survives refresh");
   assert.equal(bodies.some(body => ["save", "team_save", "activate", "grant_access"].includes(String(body.action))), false);
   assert.equal(controller.getSnapshot().draft.composer, "Unfinished private words");
   await controller.replace(newDraft());
-  service.syncAccount({ available: true, fixture: true, user: { id: FIXTURE_GROUP_MEMBER, email: null }, items: [] });
+  service.syncAccount({ available: true, fixture: true, user: { id: FIXTURE_GROUP_MEMBER, email: null } });
   assert.equal(service.snapshot().project, null, "a different draft does not inherit the project selection");
 });
 
@@ -156,62 +154,25 @@ test("a fresh link takes the source place, and a place Weave cannot read stays e
   assert.deepEqual(publicCard(admin.controller.getSnapshot().draft).links, []);
 });
 
-test("the live screen adapter lists and opens a private save made earlier, and offers no new one (DL-155)", async () => {
-  const { service, controller, repo, request } = await fixture();
+test("the live screen adapter lists, opens and deletes no private save made earlier, and offers no new one (DL-155, D49)", async () => {
+  const { service, controller, request } = await fixture();
   const document = JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8"));
   const id = crypto.randomUUID();
+  // A save Platform still holds until the retirement migration runs.
   await seedFixtureSave(fixtureSession(FIXTURE_TEAM_ADMIN), { id, document });
-  assert.equal("save" in service, false, "the live service has no way to save privately");
+  for (const name of ["save", "openCard", "moreCards", "deleteCard"]) assert.equal(name in service, false, name);
+  assert.equal("cards" in service.snapshot(), false, "the screens have no list of saved cards");
   await assert.rejects(request("", { action: "save", accountId: FIXTURE_TEAM_ADMIN, id: crypto.randomUUID(), expectedRevision: 0,
     requestId: crypto.randomUUID(), document }), { code: "private_saves_retired" });
-  // Your Initiatives lists it from the account, as the account context passes it on.
-  service.syncAccount({ available: true, fixture: true, user: { id: FIXTURE_TEAM_ADMIN, email: null },
-    items: (await request()).items as AccountState["items"] });
-  assert.ok(service.snapshot().cards.some(item => item.id === id && item.revision === 1));
-  const other = revise(newDraft(), { composer: "Another unfinished initiative" });
-  await controller.replace(other);
-  await service.openCard(id, null);
-  assert.equal(controller.getSnapshot().draft.account.saved?.id, id);
-  assert.equal(controller.getSnapshot().draft.confirmed?.name, document.initiative.name);
-  // The other initiative stays on the device as its own draft.
-  assert.equal(repo.drafts.get(other.id)?.composer, "Another unfinished initiative");
+  await assert.rejects(request("", { action: "delete", id, expectedRevision: 1, requestId: crypto.randomUUID() }), { code: "private_saves_retired" });
+  await assert.rejects(request(`?id=${id}`), { code: "private_saves_retired" }, "an earlier save no longer opens by its ID");
+  const state = await request();
+  assert.equal("items" in state, false, "the account lists no saved cards");
+  assert.equal(record(state.user).id, FIXTURE_TEAM_ADMIN);
+  const before = controller.getSnapshot().draft;
+  service.syncAccount({ available: true, fixture: true, user: { id: FIXTURE_TEAM_ADMIN, email: null } });
+  assert.equal(controller.getSnapshot().draft, before, "the device draft is left as it was");
   assert.equal(service.snapshot().shared, null);
-});
-
-test("refreshing a full first page restores pagination and rejects an older in-flight page", async () => {
-  const { controller } = await fixture();
-  const owner = FIXTURE_TEAM_ADMIN;
-  const items = Array.from({ length: 25 }, (_, index) => ({ id: crypto.randomUUID(), name: `Saved initiative ${index}`,
-    revision: 1, updatedAt: "2026-11-11T00:00:00Z" }));
-  const account: AccountState = { available: true, fixture: true, user: { id: owner, email: null }, items: [] };
-  let release: (() => void) | undefined;
-  let delayed = false;
-  const offsets: number[] = [];
-  const service = createLiveSocialService({ account, controller, refreshAccount: async () => account,
-    request: async path => {
-      const offset = Number(new URLSearchParams(path).get("offset")); offsets.push(offset);
-      if (delayed) await new Promise<void>(resolve => { release = resolve; });
-      return { user: account.user, items: items.slice(offset, offset + 20) };
-    }, openWorkspace() {}, async signIn() {}, signedOut() {} });
-  assert.equal(service.snapshot().hasMoreCards, false);
-  service.syncAccount({ ...account, items: items.slice(0, 20) });
-  assert.equal(service.snapshot().hasMoreCards, true, "a newly full first page can load older saves");
-  await service.moreCards!();
-  assert.equal(service.snapshot().cards.length, 25);
-  assert.equal(service.snapshot().hasMoreCards, false);
-  service.syncAccount({ ...account, items: items.slice(0, 20) });
-  assert.equal(service.snapshot().cards.length, 25, "an unchanged account snapshot retains loaded pages");
-  const refreshed = items.slice(0, 20).map(item => ({ ...item, revision: 2 }));
-  service.syncAccount({ ...account, items: refreshed });
-  assert.equal(service.snapshot().cards.length, 20);
-  assert.equal(service.snapshot().hasMoreCards, true);
-  delayed = true;
-  const olderPage = service.moreCards!();
-  service.syncAccount({ ...account, items: refreshed.slice(0, 19) });
-  release!();
-  await assert.rejects(olderPage, /saved list changed/);
-  assert.equal(service.snapshot().cards.length, 19, "a stale page never replaces a refreshed list");
-  assert.deepEqual(offsets, [20, 20]);
 });
 
 test("an external publication is discovered on return, explicitly selected and reused without uploading or replacing private entries", async () => {
@@ -253,7 +214,7 @@ test("an older project discovery response cannot erase the refreshed return list
   let release!: (value: Record<string, unknown>) => void, delayed = true;
   const project = { uri: "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/returned", cid: "fixture",
     repoDid: "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa", title: "Returned project" };
-  const service = createLiveSocialService({ controller, account: { available: true, fixture: true, user: { id: FIXTURE_TEAM_ADMIN, email: null }, items: [] },
+  const service = createLiveSocialService({ controller, account: { available: true, fixture: true, user: { id: FIXTURE_TEAM_ADMIN, email: null } },
     refreshAccount: async () => { throw Error("unused"); }, async signIn() {}, signedOut() {}, openWorkspace() {},
     request: async (_path, input) => {
       const body = record(input);
@@ -288,7 +249,7 @@ async function linkingFixture(beforeWrite: () => Promise<void>, description = "V
   storage.setItem(editorHandoffKey(FIXTURE_TEAM_ADMIN, seed.id), JSON.stringify({ version: 1, editor: "certified", owner: FIXTURE_TEAM_ADMIN, draftId: seed.id }));
   const project = { uri: "at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/durable-link", cid: "fixture",
     repoDid: "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa", title: "Published project", description };
-  const account: AccountState = { available: true, fixture: true, user: { id: FIXTURE_TEAM_ADMIN, email: null }, items: [] };
+  const account: AccountState = { available: true, fixture: true, user: { id: FIXTURE_TEAM_ADMIN, email: null } };
   // The workspace a saved card already has, for another of the account's projects.
   const other = savedTo && { ...project, uri: savedTo.uri, title: "Saved project", description: "Other public words." };
   const service = createLiveSocialService({ controller, account, storage, choices: storage, refreshAccount: async () => account,
@@ -621,7 +582,7 @@ test("a projects request refused for a lapsed token is confirmed through /api/ac
   const owner = "b1000000-0000-4000-8000-0000000000aa";
   const controller = new DraftController(new MemoryDraftRepository(newDraft()));
   await controller.initialize();
-  const account: AccountState = { available: true, fixture: false, user: { id: owner, email: null }, items: [] };
+  const account: AccountState = { available: true, fixture: false, user: { id: owner, email: null } };
   const refusedOnce = new Set<string>();
   let confirmations = 0;
   const service = createLiveSocialService({ account, controller, refreshAccount: async () => account,

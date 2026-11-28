@@ -48,7 +48,7 @@ export function LiveSocialProvider({ children }: { children: ReactNode }) {
   latestAccount.current = account.state;
   const { controller } = useDraft();
   const service = useMemo(() => createLiveSocialService({
-    account: account.state ?? { available: false, fixture: false, user: null, items: [] }, controller,
+    account: account.state ?? { available: false, fixture: false, user: null }, controller,
     refreshAccount: account.refresh, confirmAccount: account.confirm, signedOut: account.signedOut,
     storage: (() => { try { return window.sessionStorage; } catch { return undefined; } })(),
     choices: choiceStorage(),

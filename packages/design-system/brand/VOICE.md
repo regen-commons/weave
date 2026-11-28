@@ -73,9 +73,8 @@ Use one door: Sign in. Signing in says who you are. Publishing is its own action
 | Optional email | Add your email (optional). Your email appears in the link to Certified and may be saved in browser history or request logs. |
 | Only in this browser | On this device. |
 | Save to a team | Save To Team Workspace. Save Changes. |
-| A private save made before | Also kept as a private save in Weave, which no longer changes. Only you can see it. |
 | Saved for a team | Saved in the Upper valley growers workspace. Teammates with access can see it. |
-| Changed since saving | Changed on this device since you saved. Changed on this device since your private save in Weave, which no longer changes. |
+| Changed since saving | Changed on this device since you saved. Your team still sees the earlier version. |
 | A share still on | 1 need or offer is still shared with people signed in. Stop Sharing. Withdraw From Matching. |
 | Publishing | Publish On Certified. Not published. |
 | Withdrawing | Ask to withdraw. The listing can stay readable until Certified confirms. |

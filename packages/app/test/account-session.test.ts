@@ -6,12 +6,10 @@ import { signOut } from "../src/account/sign-out.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
-import { loadAccountCard } from "../src/account/actions.ts";
 
 const owner = "b1000000-0000-4000-8000-000000000001";
 const other = "b1000000-0000-4000-8000-000000000002";
-const response = (id: string | null) => ({ available: true, signIn: "certified", user: id ? { id, email: null } : null,
-  items: id ? [{ id: "b3000000-0000-4000-8000-000000000001", name: `Synthetic card for ${id}`, revision: 1, updatedAt: "2026-11-15T00:00:00Z" }] : [] });
+const response = (id: string | null) => ({ available: true, signIn: "certified", user: id ? { id, email: null } : null });
 function deferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (error: unknown) => void;
@@ -44,11 +42,10 @@ test("confirmed sign-out clears two independent tab clients and keeps device dra
   await device.replace(revise(newDraft(), { composer: "Synthetic current device draft" }));
   const before = device.getSnapshot(), backups = [...await device.backups()];
   await Promise.all([first.refresh(), second.refresh()]);
-  assert.equal(second.getSnapshot()?.items.length, 1);
+  assert.equal(second.getSnapshot()?.user?.id, owner);
   await signOut(async () => { signedIn = false; }, first.clear);
   assert.equal(first.getSnapshot()?.user, null);
   assert.equal(second.getSnapshot()?.user, null, "the other tab must stop showing signed-in controls");
-  assert.deepEqual(second.getSnapshot()?.items, [], "the other tab must drop private cloud cards");
   assert.deepEqual(bus.messages, ["ended"], "receiving a sign-out never broadcasts it again");
   assert.equal(device.getSnapshot(), before);
   assert.deepEqual(await device.backups(), backups);
@@ -68,7 +65,6 @@ test("a pre-sign-out refresh cannot restore an old account even when its transpo
   pending.resolve(response(owner));
   await assert.rejects(stale, changed);
   assert.equal(second.getSnapshot()?.user, null);
-  assert.deepEqual(second.getSnapshot()?.items, []);
   closeFirst(); closeSecond();
 });
 
@@ -121,7 +117,6 @@ test("new sign-in immediately hides the previous account, rechecks the cookie on
   next.resolve(response(other));
   await settled();
   assert.equal(second.getSnapshot()?.user?.id, other);
-  assert.equal(second.getSnapshot()?.items[0]?.name, `Synthetic card for ${other}`);
   assert.deepEqual(bus.messages, ["changed"]);
   assert.equal(calls, 2, "reconciliation must not publish another change or refetch forever");
   closeFirst(); closeSecond();
@@ -192,7 +187,6 @@ test("returning to a tab still shows a session that ended, or another account, a
   bus.resume();
   await settled();
   assert.equal(session.getSnapshot()?.user?.id, other, "an account that changed while the tab was away replaces the old one");
-  assert.equal(session.getSnapshot()?.items[0]?.name, `Synthetic card for ${other}`);
   reply = () => { throw new AccountFailure("sign_in_required"); };
   bus.resume();
   await settled();
@@ -607,30 +601,6 @@ test("invalidation rejects all private API responses already parsing, including 
   }
   t.mock.method(globalThis, "fetch", async () => Response.json(response(other)));
   assert.deepEqual(await accountRequest(), response(other), "a fresh request can use the new session");
-});
-
-test("a cloud Load still in flight at sign-out cannot replace device words, files or backups", async t => {
-  const bytes = new Blob(["Synthetic local file"]);
-  const original = revise(newDraft(), { composer: "Synthetic local words",
-    attachments: [{ id: crypto.randomUUID(), name: "synthetic.txt", type: "text/plain", bytes: bytes.size, blob: bytes }] });
-  const repository = new MemoryDraftRepository(original), controller = new DraftController(repository);
-  await controller.initialize();
-  const before = controller.getSnapshot();
-  const parsing = deferred<void>(), body = deferred<Record<string, unknown>>();
-  t.mock.method(globalThis, "fetch", async () => {
-    const response = new Response();
-    t.mock.method(response, "json", () => { parsing.resolve(); return body.promise; });
-    return response;
-  });
-  const pending = loadAccountCard(controller, owner, "b3000000-0000-4000-8000-000000000001");
-  await parsing.promise;
-  new AccountSession().clear();
-  body.resolve({ user: { id: owner, email: null }, saved: {} });
-  await assert.rejects(pending, changed, "the old account response is rejected before any Load or backup");
-  assert.equal(controller.getSnapshot(), before);
-  assert.equal(repository.value, original);
-  assert.deepEqual(await controller.backups(), []);
-  assert.equal(await controller.getSnapshot().draft.attachments[0]!.blob.text(), "Synthetic local file");
 });
 
 function clock() {

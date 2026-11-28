@@ -119,7 +119,7 @@ function ExampleRecord({
           </p>
         </>
       ) : (
-        <p>The public initiative service is not connected yet. Private saved cards stay in your account.</p>
+        <p>The public initiative service is not connected yet. Your initiative stays on this device.</p>
       )}
     </DetailSheet>
   );

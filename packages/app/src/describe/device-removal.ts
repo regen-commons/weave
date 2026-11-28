@@ -42,7 +42,7 @@ export function listedBackups<T extends { draft: DeviceDraft }>(backups: readonl
 }
 export function discardWarning(draft: DeviceDraft): string {
   const count = attachedFiles(draft);
-  return `Weave keeps ${draftTitle(draft)} as a device backup first${count ? `, with its ${files(count)}` : ""}, so you can restore it below. A copy saved in your account is not changed.`;
+  return `Weave keeps ${draftTitle(draft)} as a device backup first${count ? `, with its ${files(count)}` : ""}, so you can restore it below.`;
 }
 
 /**
@@ -81,10 +81,9 @@ export async function backUpDraft(
 }
 
 /** The confirmation for moving one draft from Your Initiatives to the device's backups. */
-export function backUpWarning(draft: DeviceDraft, savedInAccount: boolean): string {
+export function backUpWarning(draft: DeviceDraft): string {
   const count = attachedFiles(draft);
-  return `This moves ${draftTitle(draft)}${count ? `, with its ${files(count)},` : ""} from Your Initiatives to the device backups in Settings, where you can restore it or delete it for good.${
-    savedInAccount ? " Its saved copy in your account is not changed." : " It is not saved anywhere else."}`;
+  return `This moves ${draftTitle(draft)}${count ? `, with its ${files(count)},` : ""} from Your Initiatives to the device backups in Settings, where you can restore it or delete it for good. It is not saved anywhere else.`;
 }
 /** Said when a draft other than the tab's could not be moved: it changed or left meanwhile. */
 export const NOT_BACKED_UP = "This draft changed on this device meanwhile. Nothing was removed. Try again in a moment.";

@@ -1,9 +1,9 @@
 import postgres from "postgres";
 
-type JobRole = "weave_index_job" | "weave_query_embedding_job";
+type JobRole = "weave_index_job";
 
 /**
- * Direct Postgres access for the two isolated index jobs and the public project list. Hosted
+ * Direct Postgres access for the isolated index job and the public project and initiative reads. Hosted
  * connections verify the server certificate: against `ca` when given (the app's
  * WEAVE_DATABASE_CA_PEM), otherwise against Node's trust store. Statements are not prepared, so the
  * same login works through Supabase's session or transaction pooler.

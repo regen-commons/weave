@@ -10,7 +10,7 @@ test("every required user flow names tests that exist, except ones a named fix b
 test("the flow map covers the required flows and only allows known evidence classes", async () => {
   const ids = (await loadFlows()).map((flow) => flow.id);
   for (const id of ["describe-form", "describe-conversation", "describe-pdf", "source-fields-review", "support-kinds",
-    "private-save-load", "account-switching", "cross-tab-sign-out", "stale-responses", "retries", "storage-failure",
+    "private-saves-retired", "account-switching", "cross-tab-sign-out", "stale-responses", "retries", "storage-failure",
     "import-link-reuse", "selective-deletion", "sharing-matching-synthetic", "sharing-lifecycle-database", "matching-quality"])
     assert.ok(ids.includes(id), id);
 });

@@ -182,27 +182,32 @@
    ]
   },
   {
-   "id": "private-save-load",
-   "behavior": "Private saves made before load only for the signed-in account, and no new one is taken",
+   "id": "private-saves-retired",
+   "behavior": "Private saves made before are no longer listed, opened or deleted, no new one is taken, and a draft loaded from one reads as on this device (D49)",
    "evidence": [
     {
-     "file": "packages/app/test/account.test.ts",
-     "test": "checked card roundtrips without source text, files, confidence or local editors",
-     "class": "module"
-    },
-    {
-     "file": "packages/app/test/account.test.ts",
-     "test": "saved list and load responses must belong to the account shown in the UI",
+     "file": "packages/api/src/account.test.ts",
+     "test": "the account state uses the session, lists no saved cards, and email-code sign-in is unavailable",
      "class": "module"
     },
     {
      "file": "packages/api/src/account.test.ts",
-     "test": "an earlier private save with an unclassified entry still loads",
+     "test": "the account state waits for the authorization, a refused session is ended, and no card opens by its ID",
+     "class": "module"
+    },
+    {
+     "file": "packages/api/src/account.test.ts",
+     "test": "a deletion is refused by name before the session is read, after the origin, JSON and size checks",
      "class": "module"
     },
     {
      "file": "packages/app/test/social-live.test.ts",
-     "test": "the live screen adapter lists and opens a private save made earlier, and offers no new one (DL-155)",
+     "test": "the live screen adapter lists, opens and deletes no private save made earlier, and offers no new one (DL-155, D49)",
+     "class": "module"
+    },
+    {
+     "file": "packages/app/test/initiative.test.ts",
+     "test": "with the live account, the line says where the card is kept, and no step offers a private save",
      "class": "module"
     }
    ]
@@ -260,7 +265,7 @@
     },
     {
      "file": "packages/app/test/account-session.test.ts",
-     "test": "a cloud Load still in flight at sign-out cannot replace device words, files or backups",
+     "test": "a private request under way is rejected when the return finds another account or a sign-out",
      "class": "module"
     },
     {
@@ -372,19 +377,12 @@
   },
   {
    "id": "selective-deletion",
-   "behavior": "Selective cloud and device deletion that preserves unrelated data",
+   "behavior": "Selective device deletion that preserves unrelated data, and a deletion of a private save refused by name (D49)",
    "evidence": [
     {
      "file": "packages/api/src/account.test.ts",
-     "test": "delete rejects cross-site, non-JSON, oversized, signed-out and malformed commands before the provider",
-     "class": "module",
-     "landsWith": "claude/fix-selective-deletion"
-    },
-    {
-     "file": "packages/app/test/delete-card.test.ts",
-     "test": "a refused, unconfirmed or mismatched deletion changes nothing on the device and says why",
-     "class": "module",
-     "landsWith": "claude/fix-selective-deletion"
+     "test": "a deletion is refused by name before the session is read, after the origin, JSON and size checks",
+     "class": "module"
     },
     {
      "file": "packages/app/test/device-removal.test.ts",
@@ -396,18 +394,6 @@
      "file": "packages/app/test/device-removal.test.ts",
      "test": "a wrong key, ID, revision or time removes nothing and says the backup changed",
      "class": "module",
-     "landsWith": "claude/fix-selective-deletion"
-    },
-    {
-     "file": "packages/api/src/initiative-deletion-postgres.test.ts",
-     "test": "another account, a stale revision, a team document and bad sessions or inputs change nothing",
-     "class": "disposable-postgres",
-     "landsWith": "claude/fix-selective-deletion"
-    },
-    {
-     "file": "packages/api/src/initiative-deletion-postgres.test.ts",
-     "test": "a card anything else refers to is refused before any row is removed",
-     "class": "disposable-postgres",
      "landsWith": "claude/fix-selective-deletion"
     }
    ]
@@ -643,31 +629,21 @@
   },
   {
    "id": "one-list",
-   "behavior": "Your Initiatives is one list that never calls a saved card unsaved, opens a newer account version, and keeps saves and deletions attached to the right draft",
+   "behavior": "Your Initiatives is one list of the drafts on this device and the person's projects, where a draft saved privately before reads as on this device and can still be removed",
    "evidence": [
-    {
-     "file": "packages/app/test/initiative-list.test.ts",
-     "test": "a draft and the card it was saved as are one entry, a workspace card is never listed alone, and two copies never double it",
-     "class": "module"
-    },
-    {
-     "file": "packages/app/test/initiative-list.test.ts",
-     "test": "the entry says where a draft stands against its saved card, and never calls a saved one unsaved",
-     "class": "module"
-    },
     {
      "file": "packages/app/test/initiative-list.test.ts",
      "test": "a project a draft already stands for is that draft: by this account's choice, or by suggestions read from its page",
      "class": "module"
     },
     {
-     "file": "packages/app/test/delete-card.test.ts",
-     "test": "a draft still marked as waiting for an earlier save's answer can be removed",
+     "file": "packages/app/test/initiative-list.test.ts",
+     "test": "every card says what it is, so a draft and a Certified project with one name can be told apart (DL-134)",
      "class": "module"
     },
     {
-     "file": "packages/app/test/delete-card.test.ts",
-     "test": "deleting a saved card releases every draft on this device that points at it, not only the tab's",
+     "file": "packages/app/test/device-removal.test.ts",
+     "test": "a draft still marked as waiting for an earlier private save's answer can be removed or moved to the backups",
      "class": "module"
     },
     {

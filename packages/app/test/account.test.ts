@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFileSync } from "node:fs";
-import { parseDocument, parseSaved } from "@weave/api/account-contract";
-import { assertAccount, AccountFailure } from "../src/account/client.ts";
+import { parseDocument, parseTeamSaved } from "@weave/api/account-contract";
 import { AnotherAccountsCard, accountDocument, accountKey, belongsToAnotherAccount, cardOwner, loadedDraft, ownDocument } from "../src/account/document.ts";
 import { choiceStorage, chosenProjectUri, deviceChoosers, projectChoiceKey, projectChoosers } from "../src/social/project-choice.ts";
 import { newDraft, revise, DeviceDraftSchema } from "../src/describe/contracts.ts";
@@ -16,7 +15,7 @@ const document = parseDocument(
 );
 const owner = "b1000000-0000-4000-8000-000000000001",
   other = "b1000000-0000-4000-8000-000000000002";
-const saved = parseSaved({
+const saved = parseTeamSaved({
   id: "b3000000-0000-4000-8000-000000000001",
   revision: 4,
   updatedAt: "2026-11-05T00:00:00Z",
@@ -122,14 +121,6 @@ test("legacy drafts acquire account metadata without losing local text", () => {
     pending: null,
   });
   assert.equal(DeviceDraftSchema.parse({ ...legacy, composer: "old words" }).composer, "old words");
-});
-
-test("saved list and load responses must belong to the account shown in the UI", () => {
-  assert.doesNotThrow(() => assertAccount({ user: { id: owner, email: "owner@example.test" } }, owner));
-  assert.throws(
-    () => assertAccount({ user: { id: other, email: "other@example.test" } }, owner),
-    (error) => error instanceof AccountFailure && error.code === "account_changed",
-  );
 });
 
 test("a card on this device belongs to the account that saved it, and is set aside for any other", () => {

@@ -127,7 +127,7 @@ export function Settings() {
           )
         ) : (
           <>
-            {/* With a card on this device, the account's saved cards and saving live here, once. */}
+            {/* With a card on this device, the account's sign-in and session live here, once. */}
             {accountTask ? (
               <AccountSection showLeave={false} heading={false} showBackups={false} />
             ) : account.state?.user ? (
@@ -137,7 +137,7 @@ export function Settings() {
               <LinesSkeleton label="Checking your account" lines={1} />
             ) : (
               <>
-                <p>Not signed in. Sign in with Certified when you want a private saved copy.</p>
+                <p>Not signed in. Your initiative stays on this device.</p>
                 <div className="rc-action-bar">
                   <SignInButton variant="secondary" />
                 </div>
@@ -229,8 +229,8 @@ export function Settings() {
       </SettingsSection>
       <SettingsSection title="Your Data" note="A copy of what this device holds.">
         <p>
-          Download this device's draft, unfinished words, files, assistant records, backups and shortlist. Cards
-          saved in your account are not included. Keep the file private.
+          Download this device's draft, unfinished words, files, assistant records, backups and shortlist. Keep the
+          file private.
         </p>
         <div className="rc-action-bar">
           <button
@@ -329,9 +329,8 @@ export function Settings() {
                 }}
               />
               <p className="rc-meta">
-                Deleting a whole account is not available in Weave yet. You can delete a saved card in{" "}
-                <Link href={pathTo("your-initiatives")}>Your Initiatives</Link>, and{" "}
-                <Link href={COMMONS.website}>contact Regen Commons</Link> about the rest.
+                Deleting a whole account is not available in Weave yet.{" "}
+                <Link href={COMMONS.website}>Contact Regen Commons</Link> about it.
               </p>
             </>
           )}
@@ -345,7 +344,7 @@ export function Settings() {
       {import.meta.env.DEV && example && (
         <TaskDialog title="Delete Your Account?" open={deleting} onClose={() => setDeleting(false)}>
           <p>
-            This deletes the initiatives you saved privately in Weave and takes back anything you shared.
+            This deletes what you saved in Weave and takes back anything you shared.
             Your Certified account is not deleted, and the card on this device stays.
           </p>
           <button

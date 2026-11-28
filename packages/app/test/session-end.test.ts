@@ -7,8 +7,8 @@ import { signOut } from "../src/account/sign-out.ts";
 
 const owner = "b1000000-0000-4000-8000-000000000001";
 const other = "b1000000-0000-4000-8000-000000000002";
-const response = (id: string | null) => ({ available: true, signIn: "certified", user: id ? { id, email: null } : null, items: [] });
-const signedIn = (id: string | null): AccountState => ({ available: true, fixture: false, user: id ? { id, email: null } : null, items: [] });
+const response = (id: string | null) => ({ available: true, signIn: "certified", user: id ? { id, email: null } : null });
+const signedIn = (id: string | null): AccountState => ({ available: true, fixture: false, user: id ? { id, email: null } : null });
 const refused = () => new AccountFailure("sign_in_required");
 function tabs() {
   const receivers = new Set<(change: SessionChange) => void>();
@@ -41,7 +41,7 @@ test("a refusal is an ended session only when /api/account says so", async () =>
 test("a refusal that cannot be checked keeps the person signed in and says why", async () => {
   const offline = new AccountFailure("connection_failed");
   assert.deepEqual(await confirmRefusal(async () => { throw offline; }, owner, false), { outcome: "unconfirmed", error: offline });
-  const down = await confirmRefusal(async () => ({ available: false, fixture: false, user: null, items: [] }), owner, false);
+  const down = await confirmRefusal(async () => ({ available: false, fixture: false, user: null }), owner, false);
   assert.equal(down.outcome, "unconfirmed");
 });
 

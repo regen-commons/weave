@@ -5,9 +5,10 @@
  * Every sentence states what the code does today and nothing it does not guarantee:
  * - Sign-in is Certified's. Weave receives an identifier, never the email address, unless the
  *   person adds one for Certified, which Weave passes on and does not keep (`@weave/api` sign-in).
- * - A team save, like each private save made before, holds the checked card, kept needs and offers
- *   and kept funding details, and nothing else (`src/account/document.ts`). Saved copies are not
- *   encrypted in the database. Nothing new is saved privately or shared for matching (DL-155, step 4).
+ * - A team save holds the checked card, kept needs and offers and kept funding details, and nothing
+ *   else (`src/account/document.ts`). Saved copies are not encrypted in the database. Nothing is saved
+ *   privately or shared for matching (DL-155, step 4), and Weave no longer lists, opens, downloads or
+ *   deletes the private saves made before, which Regen Commons deletes (step 7, D49).
  * - Team workspaces and publishing are separate choices with their own readers, and a share made
  *   before can be withdrawn (`src/social/LiveExposure.tsx`).
  * - The assistant sends no words to a cloud model. When usage analytics are enabled, Weave's server
@@ -39,7 +40,7 @@
  *   does not include it (`src/shortlist/store.ts`). To show a shortlisted initiative, the page asks
  *   Weave's server for that one public project, as any list page does, with nothing of the person's
  *   attached (`src/shortlist/use-initiative-lookups.ts`). Exports are made on the device (DL-152, DL-153).
- * - One saved card and one device backup can be deleted, and private saves downloaded. A whole account cannot be deleted, yet.
+ * - One device backup can be deleted. A whole account cannot be deleted, yet.
  * Change a sentence here only with the code that makes it true.
  */
 export type Term = readonly [question: string, answer: string];
@@ -51,11 +52,11 @@ export const STORAGE_SUMMARY: readonly Term[] = [
   ],
   [
     "When you save",
-    "Only to a team workspace now: your checked card, the needs and offers you kept and your funding details. Conversations and files are not sent. Private saves made before are kept at least 60 days.",
+    "Only to a team workspace now: your checked card, the needs and offers you kept and your funding details. Conversations and files are not sent. Weave no longer keeps private saves.",
   ],
   [
     "Who can read a saved copy",
-    "In Weave, only you, and teammates you give access to a team workspace. Saved copies are not encrypted, so the people who run the Regen Commons database could read them.",
+    "In Weave, only the teammates who have access to its team workspace. Saved copies are not encrypted, so the people who run the Regen Commons database could read them.",
   ],
   [
     "Sharing and publishing",
@@ -67,7 +68,7 @@ export const STORAGE_SUMMARY: readonly Term[] = [
   ],
   [
     "Leaving",
-    "Signing out keeps what is on this device. You can download it and delete backups in Settings, and download or delete your private saves in Your Initiatives. Deleting a whole account is not available yet.",
+    "Signing out keeps what is on this device. You can download it and delete backups in Settings. Deleting a whole account is not available yet.",
   ],
 ];
 
@@ -89,8 +90,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
   {
     title: "Private Saves",
     body: [
-      "Weave no longer saves initiatives privately. Saves made before are kept in the Regen Commons database, linked to your Certified account, for at least 60 days after private saving ended. Each holds a checked card, the needs and offers you kept and your funding details, and you can open, download or delete it from Your Initiatives.",
-      "In Weave, only you can open a saved copy. Saved copies are not encrypted in the database, so the people who administer it for Regen Commons could read them.",
+      "Weave no longer saves initiatives privately. The private saves made before, each a checked card with the needs and offers you kept and your funding details, can no longer be opened, downloaded or deleted in Weave, and Regen Commons deletes them from its database. What is on this device is not changed.",
     ],
   },
   {
@@ -147,14 +147,14 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
   {
     title: "Other Services",
     body: [
-      "Weave may send PostHog the steps you reach when you sign in, search or save an initiative. Each attempt gets a new random code so PostHog can count where attempts stop. The events contain no account details, search words or initiative contents. PostHog can keep these events for up to a year.",
+      "Weave may send PostHog the steps you reach when you sign in or search. Each attempt gets a new random code so PostHog can count where attempts stop. The events contain no account details, search words or initiative contents. PostHog can keep these events for up to a year.",
       "Weave skips these events if your browser sends Global Privacy Control. Session replay and automatic click tracking are off. The services that host Weave and handle sign-in keep their own request logs.",
     ],
   },
   {
     title: "Deleting And Leaving",
     body: [
-      "Signing out ends your session and keeps this device's draft and backups. You can delete device backups in Settings, and download your private saves or delete one in Your Initiatives. A saved card that is linked to a project, or still used to set one up, is not deleted, and Weave says why. A card still shared for matching is deleted with its sharing.",
+      "Signing out ends your session and keeps this device's draft and backups. You can delete device backups in Settings.",
       "Deleting a whole account is not available in Weave yet.",
     ],
   },

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { parseDocument, parseSaved } from "@weave/api/account-contract";
+import { parseDocument, parseTeamSaved } from "@weave/api/account-contract";
 import { loadedDraft } from "../src/account/document.ts";
 import { revise } from "../src/describe/contracts.ts";
 import { continueDescribe, editFields, fieldsForm } from "../src/describe/fill.ts";
@@ -13,7 +13,7 @@ import { addEntry } from "../src/intake/entries.ts";
 import { intakeComplete } from "../src/intake/finish.ts";
 
 const source = (path: string) => readFileSync(fileURLToPath(new URL(`../src/${path}`, import.meta.url)), "utf8");
-const saved = parseSaved({
+const saved = parseTeamSaved({
   id: "b3000000-0000-4000-8000-000000000001",
   revision: 1,
   updatedAt: "2026-11-05T00:00:00Z",

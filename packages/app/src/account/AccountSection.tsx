@@ -2,19 +2,16 @@ import { busyProps } from "./busy.ts";
 import { expectProjectAccess } from "../initiative/consent-chain.ts";
 import { SignOutAction } from "./SignOutAction.tsx";
 import { useEffect, useId, useState } from "react";
-import { parseSummaries, type InitiativeSummary } from "@weave/api/account-contract";
 import { useSetAside } from "./set-aside.ts";
 import { useDraft } from "../describe/use-draft.ts";
 import { Link, navigate } from "../router.tsx";
 import { pathTo } from "../routes.ts";
-import { accountRequest, assertAccount } from "./client.ts";
-import { loadAccountCard } from "./actions.ts";
+import { accountRequest } from "./client.ts";
 import { settleActionFailure } from "./action-failure.ts";
 import { useAccount } from "./context.tsx";
 import { continueToCertified, signInReturnFailed, signInReturnMessage } from "./sign-in.ts";
 import { AboutCertified } from "../ui/AboutCertified.tsx";
 import { DeviceBackups } from "../data/DeviceBackups.tsx";
-import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { SIGN_IN } from "../data/privacy.ts";
 export function AccountSection({
   compact = false,
@@ -44,25 +41,14 @@ export function AccountSection({
 }) {
   const id = useId();
   const Title = compact ? "h3" : "h2";
-  const { state, refresh, clear, returnResult, acknowledgeReturn, missingRecord, savedCheck } = useAccount();
-  const { controller, draft, ready, storage } = useDraft();
+  const { state, refresh, clear, returnResult, acknowledgeReturn } = useAccount();
+  const { controller, ready } = useDraft();
   const setAside = useSetAside();
   const [busy, setBusy] = useState(false);
   const [acting, setActing] = useState<string | null>(null);
   const [message, setMessage] = useState(() => notice || signInReturnMessage(returnResult));
   const [failed, setFailed] = useState(() => !!notice || signInReturnFailed(returnResult));
   useEffect(() => { if (returnResult) acknowledgeReturn(); }, [returnResult, acknowledgeReturn]);
-  const owner = state?.user?.id;
-  const [selection, setSelection] = useState<{ owner: string; item: InitiativeSummary } | null>(null);
-  const selected = selection && selection.owner === owner ? selection.item : null;
-  const [page, setPage] = useState<{ owner: string; items: InitiativeSummary[] } | null>(null);
-  const extra = page && page.owner === owner ? page.items : [];
-  const [more, setMore] = useState(true);
-  useEffect(() => {
-    setSelection(null);
-    setPage(null);
-    setMore(true);
-  }, [owner]);
   async function run(action: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -72,10 +58,6 @@ export function AccountSection({
       await action();
     } catch (error) {
       const settled = await settleActionFailure(error, { refresh, clear });
-      if (settled.reset) {
-        setSelection(null);
-        setPage(null);
-      }
       setMessage(settled.message);
       setFailed(!!settled.message);
     } finally {
@@ -98,12 +80,6 @@ export function AccountSection({
     onBeginCard?.();
     navigate(pathTo("initiative"));
   }
-  async function load() {
-    if (!selected || !state?.user) return;
-    await loadAccountCard(controller, state.user.id, selected.id);
-    setSelection(null);
-    setMessage("Your saved card is loaded. Your other drafts on this device are as you left them.");
-  }
   return (
     <section className="rc-stack" aria-labelledby={heading ? `${id}-title` : undefined} aria-busy={busy}>
       {heading && (
@@ -111,7 +87,6 @@ export function AccountSection({
           {compact ? "Sign In" : "Your Account"}
         </Title>
       )}
-      {missingRecord && <p role="status">This card is no longer saved in your account. Your device copy is still here.</p>}
       {!state ? (
         <>
           <p>Account access could not be checked yet.</p>
@@ -209,10 +184,6 @@ export function AccountSection({
                 onResult={(text, failed) => {
                   setMessage(text);
                   setFailed(failed);
-                  if (!failed) {
-                    setSelection(null);
-                    setPage(null);
-                  }
                 }}
               />
             )}
@@ -222,115 +193,22 @@ export function AccountSection({
           </h3>
           <div className="rc-action-bar">
             <button className="rc-button" data-variant="quiet" type="button" {...pressed("begin", !ready)}
-              onClick={() => {
-                if (busy) return;
-                setSelection(null);
-                start("begin", beginCard);
-              }}>
+              onClick={() => start("begin", beginCard)}>
               <span>Start A New Initiative</span>
               {spinner("begin")}
             </button>
           </div>
-          {!state.items.length && !extra.length ? (
-            <p>No cards saved in this account yet.</p>
-          ) : (
-            <ul className="rc-stack">
-              {[...state.items, ...extra].map((item) => (
-                <li key={item.id}>
-                  <p>
-                    <strong>{item.name}</strong>
-                    <br />
-                    <span className="rc-meta">Saved {new Date(item.updatedAt).toLocaleString()}</span>
-                  </p>
-                  <button
-                    className="rc-button"
-                    data-variant="secondary"
-                    type="button"
-                    disabled={busy}
-                    onClick={() => {
-                      setSelection({ owner: state.user!.id, item });
-                    }}
-                  >
-                    Load {item.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {more && (extra.length ? extra.length % 20 === 0 : state.items.length === 20) && (
-            <button
-              className="rc-button"
-              data-variant="secondary"
-              type="button"
-              {...pressed("more")}
-              onClick={() =>
-                start("more", async () => {
-                  const result = await accountRequest(`?offset=${state.items.length + extra.length}`);
-                  assertAccount(result, state.user!.id);
-                  const items = parseSummaries(result.items), owner = state.user!.id;
-                  setPage((current) => {
-                    const previous = current?.owner === owner ? current.items : [];
-                    return { owner, items: [...previous,
-                      ...items.filter((item) => ![...state.items, ...previous].some((old) => old.id === item.id))] };
-                  });
-                  setMore(items.length === 20);
-                })
-              }
-            >
-              <span>More Saved Cards</span>
-              {spinner("more")}
-            </button>
-          )}
-          <button
-            className="rc-button"
-            data-variant="quiet"
-            type="button"
-            {...pressed("refresh")}
-            onClick={() =>
-              start("refresh", async () => {
-                await refresh();
-                setPage(null);
-                setMore(true);
-                setMessage("Saved cards refreshed.");
-              })
-            }
-          >
-            <span>Refresh Saved Cards</span>
-            {spinner("refresh")}
-          </button>
         </>
       )}
-      {/* Asked in a dialog, so the list it was asked from stays where it is. */}
-      <TaskDialog title="Load This Saved Card?" open={!!selected} onClose={() => setSelection(null)} blockClose={busy}>
-        <div className="rc-stack">
-          <p>
-            {selected
-              ? `${selected.name} opens on this device. A copy of this card already on this device is backed up first, and your other drafts are not changed.`
-              : ""}
-          </p>
-          {failed && message && <p className="rc-notice" data-tone="warning" role="alert">{message}</p>}
-          <div className="rc-action-bar">
-            <button className="rc-button" data-variant="primary" type="button" {...pressed("load")} data-task-focus
-              onClick={() => start("load", load)}>
-              <span>Load Saved Card</span>
-              {spinner("load")}
-            </button>
-            <button className="rc-button" data-variant="quiet" type="button" aria-disabled={busy || undefined}
-              onClick={() => { if (!busy) setSelection(null); }}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      </TaskDialog>
       {!compact && showBackups && <DeviceBackups disabled={busy} />}
       {compact && (
         <p>
-          <Link href={pathTo("settings")}>Saved cards and device backups</Link>
+          <Link href={pathTo("settings")}>Device backups</Link>
         </p>
       )}
       {/* Said, not drawn: the pressed button shows it is busy, and a new line would push the page down. */}
       {busy && <p className="rc-visually-hidden" role="status">Connecting to your account</p>}
-      {message && !selected && (message !== signInReturnMessage("signed-in") || state?.user) && (
+      {message && (message !== signInReturnMessage("signed-in") || state?.user) && (
         <p className="rc-notice" data-tone={failed ? "warning" : "info"} role={failed ? "alert" : "status"}>
           {message}
         </p>

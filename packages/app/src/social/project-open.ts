@@ -2,16 +2,18 @@
 export type ProjectOpening = "workspace" | "choose" | "start";
 
 /**
- * A project with a team workspace opens it. Otherwise an unlinked card on this device may be this
- * project's own work, such as one just published from an external editor, so the person chooses:
- * link that card and keep its needs and offers, or start a separate card from the project. A name
- * never decides. With no such card, the project starts a card of its own.
+ * A group project with a team workspace opens it. Otherwise an unlinked card on this device may be
+ * this project's own work, such as one just published from an external editor, so the person
+ * chooses: link that card and keep its needs and offers, or start a separate card from the project.
+ * A name never decides. With no such card, the project starts a card of its own. A personal
+ * project's workspace held its private saved card, and those are gone (DL-155, D49), so it opens
+ * as a project does.
  */
 export function projectOpening(
-  record: { readonly workspace: boolean },
+  record: { readonly workspace: boolean; readonly group?: string | null },
   device: { readonly card: boolean; readonly linked: boolean },
 ): ProjectOpening {
-  if (record.workspace) return "workspace";
+  if (record.workspace && record.group !== null) return "workspace";
   return device.card && !device.linked ? "choose" : "start";
 }
 

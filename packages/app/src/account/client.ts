@@ -1,14 +1,5 @@
-import {
-  parseSaved,
-  parseSummaries,
-  parseUser,
-  record,
-  type AccountUser,
-  type InitiativeSummary,
-} from "@weave/api/account-contract";
+import { parseUser, record, type AccountUser } from "@weave/api/account-contract";
 let requests = new AbortController();
-/** Capture before an account operation's first await, including waits for device storage. */
-export const accountSessionSignal = () => requests.signal;
 /** Account-backed reads and writes from an earlier session cannot publish their responses. */
 export function invalidateAccountRequests() {
   requests.abort(new AccountFailure("account_changed"));
@@ -62,28 +53,23 @@ export interface AccountState {
   fixture: boolean;
   emailHintAvailable?: boolean;
   user: AccountUser | null;
-  items: InitiativeSummary[];
   /** Seconds until the server wants the next check, so it can renew the session before it lapses. */
   renewIn?: number;
 }
 export function accountState(data: Record<string, unknown>): AccountState {
   if (data.available === false)
-    return { available: false, fixture: false, user: null, items: [] };
+    return { available: false, fixture: false, user: null };
   if (data.available !== true || data.signIn !== "certified") throw new AccountFailure("account_unavailable");
   return {
     available: true,
     fixture: data.fixture === true,
     ...(data.emailHintAvailable === true ? { emailHintAvailable: true } : {}),
     user: data.user === null ? null : parseUser(data.user),
-    items: parseSummaries(data.items),
     ...(Number.isSafeInteger(data.renewIn) && Number(data.renewIn) >= 30 && Number(data.renewIn) <= 3600
       ? { renewIn: Number(data.renewIn) } : {}),
   };
 }
-export { parseSaved, parseUser };
-export function assertAccount(data: Record<string, unknown>, expectedId: string): void {
-  if (parseUser(data.user).id !== expectedId) throw new AccountFailure("account_changed");
-}
+export { parseUser };
 export function accountMessage(error: unknown): string {
   const code = error instanceof AccountFailure ? error.code : "";
   return (
@@ -97,7 +83,7 @@ export function accountMessage(error: unknown): string {
         account_changed:
           "The signed-in account changed in another tab. Check the account shown here, then try again.",
         save_conflict:
-          "This saved card changed elsewhere. Load its latest copy before saving again. Your device draft is still here.",
+          "This saved card changed elsewhere. Open its latest version before saving again. Your device draft is still here.",
         sign_out_unconfirmed: "Sign-out could not be confirmed. Keep this device with you and try again.",
         connection_failed:
           "The connection failed. Your device draft is still here. Try again when you are online.",

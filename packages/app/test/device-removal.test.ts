@@ -8,7 +8,7 @@ import { DraftController } from "../src/describe/controller.ts";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
 import {
   attachedFiles, backupDeleteWarning, draftTime, deviceRemovalFailure, discardedMessage, discardWarning, removedBackupMessage,
-  backupLine, BACKUPS_SHOWN, listedBackups, restoreWarning,
+  backupLine, BACKUPS_SHOWN, listedBackups, restoreWarning, backUpDraft, backUpWarning, NOT_BACKED_UP,
 } from "../src/describe/device-removal.ts";
 
 /** This build's database holding one draft under its own ID, which is also the one written last. */
@@ -187,4 +187,25 @@ test("confirmations name the backup, its shown time and its files; result lines 
   assert.equal(removedBackupMessage({ removed: ["k"], kept: 18 }), "Removed 1 backup. 18 backups kept.");
   assert.equal(removedBackupMessage({ removed: ["k"], kept: 1 }), "Removed 1 backup. 1 backup kept.");
   assert.equal(removedBackupMessage({ removed: ["k"], kept: 0 }), "Removed 1 backup. No backups kept.");
+});
+
+// DL-155, step 4: nothing saves privately now, so a draft's mark of a save an earlier build sent may never be
+// answered. Removing the draft is not refused for it, and the private saves themselves are gone (step 7, D49).
+test("a draft still marked as waiting for an earlier private save's answer can be removed or moved to the backups", async () => {
+  const owner = "b1000000-0000-4000-8000-000000000001";
+  const pending = { id: crypto.randomUUID(), owner, revision: 3, contentKey: "{}", requestId: crypto.randomUUID() };
+  const marked = revise(newDraft(), { composer: "Edited words", account: { saved: null, pending } });
+  const controller = new DraftController(new MemoryDraftRepository(marked));
+  await controller.initialize();
+  await controller.discardCurrent();
+  assert.notEqual(controller.getSnapshot().draft.id, marked.id);
+  assert.equal(controller.getSnapshot().draft.account.pending, null, "the draft that followed waits for nothing");
+  const other = revise(newDraft(), { composer: "Waiting for a save", account: { saved: null, pending } });
+  const stranded = new DraftController(new MemoryDraftRepository(newDraft(), [other]));
+  await stranded.initialize();
+  assert.equal(await backUpDraft(stranded, other.id), true, "the mark of an unanswered save does not keep a draft here");
+  assert.equal(await backUpDraft(stranded, crypto.randomUUID()), false, "a draft another tab removed meanwhile is not moved");
+  assert.match(NOT_BACKED_UP, /Nothing was removed\./u);
+  assert.equal(backUpWarning(other),
+    "This moves untitled draft from Your Initiatives to the device backups in Settings, where you can restore it or delete it for good. It is not saved anywhere else.");
 });

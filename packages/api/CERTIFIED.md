@@ -4,8 +4,9 @@ This implements Certified sign-in and private saving on the baseline
 `495e95ae6ea27521f355bc7f10af1488a1e290d9`. Certified is the only intended Weave
 sign-in. This bridge has no email-code, account-linking, migration, private-initiative
 or fixture endpoint. The app uses `/api/sign-in` for the redirect and callback, and
-`/api/account` for explicit private Save, Load and sign-out. Email-code actions are
-removed.
+`/api/account` for the session and sign-out. Private Save, Load, the saved-card list and
+Delete are retired (DL-155, D49): a save, a delete and a read by ID are refused with
+`private_saves_retired`. Email-code actions are removed.
 
 ## Runtime boundary
 
@@ -883,7 +884,12 @@ Hosted personal/group consent, write and independent read-back remain pilot gate
 
 ### Local saved-card deletion
 
-`POST /api/account` with action `delete` removes one personal saved card. The
+Retired in the app and API (DL-155, step 7): `POST /api/account` with action `delete` is now refused
+with `private_saves_retired` before the session is read, and
+`supabase/candidates/weave-retire-private-data.sql` drops `weave.delete_initiative`. What follows
+describes the database command as it stands until that migration.
+
+`POST /api/account` with action `delete` removed one personal saved card. The
 body is exactly `{action, id, expectedRevision, requestId}`, with the same
 same-origin, JSON and 64 KB guards as Save. It calls `weave.delete_initiative`
 with the person's own token. Keep the request ID for retries: a retry returns
