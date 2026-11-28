@@ -74,10 +74,10 @@ export function resumeLabel(route: RouteName): string {
 /**
  * The second door is named for what it opens. It names Certified only where a Certified project
  * can be behind it: the example world, for someone not signed in yet or with projects there.
- * Everyone else opens what they saved in Weave.
+ * Everyone else opens Your Initiatives, the drafts on this device (DL-155: nothing is saved in Weave).
  */
 export function openLabel(certified: { readonly signedIn: boolean; readonly projects: number } | null): string {
   return certified && (!certified.signedIn || certified.projects > 0)
     ? "Open One From Certified"
-    : "Open Your Saved Initiative";
+    : "Open Your Initiatives";
 }

@@ -105,13 +105,13 @@ test("Home's resume link is named for where the card stopped", () => {
 });
 
 test("the second door names Certified only where a Certified project can be behind it", () => {
-  assert.equal(openLabel(null), "Open Your Saved Initiative", "choosing a Certified project is an example only");
+  assert.equal(openLabel(null), "Open Your Initiatives", "choosing a Certified project is an example only");
   assert.equal(openLabel({ signedIn: false, projects: 0 }), "Open One From Certified");
   assert.equal(openLabel({ signedIn: true, projects: 2 }), "Open One From Certified");
   assert.equal(
     openLabel({ signedIn: true, projects: 0 }),
-    "Open Your Saved Initiative",
-    "a private save with no project is not on Certified",
+    "Open Your Initiatives",
+    "a draft with no project is not on Certified",
   );
 });
 

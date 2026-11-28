@@ -70,7 +70,7 @@ for (const theme of ["light", "dark"] as const) {
       const actions = page.locator(homeActions);
       const accountButton = page.getByRole("button", { name: "Account", exact: true });
       await expect(page.locator("#root[data-first-view]")).toHaveCount(0);
-      await expect(page.getByRole("link", { name: "Open Your Saved Initiative", exact: true })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Open Your Initiatives", exact: true })).toBeVisible();
       await expect(page.locator(headerSignIn)).toHaveCount(0);
       await expect(accountButton).toHaveCount(0);
       expect(await homeGeometry(page)).toEqual(firstView);

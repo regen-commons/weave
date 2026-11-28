@@ -229,8 +229,8 @@ export function Settings() {
       </SettingsSection>
       <SettingsSection title="Your Data" note="A copy of what this device holds.">
         <p>
-          Download this device's draft, unfinished words, files, assistant records, backups and shortlist. Cards
-          saved in your account are not included. Keep the file private.
+          Download this device's draft, unfinished words, files, assistant records, backups and shortlist. Keep the
+          file private.
         </p>
         <div className="rc-action-bar">
           <button
