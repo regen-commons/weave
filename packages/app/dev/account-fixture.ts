@@ -89,30 +89,6 @@ const provider: AccountProvider = {
   async load(token, id) {
     return fixtureInitiative(token, id).saved;
   },
-  async save(token, command) {
-    const id = owner(token),
-      key = `${id}:${command.requestId}`,
-      input = JSON.stringify(command),
-      previous = requests.get(key);
-    if (previous) {
-      if (previous.input !== input) throw new AccountError(409, "save_conflict");
-      return previous.saved;
-    }
-    const row = records.get(command.id);
-    if (row && row.owner !== id) throw new AccountError(404, "not_found");
-    if (!row && removed.has(command.id))
-      throw new AccountError(command.expectedRevision === 0 ? 409 : 404, command.expectedRevision === 0 ? "initiative_deleted" : "not_found");
-    if ((row?.saved.revision ?? 0) !== command.expectedRevision) throw new AccountError(409, "save_conflict");
-    const saved = {
-      id: command.id,
-      revision: command.expectedRevision + 1,
-      document: command.document,
-      updatedAt: new Date().toISOString(),
-    };
-    records.set(saved.id, { owner: id, saved });
-    requests.set(key, { input, saved });
-    return saved;
-  },
   async deleteInitiative(token, command) {
     const id = owner(token), row = records.get(command.id);
     if (!row || row.owner !== id) {
@@ -134,12 +110,34 @@ const provider: AccountProvider = {
 };
 /**
  * A private save as one made before saving ended (DL-155, step 4), for the development server and tests. The
- * account endpoint refuses new saves, so a save that already exists in Platform is seeded here, through the same
- * checks the provider kept. Development only; nothing reaches the account endpoint.
+ * account endpoint refuses new saves and its provider has no save any more (step 7), so a save that already
+ * exists in Platform is seeded here, with the checks Platform's save made. Development only.
  */
-export function seedFixtureSave(token: string, command: { id: string; requestId?: string; expectedRevision?: number; document: AccountDocument }) {
-  const { requestId = crypto.randomUUID(), expectedRevision = 0, ...rest } = command;
-  return provider.save(token, { ...rest, requestId, expectedRevision });
+export async function seedFixtureSave(token: string, seed: { id: string; requestId?: string; expectedRevision?: number; document: AccountDocument }) {
+  const { requestId = crypto.randomUUID(), expectedRevision = 0, ...rest } = seed;
+  const command = { ...rest, requestId, expectedRevision };
+  const id = owner(token),
+    key = `${id}:${command.requestId}`,
+    input = JSON.stringify(command),
+    previous = requests.get(key);
+  if (previous) {
+    if (previous.input !== input) throw new AccountError(409, "save_conflict");
+    return previous.saved;
+  }
+  const row = records.get(command.id);
+  if (row && row.owner !== id) throw new AccountError(404, "not_found");
+  if (!row && removed.has(command.id))
+    throw new AccountError(command.expectedRevision === 0 ? 409 : 404, command.expectedRevision === 0 ? "initiative_deleted" : "not_found");
+  if ((row?.saved.revision ?? 0) !== command.expectedRevision) throw new AccountError(409, "save_conflict");
+  const saved: SavedInitiative = {
+    id: command.id,
+    revision: command.expectedRevision + 1,
+    document: command.document,
+    updatedAt: new Date().toISOString(),
+  };
+  records.set(saved.id, { owner: id, saved });
+  requests.set(key, { input, saved });
+  return saved;
 }
 export const accountFixture = createAccountHandlers({
   provider,

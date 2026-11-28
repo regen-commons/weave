@@ -7,14 +7,13 @@ import { backUpCopies, CardReferenced, cardReferences, deletableCards, deleteFai
 import { privateSavesExport, exportedMessage } from "../src/account/export-saves.ts";
 import { backUpDraft, backUpWarning, NOT_BACKED_UP } from "../src/describe/device-removal.ts";
 import { parseMatchingState } from "@weave/api/matching-contract";
-import { matchingFixture, seedFixtureShare } from "../dev/matching-fixture.ts";
+import { matchingFixture } from "../dev/matching-fixture.ts";
 import { EMPTY_ASK } from "../src/intake/contracts.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
-import { loadedDraft, saveCommand } from "../src/account/document.ts";
+import { accountDocument, loadedDraft } from "../src/account/document.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
-import { SaveDetached, saveAccountCard } from "../src/account/actions.ts";
 import { createLiveSocialService } from "../src/social/live.ts";
 import { accountFixture, fixtureSession, seedFixtureSave } from "../dev/account-fixture.ts";
 
@@ -38,8 +37,6 @@ test("forgetting a removed card releases every binding to it and retires a draft
   assert.deepEqual(forgotten.account, { saved: null, pending: null, retired: [saved.id] });
   assert.equal(forgotten.id, saved.id, "device state keyed by the draft ID stays attached");
   assert.equal(forgotten.composer, "Synthetic device words");
-  assert.notEqual(saveCommand(forgotten, owner).command.id, saved.id, "the next Save never meets the removed ID");
-  assert.equal(saveCommand(forgotten, owner).command.expectedRevision, 0);
   assert.equal(forgetSavedCard(forgotten, saved.id), null, "retiring twice changes nothing");
   assert.equal(forgetSavedCard(draft, other), null, "another card leaves the device draft alone");
   const unbound = revise(draft, { account: { saved: null, pending: null } });
@@ -160,83 +157,20 @@ test("the live adapter deletes through the account handlers, retries with one re
   await assert.rejects(seedFixtureSave(token, { id, document }), { code: "initiative_deleted" }, "a stale first save cannot bring the card back");
   await assert.rejects(request("", { action: "save", accountId: owner, id: crypto.randomUUID(), expectedRevision: 0, requestId: crypto.randomUUID(), document }),
     { code: "private_saves_retired" }, "and the account endpoint takes no new save at all");
-  const again = saveCommand(controller.getSnapshot().draft, owner);
-  assert.notEqual(again.command.id, id);
-  assert.equal(again.command.expectedRevision, 0);
+  assert.equal(controller.getSnapshot().draft.account.pending, null, "and the device waits for no save");
 });
 
-function heldSave() {
-  let release: () => void = () => {};
-  const gate = new Promise<void>((resolve) => { release = resolve; });
-  const original = globalThis.fetch;
-  globalThis.fetch = (async (_url: string, init: RequestInit) => {
-    const body = JSON.parse(String(init.body));
-    await gate;
-    return new Response(JSON.stringify({ saved: { id: body.id, revision: body.expectedRevision + 1,
-      updatedAt: "2026-11-16T00:00:00Z", document: body.document } }), { status: 200 });
-  }) as typeof fetch;
-  return { release, restore: () => { globalThis.fetch = original; } };
-}
-
-// DL-155, step 4: nothing saves privately now, so a draft's mark of a save waiting for its answer may never
-// be answered. Removing the draft is no longer refused for it; the answer is bound by the draft's ID, so a
-// late one finds no draft and binds no other.
-test("a draft with an unconfirmed save can be removed, and a late answer binds no other draft", async () => {
-  const { controller, repository, draft } = await device({ composer: "Edited words" });
-  const held = heldSave();
-  try {
-    const saving = saveAccountCard(controller, owner, async () => {});
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    assert.ok(controller.getSnapshot().draft.account.pending, "the save is waiting for its answer");
-    await controller.discardCurrent();
-    assert.equal(repository.drafts.has(draft.id), false, "the draft left the device");
-    const next = controller.getSnapshot().draft;
-    assert.notEqual(next.id, draft.id);
-    held.release();
-    await assert.rejects(saving, SaveDetached);
-    assert.equal(controller.getSnapshot().draft.account.saved, null, "the blank draft that followed is never bound");
-    assert.equal(controller.getSnapshot().draft.account.pending, null);
-  } finally { held.restore(); }
-});
-
-test("a save answered after the person opened another initiative is bound to the draft that asked, and to no other", async () => {
-  const { controller, repository, draft } = await device({ composer: "Edited words" });
-  const held = heldSave();
-  try {
-    const saving = saveAccountCard(controller, owner, async () => {});
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    // The person starts something else while the save is in flight. The first draft stays stored.
-    await controller.startNew();
-    controller.change((current) => revise(current, { composer: "Different initiative" }));
-    await controller.settled();
-    const elsewhere = controller.getSnapshot().draft;
-    held.release();
-    await saving;
-    const asked = repository.drafts.get(draft.id)!;
-    assert.equal(asked.account.pending, null, "nothing is left waiting");
-    assert.equal(asked.account.saved?.revision, 4, "the draft that asked holds the receipt");
-    assert.equal(asked.composer, "Edited words");
-    assert.equal(controller.getSnapshot().draft.id, elsewhere.id, "the tab stays where the person went");
-    assert.equal(controller.getSnapshot().draft.account.saved, null, "the other initiative is never bound to the saved card");
-    assert.equal(controller.getSnapshot().drafts.find((item) => item.id === draft.id)?.account.saved?.revision, 4, "and the list knows");
-  } finally { held.restore(); }
-});
-
-test("a save answer for a draft that was restored over meanwhile binds nothing and says so", async () => {
-  const { controller, draft } = await device({ composer: "Edited words" });
-  const held = heldSave();
-  try {
-    const saving = saveAccountCard(controller, owner, async () => {});
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    // An earlier version of the same draft is restored: it never asked for this save.
-    await controller.replace(revise(draft, { composer: "Restored earlier words" }));
-    held.release();
-    await assert.rejects(saving, SaveDetached);
-    const after = controller.getSnapshot().draft;
-    assert.equal(after.composer, "Restored earlier words");
-    assert.equal(after.account.saved?.revision, 3, "the restored version keeps the binding it had, not the new receipt");
-    assert.equal(after.account.pending, null);
-  } finally { held.restore(); }
+// DL-155, step 4: nothing saves privately now, so a draft's mark of a save an earlier build sent may never be
+// answered. Removing the draft is not refused for it.
+test("a draft still marked as waiting for an earlier save's answer can be removed", async () => {
+  const waiting = revise(loadedDraft(saved, owner), { composer: "Edited words" });
+  const binding = { id: saved.id, owner, revision: 3, contentKey: JSON.stringify(accountDocument(waiting)), requestId: crypto.randomUUID() };
+  const { controller, repository, draft } = await device({ composer: "Edited words", account: { ...waiting.account, pending: binding } });
+  assert.ok(controller.getSnapshot().draft.account.pending, "the draft is marked as waiting");
+  await controller.discardCurrent();
+  assert.equal(repository.drafts.has(draft.id), false, "the draft left the device");
+  assert.notEqual(controller.getSnapshot().draft.id, draft.id);
+  assert.equal(controller.getSnapshot().draft.account.pending, null, "the draft that followed waits for nothing");
 });
 
 test("deleting a saved card releases every draft on this device that points at it, not only the tab's", async () => {
@@ -258,20 +192,6 @@ test("deleting a saved card releases every draft on this device that points at i
   assert.deepEqual(deletableCards(listed, [], [{ id: "x", name: "A", cardId: saved.id }, { id: "y", name: "B", cardId: other }]).map((card) => card.copies), [["x"], ["y"]]);
   assert.deepEqual(deletableCards(listed, [], [{ id: "x", name: "A", cardId: saved.id }]).map((card) => card.copies), [["x"], []]);
   assert.deepEqual(deletableCards(listed, [], []).map((card) => card.copies), [[], []]);
-});
-
-test("a save refused because its card was deleted releases the device draft for a new save", async () => {
-  const { controller } = await device();
-  const original = globalThis.fetch;
-  globalThis.fetch = (async () => new Response(JSON.stringify({ error: "initiative_deleted" }), { status: 409 })) as typeof fetch;
-  try {
-    await assert.rejects(saveAccountCard(controller, owner, async () => {}), { code: "initiative_deleted" });
-  } finally { globalThis.fetch = original; }
-  const after = controller.getSnapshot().draft;
-  assert.equal(after.account.saved, null);
-  assert.deepEqual(after.account.retired, [saved.id]);
-  assert.notEqual(saveCommand(after, owner).command.id, saved.id);
-  assert.equal(after.composer, "Synthetic device words");
 });
 
 test("a deleted card's copies on this device move to the backups when chosen, the tab's own and another, and the list no longer shows them", async () => {
@@ -329,17 +249,15 @@ function fixtureRequest(token: string, origin = "http://localhost:5175") {
   };
 }
 
-test("a card shared for matching is deleted with its sharing, and a refusal names a Certified project only when the account lists it", async () => {
+test("a card with matching state is deleted with it, and a refusal names a Certified project only when the account lists it", async () => {
   const token = fixtureSession(owner), request = fixtureRequest(token);
-  const shared = crypto.randomUUID(), plain = crypto.randomUUID();
-  // A card with an offer, shared for matching before Weave stopped taking new shares.
+  const offering = crypto.randomUUID(), plain = crypto.randomUUID();
+  // A card with an offer, saved privately before Weave stopped taking new saves.
   const ask = (title: string) => ({ id: crypto.randomUUID(), value: { ...EMPTY_ASK, title, capitalForms: ["intellectual" as const] } });
   const offer = ask("GPS mapping training");
-  const offering = { ...document, needs: [], offers: [offer] };
-  for (const [id, doc] of [[shared, offering], [plain, document]] as const)
+  const offeringDocument = { ...document, needs: [], offers: [offer] };
+  for (const [id, doc] of [[offering, offeringDocument], [plain, document]] as const)
     await seedFixtureSave(token, { id, document: doc });
-  // Shared for matching before Weave stopped taking new shares.
-  await seedFixtureShare(token, shared);
 
   const draft = revise(newDraft(), { composer: "Unrelated words" });
   const repository = new MemoryDraftRepository(draft), controller = new DraftController(repository);
@@ -349,14 +267,13 @@ test("a card shared for matching is deleted with its sharing, and a refusal name
   const service = createLiveSocialService({ account, controller, request, refreshAccount: async () => ({ ...account, items: await items() }),
     openWorkspace: () => {}, signIn: async () => {}, signedOut: () => {} });
   const revision = (id: string) => service.snapshot().cards.find((card) => card.id === id)!.revision!;
-  // The share made earlier reads through `state` until the card is deleted (DL-155, step 5: nobody can search shares).
-  const sharing = async () => parseMatchingState(await request("", { action: "state", initiativeId: shared }, "/api/matching"))
+  // Its entries read through `state` until the card is deleted, and then go with it.
+  const sharing = async () => parseMatchingState(await request("", { action: "state", initiativeId: offering }, "/api/matching"))
     .entries.find(({ entryId }) => entryId === offer.id)?.sharing;
-  assert.equal(await sharing(), "shared", "the card is shared before it is deleted");
-  // Its sharing goes with it: a personal save cannot reach matching to withdraw it first (QA notes, 26 November 2026).
-  assert.equal((await service.deleteCard!({ id: shared, revision: revision(shared) }, crypto.randomUUID())).deleted.id, shared);
-  assert.ok(!(await items()).some((item) => item.id === shared), "the shared card is gone");
-  await assert.rejects(sharing(), { code: "not_found" }, "and its sharing with it");
+  assert.equal(await sharing(), "private", "nothing is shared any more (DL-155)");
+  assert.equal((await service.deleteCard!({ id: offering, revision: revision(offering) }, crypto.randomUUID())).deleted.id, offering);
+  assert.ok(!(await items()).some((item) => item.id === offering), "the card is gone");
+  await assert.rejects(sharing(), { code: "not_found" }, "and its matching state with it");
   // A card that is a listed project's workspace names that project; otherwise nothing is named that Weave did not check.
   assert.deepEqual(cardReferences(plain, [{ workspaceId: plain, name: "Water notes (fixture)" }]), { project: "Water notes (fixture)" });
   assert.equal(deleteFailure(new CardReferenced({ project: "Water notes (fixture)" })),
@@ -364,7 +281,7 @@ test("a card shared for matching is deleted with its sharing, and a refusal name
   assert.deepEqual(cardReferences(plain, []), { project: null });
   const generic = deleteFailure(new CardReferenced({ project: null }));
   assert.equal(generic, "Weave still uses this card for something else, such as a project being set up, so it cannot be deleted yet. Nothing was removed.");
-  assert.doesNotMatch(generic, /shared for matching|Partners For You|Certified/u, "no reason Weave did not check, and no way forward it cannot offer");
+  assert.doesNotMatch(generic, /offering for matching|Partners For You|Certified/u, "no reason Weave did not check, and no way forward it cannot offer");
   // The plain card has no reference and is deleted.
   assert.equal((await service.deleteCard!({ id: plain, revision: revision(plain) }, crypto.randomUUID())).deleted.id, plain);
 });

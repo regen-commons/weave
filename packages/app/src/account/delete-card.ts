@@ -40,7 +40,7 @@ export function draftsBoundTo(controller: DraftController, id: string): string[]
  * any other the browser holds (DL-112). False when nothing pointed at it, or when this device
  * could not store a release.
  */
-export async function releaseDeletedCard(controller: DraftController, id: string): Promise<boolean> {
+async function releaseDeletedCard(controller: DraftController, id: string): Promise<boolean> {
   const bound = draftsBoundTo(controller, id);
   if (!bound.length) return false;
   let stored = true;

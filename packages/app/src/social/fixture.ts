@@ -1,6 +1,6 @@
 /**
  * Development-only example of Certified sign-in, saving, project linking, team
- * workspaces, sharing for matching and publishing. It sends nothing, stores nothing
+ * workspaces and publishing. It sends nothing, stores nothing
  * and grants no real access. Where the services are not built yet, it shows the
  * first-release target so the interface can be reviewed.
  */
@@ -77,7 +77,10 @@ export interface SocialState {
    * and it ends with the tab (DL-119). The example world has none.
    */
   readonly visit?: string | null;
-  /** Entries shared for matching with people signed in. The key is what was shared; null when seeded. */
+  /**
+   * Entries an example card shared for matching before DL-155 ended sharing; only the `shared` and `published`
+   * scenarios seed it, and nothing adds to it now. The key is what was shared; null when seeded.
+   */
   readonly shared: { readonly entries: Entries; readonly until: string | null; readonly key: string | null } | null;
   /** Entries published to AT Protocol through Certified, and the day a withdrawal was asked for. */
   readonly published: {
@@ -123,8 +126,6 @@ export interface SocialService {
   requestWorkspace(): Promise<void>;
   /** Reads the latest state from Certified. In this example a pending request or withdrawal is then confirmed. */
   checkAgain(): Promise<void>;
-  share(entries: readonly string[], key: string): Promise<void>;
-  stopSharing(): Promise<void>;
   publish(entries: readonly string[], key: string): Promise<void>;
   withdraw(): Promise<void>;
   clearCard(): Promise<void>;
@@ -190,17 +191,13 @@ export const savedPlace = (state: SocialState): "device" | "private" | "workspac
 /**
  * Which partner suggestions a person can see. Funding needs none of this. A linked
  * project sees suggestions from public sources while its entries stay private, and
- * searching what other teams shared needs one shared entry of its own. A share the
- * card has moved on from is out of matching, so `current` false opens public sources only.
+ * searching what other teams shared needs one shared entry of its own, which only the
+ * seeded examples from before DL-155 still have.
  */
 export type PartnerAccess = "unlinked" | "public" | "network";
-export const partnerAccessOf = (state: SocialState, current = true): PartnerAccess =>
-  !state.identity || !state.project ? "unlinked" : state.shared && current ? "network" : "public";
+export const partnerAccessOf = (state: SocialState): PartnerAccess =>
+  !state.identity || !state.project ? "unlinked" : state.shared ? "network" : "public";
 
-/** A share has no end date: it stays discoverable until the team closes or withdraws it. */
-export function sharingEnds(_today: string): string | null {
-  return null;
-}
 const slug = (name: string) =>
   name
     .normalize("NFD")
@@ -257,7 +254,8 @@ export function createSocialFixture(
         ? { place: "private", on: seeded.savedOn, key: null, card: seeded.id }
         : null,
     project: linked ? linkTo(ORCHARD_RECORD) : null,
-    shared: sharing ? { entries: "all", until: sharingEnds(today), key: null } : null,
+    // An example of a card shared for matching before DL-155 ended it: nothing can share one now.
+    shared: sharing ? { entries: "all", until: null, key: null } : null,
     published:
       scenario === "published" ? { on: "2026-11-02", entries: "all", key: null, withdrawal: null } : null,
     records: signed ? owned : [],
@@ -398,16 +396,6 @@ export function createSocialFixture(
           state.project?.workspace === "requested" ? { ...state.project, workspace: "open" } : state.project,
         published: state.published?.withdrawal ? null : state.published,
       };
-    },
-    async share(entries, key) {
-      leaves();
-      chosen(entries);
-      state = { ...state, shared: { entries: [...entries], until: sharingEnds(today), key } };
-    },
-    async stopSharing() {
-      identity();
-      // Sharing for matching and publishing are separate, so a published entry stays published.
-      state = { ...state, shared: null, notifications: { ...state.notifications, partners: false } };
     },
     async publish(entries, key) {
       identity();

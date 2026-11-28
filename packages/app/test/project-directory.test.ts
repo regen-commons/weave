@@ -3,12 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parseDocument, parseSaved } from "@weave/api/account-contract";
 import { AccountFailure } from "../src/account/client.ts";
-import { accountDocument, loadedDraft } from "../src/account/document.ts";
-import { newDraft, revise } from "../src/describe/contracts.ts";
-import { DraftController } from "../src/describe/controller.ts";
-import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { clearRejectedProjectCreate, parsePendingProjectCreate, projectCreationKey, projectGroupPattern, validProjectGroupLabel } from "../src/initiative/project-creation.ts";
-import { connectPersonalProject, loadPersonalProject, personalProjectDraft, preparePersonalProject, saveForProject } from "../src/initiative/project-save.ts";
 import { projectPage, setupPage, workspacePage } from "../src/initiative/projects-client.ts";
 
 const owner="10000000-0000-4000-8000-000000000001", other="10000000-0000-4000-8000-000000000002";
@@ -18,69 +13,6 @@ const document=parseDocument(JSON.parse(readFileSync(new URL("../../api/src/test
 const saved=parseSaved({id:"10000000-0000-4000-8000-000000000003",revision:2,updatedAt:"2026-11-10T00:00:00Z",document});
 const command={action:"create",initiativeId:saved.id,expectedRevision:2,requestId:"10000000-0000-4000-8000-000000000004",
   groupLabel:"garden-project",publicProfile:{title:"Reviewed title",description:"Reviewed description"}};
-
-test("a first personal project starts from actual public fields, with empty reviewed needs and offers and no inferred facts",()=>{
-  const draft=personalProjectDraft(project), result=accountDocument(draft);
-  assert.equal(result.initiative.name,project.title); assert.equal(result.initiative.description,project.description);
-  assert.deepEqual(result.initiative.locations,[]); assert.equal(result.initiative.stage,null);
-  assert.deepEqual(result.initiative.links,[]); assert.deepEqual(result.needs,[]); assert.deepEqual(result.offers,[]);
-});
-
-test("initializing a personal project leaves unfinished words and files as their own draft, while a complete card retains its checked needs",async()=>{
-  const before=revise(newDraft(),{composer:"Unfinished private words"});
-  const repo=new MemoryDraftRepository(before), controller=new DraftController(repo); await controller.initialize();
-  await preparePersonalProject(controller,project,new AbortController().signal);
-  assert.equal(repo.drafts.get(before.id),before); assert.equal(repo.history.length,0);
-  assert.equal(controller.getSnapshot().draft.confirmed?.name,project.title);
-  const complete=loadedDraft(saved,owner), retained=new MemoryDraftRepository(complete), current=new DraftController(retained);
-  await current.initialize(); await preparePersonalProject(current,project,new AbortController().signal);
-  assert.deepEqual(accountDocument(current.getSnapshot().draft),document); assert.equal(retained.history.length,0);
-});
-
-test("opening a personal workspace fetches its exact saved identity and leaves the unrelated draft stored as it was",async()=>{
-  const initial=revise(newDraft(),{composer:"Keep this current draft"}),repo=new MemoryDraftRepository(initial),controller=new DraftController(repo);
-  await controller.initialize(); const original=globalThis.fetch;
-  globalThis.fetch=async (path,init)=>{
-    assert.equal(path,`/api/account?id=${saved.id}`); assert.equal(init?.method,"GET");
-    return Response.json({user:{id:owner,email:"fixture@example.test"},saved});
-  };
-  try {
-    await loadPersonalProject(controller,saved.id,owner,new AbortController().signal);
-    assert.equal(controller.getSnapshot().draft.account.saved?.id,saved.id);
-    assert.equal(repo.drafts.get(initial.id),initial); assert.equal(repo.history.length,0);
-  } finally {globalThis.fetch=original;}
-});
-
-test("other-account, wrong-ID and canceled personal load responses cannot replace the device draft",async()=>{
-  const original=globalThis.fetch;
-  try {
-    for (const response of [
-      {user:{id:other,email:"other@example.test"},saved},
-      {user:{id:owner,email:"fixture@example.test"},saved:{...saved,id:other}},
-    ]) {
-      const initial=newDraft(),repo=new MemoryDraftRepository(initial),controller=new DraftController(repo); await controller.initialize();
-      globalThis.fetch=async ()=>Response.json(response);
-      await assert.rejects(loadPersonalProject(controller,saved.id,owner,new AbortController().signal));
-      assert.equal(controller.getSnapshot().draft.id,initial.id); assert.equal(repo.history.length,0);
-    }
-    const initial=newDraft(),repo=new MemoryDraftRepository(initial),controller=new DraftController(repo); await controller.initialize();
-    const canceled=new AbortController();
-    globalThis.fetch=async ()=>{canceled.abort();return Response.json({user:{id:owner,email:"fixture@example.test"},saved});};
-    await assert.rejects(loadPersonalProject(controller,saved.id,owner,canceled.signal));
-    assert.equal(controller.getSnapshot().draft.id,initial.id);
-  } finally {globalThis.fetch=original;}
-});
-
-test("a canceled in-flight project save never binds a late account receipt to the device card",async()=>{
-  const initial=personalProjectDraft(project),repo=new MemoryDraftRepository(initial),controller=new DraftController(repo); await controller.initialize();
-  const original=globalThis.fetch,canceled=new AbortController();
-  globalThis.fetch=async (_,init)=>{
-    const body=JSON.parse(String(init?.body)); assert.equal(body.accountId,owner); canceled.abort();
-    return Response.json({saved:{id:body.id,revision:1,updatedAt:"2026-11-10T00:00:00Z",document:body.document}});
-  };
-  try {await assert.rejects(saveForProject(controller,owner,canceled.signal));assert.equal(controller.getSnapshot().draft.account.saved,null);}
-  finally {globalThis.fetch=original;}
-});
 
 test("pending creation recovery validates the entire frozen command and keeps uncertain original IDs despite old UI expiry",()=>{
   assert.deepEqual(parsePendingProjectCreate({...command,until:1}),command);
@@ -115,50 +47,6 @@ test("paused authorized workspaces retain stable private routing without stale p
 });
 
 
-test("connecting an existing personal project opens its canonical save without creating a duplicate",async()=>{
-  const initial=revise(newDraft(),{composer:"Preserve my unrelated unfinished draft"});
-  const repo=new MemoryDraftRepository(initial),controller=new DraftController(repo); await controller.initialize();
-  const original=globalThis.fetch,calls:string[]=[];
-  globalThis.fetch=async (path,init)=>{
-    calls.push(String(path));
-    if (path==="/api/projects") {
-      const body=JSON.parse(String(init?.body)); assert.equal(body.action,"lookup");
-      return Response.json({status:"linked",workspaceId:saved.id,projectUri:project.uri});
-    }
-    assert.equal(path,`/api/account?id=${saved.id}`);
-    return Response.json({user:{id:owner,email:null},saved});
-  };
-  try {
-    await connectPersonalProject(controller,owner,project,new AbortController().signal);
-    assert.deepEqual(calls,["/api/projects",`/api/account?id=${saved.id}`]);
-    assert.equal(controller.getSnapshot().draft.account.saved?.id,saved.id);
-    assert.equal(repo.drafts.get(initial.id)?.composer,initial.composer); assert.equal(repo.history.length,0);
-  } finally {globalThis.fetch=original;}
-});
-
-test("a competing personal link loads the winner and keeps the newly saved card on the device",async()=>{
-  const initial=personalProjectDraft(project),repo=new MemoryDraftRepository(initial),controller=new DraftController(repo);
-  await controller.initialize();const original=globalThis.fetch;let projectCalls=0,privateSave:string|undefined;
-  globalThis.fetch=async (path,init)=>{
-    if (path==="/api/projects") {
-      const body=JSON.parse(String(init?.body));projectCalls++;
-      if(body.action==="lookup") return Response.json({status:"unlinked"});
-      assert.equal(body.action,"link");assert.equal(body.initiativeId,privateSave);
-      return Response.json({status:"linked",workspaceId:saved.id,projectUri:project.uri});
-    }
-    if(init?.method==="POST") {
-      const body=JSON.parse(String(init.body));privateSave=body.id;
-      return Response.json({saved:{id:body.id,revision:1,updatedAt:saved.updatedAt,document:body.document}});
-    }
-    return Response.json({user:{id:owner,email:null},saved});
-  };
-  try {
-    await connectPersonalProject(controller,owner,project,new AbortController().signal);
-    assert.equal(projectCalls,2);assert.equal(controller.getSnapshot().draft.account.saved?.id,saved.id);
-    assert.ok([...repo.drafts.values()].some(draft=>draft.account.saved?.id===privateSave));
-  } finally {globalThis.fetch=original;}
-});
-
 test("project pages keep the source place and publisher links the server read, and refuse malformed ones",()=>{
   const sourced={...project,place:{status:"named",name:"Riverside allotments"},publisherLinks:["https://garden.example.org/"]};
   assert.deepEqual(projectPage({projects:[sourced]}).projects[0],sourced);
@@ -173,10 +61,3 @@ test("project pages keep the source place and publisher links the server read, a
   assert.deepEqual(listing.workspaces[0]?.project,sourced);
 });
 
-test("a first personal project takes its source place, keeps its publisher's links off the card and invents nothing",()=>{
-  const draft=personalProjectDraft({...project,place:{status:"named",name:"Riverside allotments"},publisherLinks:["https://garden.example.org/"]});
-  assert.deepEqual(draft.confirmed?.locations,["Riverside allotments"]);
-  assert.deepEqual(draft.links,[]);
-  assert.deepEqual(accountDocument(draft).initiative.links,[]);
-  assert.deepEqual(personalProjectDraft({...project,place:{status:"unread"}}).confirmed?.locations,[]);
-});

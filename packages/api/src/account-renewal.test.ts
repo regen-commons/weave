@@ -30,7 +30,6 @@ function fixture(renew: (refreshToken: string) => Promise<AccountSessionTokens> 
     signOut: async (token) => { calls.push(`signOut:${token === fresh ? "fresh" : "old"}`); },
     list: async () => [],
     load: async () => { throw Error("not used"); },
-    save: async (_token, command) => ({ id: command.id, revision: 1, updatedAt: "2026-11-20T12:00:00Z", document: command.document }),
     deleteInitiative: async () => { throw Error("not used"); },
   };
   return { provider, calls, handlers: createAccountHandlers({ provider, now: () => now }) };
@@ -153,7 +152,6 @@ test("a write near expiry renews first and writes with the new token", async () 
 
 test("a private save is refused by name before any session work, since saves retired (DL-155)", async () => {
   const { handlers, provider, calls } = fixture();
-  provider.save = async () => assert.fail("nothing is saved privately");
   const response = await handlers.POST(post({ action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document },
     cookie(undefined, "first-refresh")));
   assert.equal(response.status, 410);

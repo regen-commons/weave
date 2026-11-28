@@ -1,7 +1,6 @@
 import { SocialAction } from "../social/Action.tsx";
 import { useSocialFixture } from "../social/context.tsx";
 import { partnerAccessOf } from "../social/fixture.ts";
-import { useCardStatus } from "../initiative/use-card-status.ts";
 import { useEffect, useMemo, useState } from "react";
 import { ACCESS, effectiveAccess } from "../../../../dist/domain.mjs";
 import { fundingSourceUrl } from "../funding/source.ts";
@@ -50,8 +49,6 @@ export function Opportunity({
   presentation?: Presentation;
 }) {
   const social = useSocialFixture();
-  // A share the card has moved on from is out of matching, so it opens no other team's slots.
-  const shareCurrent = useCardStatus().sharing?.state !== "changed";
   const example = useMemo(
     () => (import.meta.env.DEV && fixture ? fundingFixture(fixture) : undefined),
     [fixture?.state, fixture?.scenario],
@@ -325,7 +322,7 @@ export function Opportunity({
         <TeamSlots
           asks={asks}
           shared={
-            !!example && !!social && partnerAccessOf(social.state, shareCurrent) === "network" && team !== "private"
+            !!example && !!social && partnerAccessOf(social.state) === "network" && team !== "private"
           }
         />
       )}

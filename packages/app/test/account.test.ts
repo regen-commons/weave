@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { readFileSync } from "node:fs";
 import { parseDocument, parseSaved } from "@weave/api/account-contract";
 import { assertAccount, AccountFailure } from "../src/account/client.ts";
-import { AnotherAccountsCard, accountDocument, accountKey, belongsToAnotherAccount, cardOwner, loadedDraft, saveCommand } from "../src/account/document.ts";
+import { AnotherAccountsCard, accountDocument, accountKey, belongsToAnotherAccount, cardOwner, loadedDraft, ownDocument } from "../src/account/document.ts";
 import { choiceStorage, chosenProjectUri, deviceChoosers, projectChoiceKey, projectChoosers } from "../src/social/project-choice.ts";
 import { newDraft, revise, DeviceDraftSchema } from "../src/describe/contracts.ts";
 import { addEntry, keepPending, toggleKind } from "../src/intake/entries.ts";
@@ -47,22 +47,16 @@ test("a private save accepts an entry without a kind of support", () => {
   const fixed = revise(bare, { needs: reviewStep(toggleKind(needs, id, "social")) });
   assert.deepEqual(accountDocument(fixed).needs.at(-1)?.value?.capitalForms, ["social"]);
 });
-test("save retries reuse the same request only for the same owner and checked payload", () => {
-  const draft = loadedDraft(saved, owner),
-    first = saveCommand(draft, owner);
-  assert.equal(first.command.id, saved.id);
-  assert.equal(first.command.expectedRevision, 4);
-  const pending = revise(draft, { account: { ...draft.account, pending: first.binding } });
-  assert.deepEqual(saveCommand(pending, owner), first);
-  const changed = revise(pending, { confirmed: { ...pending.confirmed!, name: "Changed initiative" } });
-  assert.notEqual(saveCommand(changed, owner).command.requestId, first.command.requestId);
-  // Another account gets no command at all for it: a card is never copied (DL-055).
-  assert.throws(() => saveCommand(pending, other), AnotherAccountsCard);
-  assert.throws(() => saveCommand(revise(draft, { account: { saved: null, pending: first.binding } }), other), AnotherAccountsCard);
-  const initial = revise(draft, { account: { saved: null, pending: null } });
-  const create = saveCommand(initial, owner);
-  assert.equal(create.command.id, draft.id);
-  assert.equal(create.command.expectedRevision, 0);
+test("a card saved, or still marked as being saved, by one account is never another account's document (DL-055)", () => {
+  const draft = loadedDraft(saved, owner);
+  assert.deepEqual(ownDocument(draft, owner), accountDocument(draft));
+  const contentKey = JSON.stringify(accountDocument(draft));
+  const waiting = { id: saved.id, owner, revision: 4, contentKey, requestId: crypto.randomUUID() };
+  const pending = revise(draft, { account: { ...draft.account, pending: waiting } });
+  assert.throws(() => ownDocument(pending, other), AnotherAccountsCard);
+  assert.throws(() => ownDocument(revise(draft, { account: { saved: null, pending: waiting } }), other), AnotherAccountsCard);
+  assert.deepEqual(ownDocument(revise(draft, { account: { saved: null, pending: null } }), other), accountDocument(draft),
+    "a card nobody saved belongs to whoever uses the device");
 });
 test("loading a saved card leaves the unfinished draft on the device as its own draft, words and files included", async () => {
   const blob = new Blob(["Synthetic file bytes"]);

@@ -6,6 +6,9 @@ import { parseMatchingCommand } from "./matching-contract.ts";
 import { projectRuntime } from "./project-runtime.ts";
 import { createMatchingProvider, type MatchingProvider } from "./matching-provider.ts";
 
+/** Sharing for matching and the partners Weave kept on the server, retired by DL-155 (steps 4 and 5). */
+const RETIRED_ACTIONS: ReadonlySet<string> = new Set(["preview", "share", "renew", "withdraw", "search", "leads", "set_lead"]);
+
 export function createMatchingHandlers({ provider, secureCookies = true, origin }: {
   provider: MatchingProvider | null;
   secureCookies?: boolean;
@@ -30,15 +33,14 @@ export function createMatchingHandlers({ provider, secureCookies = true, origin 
         if (!token) throw new AccountError(401, "sign_in_required");
         if (!provider) throw new AccountError(503, "matching_unavailable");
         const body = await boundedJson(request);
+        // DL-155: nothing new is shared with signed-in Weave users (step 4), and published listings took over
+        // matching (step 5). These commands are refused by name, whatever else they carry: Weave no longer
+        // parses them (step 7). Partners are kept on the device's shortlist.
+        const action = body !== null && typeof body === "object" ? (body as Record<string, unknown>).action : undefined;
+        if (typeof action === "string" && RETIRED_ACTIONS.has(action)) throw new AccountError(410, "matching_shares_retired");
         let command;
         try { command = parseMatchingCommand(body); }
         catch { throw new AccountError(400, "invalid_data"); }
-        // DL-155: nothing new is shared with signed-in Weave users (step 4), and published listings took over
-        // matching (step 5). A share still on is withdrawn by Platform, so searching shares, withdrawing one
-        // and the saved partners kept on the server end here; partners are kept on the device's shortlist.
-        // `state` stays, since publishing a team's saved card reads its entry revisions until step 6.
-        if (["preview", "share", "renew", "withdraw", "search", "leads", "set_lead"].includes(command.action))
-          throw new AccountError(410, "matching_shares_retired");
         return response(200, await provider.execute(token, command));
       } catch (error) {
         const known = error instanceof AccountError ? error : new AccountError(503, "matching_unavailable");

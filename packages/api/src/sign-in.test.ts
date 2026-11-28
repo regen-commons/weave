@@ -37,7 +37,6 @@ function fixture(emailHints?: ReturnType<typeof certifiedEmailHints>) {
     async renew() { throw Error("sign-in must never renew"); },
     async authorize() { return { id: "b1000000-0000-4000-8000-000000000001", email: null }; },
     async signOut() { revocations++; },
-    async save() { throw Error("sign-in must never save"); },
     async load() { throw Error("sign-in must never load"); },
     async list() { throw Error("sign-in must never list private documents"); },
     async deleteInitiative() { throw Error("sign-in must never delete"); },

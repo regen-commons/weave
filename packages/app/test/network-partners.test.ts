@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { parseDocument, parseSaved, record, type AccountDocument } from "@weave/api/account-contract";
 import { parseMatchingSearch, parseMatchingState } from "@weave/api/matching-contract";
 import { accountFixture, fixtureSession, seedFixtureSave } from "../dev/account-fixture.ts";
-import { matchingFixture, seedFixtureShare } from "../dev/matching-fixture.ts";
+import { matchingFixture } from "../dev/matching-fixture.ts";
 import { activeInitiative } from "../src/account/active-initiative.ts";
 import { AccountFailure } from "../src/account/client.ts";
 import { loadedDraft } from "../src/account/document.ts";
@@ -43,16 +43,15 @@ async function matching(token: string, initiativeId: string, input: object, stat
 const reference = ({ kind, entryId, revision, shareVersion }: { kind: string; entryId: string; revision: number; shareVersion: number }) =>
   ({ kind, entryId, revision, shareVersion });
 
-// DL-155, step 5: sharing for matching has ended. A share made earlier still reads through `state`, which team
-// publishing uses until step 6, but searching shares, keeping partners on the server and withdrawing are refused by
-// name, as reviewing, sharing and renewing were in step 4. Platform withdraws the shares still on.
-test("sharing for matching has ended: an earlier share still reads, and every share command is refused by name", async () => {
+// DL-155: sharing for matching has ended (steps 4 and 5), and Weave no longer parses its commands (step 7).
+// `state` still reads, since a team draft publishes from its entry revisions; every share command is refused by name.
+test("sharing for matching has ended: state still reads, and every share command is refused by name", async () => {
   const owner = crypto.randomUUID(), token = fixtureSession(owner);
   const need = ask("GPS watershed mapping"), privateNeed = ask("Keep this off the network");
   const document = { ...base, initiative: { ...base.initiative, name: "Watershed A", links: [] }, needs: [need, privateNeed], offers: [] };
   const card = await save(token, crypto.randomUUID(), document);
-  const shared = await seedFixtureShare(token, card.id, ({ entryId }) => entryId === need.id);
-  assert.deepEqual(parseMatchingState(await matching(token, card.id, { action: "state" })), shared);
+  const shared = parseMatchingState(await matching(token, card.id, { action: "state" }));
+  assert.deepEqual(shared.entries.map(({ sharing }) => sharing), ["private", "private"], "nothing is shared");
   assert.equal((await matching(fixtureSession(crypto.randomUUID()), card.id, { action: "state" }, 404)).error, "not_found");
   const ref = reference(shared.entries.find(({ entryId }) => entryId === need.id)!);
   const requestId = crypto.randomUUID();
@@ -65,8 +64,9 @@ test("sharing for matching has ended: an earlier share still reads, and every sh
     { action: "share", reviewId: crypto.randomUUID(), requestId },
     { action: "renew", reviewId: crypto.randomUUID(), requestId },
   ]) assert.equal((await matching(token, card.id, command, 410)).error, "matching_shares_retired", command.action);
-  // A malformed command is still invalid data, not a retired one, and nothing above changed the share.
-  assert.equal((await matching(token, card.id, { action: "share", reviewId: "not-an-id", requestId }, 400)).error, "invalid_data");
+  // A malformed one is refused by name too, and nothing above changed the state.
+  assert.equal((await matching(token, card.id, { action: "share", reviewId: "not-an-id", requestId }, 410)).error, "matching_shares_retired");
+  assert.equal((await matching(token, card.id, { action: "state", query: "words" }, 400)).error, "invalid_data");
   assert.deepEqual(parseMatchingState(await matching(token, card.id, { action: "state" })), shared);
 
   // A returning account opens the same card by the same initiative ID.
@@ -298,7 +298,7 @@ test("team editing still saves, team state still reads, and nobody on a team can
     return input === "/api/projects" ? handler(request) : matchingFixture(request);
   };
   try {
-    // Team workspace saves go on until step 6.
+    // A group project keeps its shared team draft (D48, revised 28 November 2026).
     let team = (await requestTeamWorkspace(FIXTURE_TEAM_ID, signal)).saved!;
     const need = { ...team.document.needs[0]!, value: { ...team.document.needs[0]!.value,
       title: "GPS watershed mapping", capitalForms: ["intellectual"] } };
@@ -314,7 +314,6 @@ test("team editing still saves, team state still reads, and nobody on a team can
       expectedRevision: team.revision, requestId: crypto.randomUUID() }, signal), { code: "workspace_edit_required" });
 
     // Publishing a team's saved card reads its entries' revisions from `state`, and a viewer may search its listings.
-    await seedFixtureShare(tokens.editor, team.id, ({ kind }) => kind === "need");
     for (const who of [tokens.editor, tokens.viewer]) {
       token = who;
       const state = await matchingRequest(team.id, "state", {}, signal);

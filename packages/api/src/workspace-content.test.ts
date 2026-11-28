@@ -12,7 +12,7 @@ const actor: ProjectActor = {
 };
 const groupDid = "did:plc:bbbbbbbbbbbbbbbbbbbbbbbb";
 const projectUri = `at://${groupDid}/org.hypercerts.collection/group-project`;
-const command = { action: "search", initiativeId: workspaceId } as const;
+const command = { action: "listing_search", initiativeId: workspaceId } as const;
 const load = { action: "team_load", workspaceId } as const;
 
 function fixture(
@@ -38,7 +38,7 @@ function fixture(
     },
     async command(_actor, id, role, cid, action) {
       calls.push([action, id, role, cid]);
-      return action === "matching_shortlist" ? { groups: [], externalCoverage: null }
+      return action === "listing_shortlist" ? { groups: [], externalCoverage: null }
         : action === "team_load" ? { saved: null, accessRole: "viewer" } : null;
     },
   }, {
@@ -69,7 +69,7 @@ test("matching verifies the linked project without exposing team drafts to Certi
   assert.equal((await active.workspace.match(actor, command)).initiativeId, workspaceId);
   assert.deepEqual(active.calls, [
     ["membership", actor.did, groupDid], ["project", projectUri],
-    ["matching_shortlist", workspaceId, "member", "bafycurrent"],
+    ["listing_shortlist", workspaceId, "member", "bafycurrent"],
   ]);
   const unlisted = fixture({ ok: true, value: "member" }, "unlisted");
   await assert.rejects(unlisted.workspace.match(actor, command), { status: 404, code: "project_not_found" });

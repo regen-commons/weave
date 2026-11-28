@@ -44,9 +44,8 @@ export function offersDeviceCardToTeam(card: { blocked: boolean; signedIn: boole
 }
 
 /**
- * Copies the checked card on this device into a team workspace: the one save that does not go
- * through `saveCommand`, because a team document has no private card ID. It takes its document
- * from `ownDocument` as that one does, so another account's card is refused here too. `retry` is the request
+ * Copies the checked card on this device into a team workspace, the one save Weave still takes from a device
+ * card (DL-155). It takes its document from `ownDocument`, so another account's card is refused here. `retry` is the request
  * a failed attempt started with, sent again unchanged. `started` is told the request before it
  * is sent, so a failure can be retried.
  */

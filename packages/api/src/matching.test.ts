@@ -2,18 +2,14 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { parseDocument } from "./account-contract.ts";
 import { createSupabaseWeaveRpc } from "./account-provider.ts";
-import { parseMatchingCommand, parseMatchingSearch, parseMatchingPreview, type MatchingProjection } from "./matching-contract.ts";
+import { parseMatchingCommand } from "./matching-contract.ts";
 import { createMatchingProvider } from "./matching-provider.ts";
 import { createMatchingHandlers } from "./matching.ts";
-import { PARTNER_ENGINE_VERSION, type ProjectEvidence } from "./partner-matcher.ts";
 import sample from "./test-data/account.json" with { type: "json" };
 
 const owner = "10000000-0000-4000-8000-000000000001";
-const peer = "10000000-0000-4000-8000-000000000002";
 const needId = "20000000-0000-4000-8000-000000000001";
-const offerId = "20000000-0000-4000-8000-000000000002";
 const ref = { kind: "need", entryId: needId, revision: 3, shareVersion: 8 } as const;
-const at = new Date().toISOString(), later = new Date(Date.now() + 86_400_000).toISOString();
 const origin = "https://weave.example.test";
 const token = "fixture.token.signature";
 const request = (body: unknown, headers: Record<string, string> = {}) => new Request(`${origin}/api/matching`, {
@@ -21,91 +17,43 @@ const request = (body: unknown, headers: Record<string, string> = {}) => new Req
   headers: { origin, "content-type": "application/json", cookie: `__Host-weave_account=${token}`, ...headers },
   body: JSON.stringify(body),
 });
-const summary = { name: "River circle", description: "", isGlobal: false, locations: ["Upper valley"], themes: [], lenses: [] };
-const common = { description: null, capitalForms: ["experiential"], amount: null, timeframe: null, urgency: null,
-  placeScope: "anywhere", exchangeTerms: ["gift"], purpose: null, capacity: null, audience: null, status: "open" };
-const need: MatchingProjection = {
-  ...ref, initiativeId: owner, summary, confirmedAt: at, expiresAt: later,
-  value: { ...common, title: "Need a watershed mapping workshop" },
-};
-const offer: MatchingProjection = {
-  ...need, kind: "offer", entryId: offerId, initiativeId: peer,
-  value: { ...common, title: "Watershed mapping workshops" },
-};
-const source: ProjectEvidence = {
-  id: "evidence-1", projectUri: "at://did:plc:synthetic/org.hypercerts.collection/example",
-  projectName: "Mapping project", sourceUri: "at://did:plc:synthetic/org.hypercerts.collection/example",
-  sourceUrl: "https://api.hypercerts.org/example", cid: "bafyfixture", contentHash: "hash", fieldPath: "description",
-  passage: "The team runs watershed mapping workshops.", sourceCreatedAt: at, sourceIndexedAt: null,
-  fetchedAt: at, extractionVersion: "fixture", kind: "work",
-};
+const projectUri = "at://did:plc:synthetic/org.hypercerts.collection/example";
 
-test("sharing reviews accept the learning lens and reject unknown types of work", () => {
-  const review = { reviewId: "50000000-0000-4000-8000-000000000003", initiativeId: owner,
-    initiativeRevision: 1, audience: "weave_users", expiresAt: null, entries: [], summary: { ...summary, lenses: ["learning"] } };
-  assert.deepEqual(parseMatchingPreview(review).summary.lenses, ["learning"]);
-  assert.throws(() => parseMatchingPreview({ ...review, summary: { ...summary, lenses: ["unconfirmed-lens"] } }));
-});
-
-test("rejects foreign origins, missing sessions, duplicate selection and injected draft text before RPC", async () => {
+test("rejects foreign origins, missing sessions and injected draft text before RPC", async () => {
   const provider = createMatchingProvider(async () => assert.fail("request must not reach the database"));
   const { POST } = createMatchingHandlers({ provider, origin });
-  const command = { action: "search", initiativeId: owner };
-  const attempts = [
-    [request(command, { origin: "https://elsewhere.example.test" }), 403],
-    [request(command, { cookie: "" }), 401],
-    [request({ ...command, query: "private unshared note" }), 400],
-    [request({ ...command, entries: [ref, ref] }), 400],
-    [request(command, { "content-type": "text/plain" }), 415],
-    [request(command, { "content-length": "65537" }), 413],
-  ] as const;
-  for (const [input, expected] of attempts) {
-    const response = await POST(input);
-    assert.equal(response.status, expected);
-    assert.equal(response.headers.get("Cache-Control"), "private, no-store");
+  // A retired action meets every check before its refusal by name, so no origin can probe for it signed out.
+  for (const command of [{ action: "state", initiativeId: owner }, { action: "listing_search", initiativeId: owner },
+    { action: "share", initiativeId: owner }]) {
+    const attempts = [
+      [request(command, { origin: "https://elsewhere.example.test" }), 403],
+      [request(command, { cookie: "" }), 401],
+      ...(command.action === "share" ? [] : [
+        [request({ ...command, query: "private unshared note" }), 400],
+        [request({ ...command, entries: [ref] }), 400],
+        [request({ ...command, initiativeId: "not-an-id" }), 400],
+      ] as const),
+      [request(command, { "content-type": "text/plain" }), 415],
+      [request(command, { "content-length": "65537" }), 413],
+    ] as const;
+    for (const [input, expected] of attempts) {
+      const response = await POST(input);
+      assert.equal(response.status, expected, `${command.action} ${expected}`);
+      assert.equal(response.headers.get("Cache-Control"), "private, no-store");
+    }
   }
 });
 
-// The share search and its narrow RPCs stay in the provider until step 7 removes them; the endpoint refuses them.
-test("the provider matches both directions with shared entries and public evidence without confusing evidence classes", async () => {
-  const ownerOffer = { ...offer, initiativeId: owner };
-  const peerNeed = { ...need, initiativeId: peer };
-  const otherProject = source.projectUri.replace("/example", "/other");
-  const mentionsWorkshop: ProjectEvidence = { ...source, id: "evidence-2", projectUri: otherProject,
-    sourceUri: otherProject, passage: "The watershed mapping workshop was held by another group." };
-  const rpc = createSupabaseWeaveRpc("https://db.example.test", "publishable-fixture", async (url, init) => {
-    assert.equal(url, "https://db.example.test/rest/v1/rpc/matching_shortlist");
-    const headers = new Headers(init?.headers);
-    assert.equal(headers.get("authorization"), `Bearer ${token}`);
-    assert.equal(headers.get("content-profile"), "weave");
-    assert.deepEqual(JSON.parse(String(init?.body)), { p_id: owner, p_entries: null });
-    return Response.json({ externalCoverage: { status: "bounded", corpusVersion: "pilot-1" }, groups: [
-      { entry: need, candidates: [offer], publicEvidence: [mentionsWorkshop, source] },
-      { entry: ownerOffer, candidates: [peerNeed], publicEvidence: [source, { ...source, sourceUrl: "javascript:bad()" }] },
-    ] });
-  });
-  const { results, coverage } = parseMatchingSearch(await createMatchingProvider(rpc).execute(token, { action: "search", initiativeId: owner }));
-  assert.deepEqual(new Set(results.map((r: { evidenceKind: string }) => r.evidenceKind)),
-    new Set(["confirmed_need", "confirmed_offer", "inferred_capability", "potential_use"]));
-  assert.equal(results.filter((r: { action: string }) => r.action === "open_source").length, 2);
-  assert.equal(coverage.external, "partial");
-  assert.equal(coverage.engineVersion, PARTNER_ENGINE_VERSION);
-  assert.equal(coverage.modelVersion, null);
-});
-
-test("the provider passes private mutations only to narrow RPCs and never returns database error details", async () => {
+test("the provider reads team state through its narrow RPC and never returns database error details", async () => {
   const calls: { rpc: string; body: unknown }[] = [];
-  const requestId = "50000000-0000-4000-8000-000000000002";
-  const reviewId = "50000000-0000-4000-8000-000000000003";
   const rpc = createSupabaseWeaveRpc("https://db.example.test", "publishable-fixture", async (url, init) => {
     calls.push({ rpc: String(url).split("/").pop()!, body: JSON.parse(String(init?.body)) });
     return Response.json({ code: "PT409", message: "private-provider-details" }, { status: 409 });
   });
-  await assert.rejects(createMatchingProvider(rpc).execute(token, { action: "withdraw", initiativeId: owner, entries: [ref], requestId }),
-    { status: 409, code: "matching_conflict" });
-  assert.deepEqual(calls, [{ rpc: "matching_change", body: {
-    p_id: owner, p_action: "withdraw", p_request_id: requestId, p_review_id: null, p_entries: [ref],
-  } }]);
+  await assert.rejects(createMatchingProvider(rpc).execute(token, { action: "state", initiativeId: owner }),
+    (error: unknown) => error instanceof Error && "code" in error && error.code === "matching_conflict"
+      && !JSON.stringify(error).includes("private-provider-details"));
+  assert.deepEqual(calls, [{ rpc: "matching_state", body: { p_id: owner } }]);
 });
 
 test("sharing for matching is retired: a preview, a share, a renewal, a withdrawal, a share search and saved partners are refused by name before any RPC (DL-155)", async () => {
@@ -123,63 +71,27 @@ test("sharing for matching is retired: a preview, a share, a renewal, a withdraw
     { action: "withdraw", initiativeId: owner, entries: [ref], requestId },
     { action: "search", initiativeId: owner },
     { action: "leads", initiativeId: owner },
-    { action: "set_lead", initiativeId: owner, candidateId: `public:${source.projectUri}`, requestId, entry: ref, disposition: "saved" },
+    { action: "set_lead", initiativeId: owner, candidateId: `public:${projectUri}`, requestId, entry: ref, disposition: "saved" },
   ]) {
     const response = await POST(request(body));
     assert.equal(response.status, 410, body.action);
     assert.deepEqual(await response.json(), { error: "matching_shares_retired" });
   }
   assert.deepEqual(calls, [], "no command reached the database");
-  // A malformed command is still invalid data, not a retired one.
-  assert.equal((await POST(request({ action: "share", initiativeId: owner }))).status, 400);
+  // Weave no longer parses these commands (DL-155, step 7), so a malformed one is refused by name too.
+  for (const body of [{ action: "share", initiativeId: owner }, { action: "search", initiativeId: "not-an-id", query: "x" }]) {
+    const response = await POST(request(body));
+    assert.equal(response.status, 410);
+    assert.deepEqual(await response.json(), { error: "matching_shares_retired" });
+  }
+  assert.deepEqual(calls, []);
+  // Nor does the contract parse one, so nothing past the endpoint can run it.
+  for (const action of ["preview", "share", "renew", "withdraw", "search", "leads", "set_lead"])
+    assert.throws(() => parseMatchingCommand({ action, initiativeId: owner }), /invalid_data/u, action);
 });
 
 test("preserves Weave entry identity and rejects case-only duplicate IDs in version 1 saves", () => {
   assert.deepEqual(parseDocument(sample), sample);
   const row = sample.needs[0]!;
   assert.throws(() => parseDocument({ ...sample, needs: [row, { ...row, id: row.id.toUpperCase() }] }), /invalid_data/);
-  assert.throws(() => parseMatchingCommand({
-    action: "preview", initiativeId: owner, initiativeRevision: 1, entries: [ref], expiresAt: "2027-02-31T00:00:00Z",
-  }), /invalid_data/);
-});
-
-test("the provider removes a saved lead by its entry key, and a malformed lead is still invalid data at the endpoint", async () => {
-  const entry = { kind: ref.kind, entryId: ref.entryId };
-  const candidateId = `weave:${peer}:offer:${offerId}`;
-  const requestId = "50000000-0000-4000-8000-000000000004";
-  const body = { action: "set_lead", initiativeId: owner, candidateId, requestId };
-  let calls = 0;
-  const provider = createMatchingProvider(async (rpc, payload) => {
-    calls++;
-    assert.equal(rpc, "matching_set_lead");
-    assert.deepEqual(payload, {
-      p_id: owner, p_entry: entry, p_candidate_id: candidateId, p_disposition: "removed", p_request_id: requestId,
-    });
-    return { initiativeId: owner, leads: [] };
-  });
-  const { POST } = createMatchingHandlers({ provider });
-  assert.equal((await POST(request({ ...body, entry, disposition: "saved" }))).status, 400);
-  assert.equal((await POST(request({ ...body, entry, disposition: "dismissed" }))).status, 400);
-  assert.equal((await POST(request({ ...body, entry, disposition: "removed" }))).status, 410);
-  assert.equal(calls, 0);
-  assert.deepEqual(await provider.execute(token, parseMatchingCommand({ ...body, entry, disposition: "removed" })), { initiativeId: owner, leads: [] });
-  assert.deepEqual(await provider.execute(token, parseMatchingCommand({ ...body, entry: ref, disposition: "removed" })), { initiativeId: owner, leads: [] });
-  assert.equal(calls, 2);
-});
-
-test("matching provider preserves explicit null expiry across preview, shortlist and returned evidence", async () => {
-  const provider = createMatchingProvider(async action => {
-    if (action === "matching_preview") return { reviewId: "50000000-0000-4000-8000-000000000003",
-      initiativeId: owner, initiativeRevision: 1, audience: "weave_users", expiresAt: null, summary,
-      entries: [need] };
-    return { groups: [{ entry: { ...need, expiresAt: null }, candidates: [{ ...offer, expiresAt: null }],
-      publicEvidence: [], publicModelVersion: null }] };
-  });
-  const preview = await provider.execute(token, { action: "preview", initiativeId: owner, initiativeRevision: 1, entries: [ref] });
-  assert.ok("expiresAt" in preview);
-  assert.equal(preview.expiresAt, null);
-  const result = parseMatchingSearch(await provider.execute(token, { action: "search", initiativeId: owner }));
-  const match = result.results[0];
-  assert.ok(match?.evidence.type === "shared");
-  assert.equal(match.evidence.expiresAt, null);
 });

@@ -1,7 +1,6 @@
 type SearchArea = "funding" | "initiative";
 type SearchOutcome = "results" | "empty" | "unavailable";
 export type UsageAttempt = { id: string; expiresAt: number; lastEventAt: number };
-export type ReportUsage = (event: string) => void;
 
 const attemptLifetime = 30 * 60_000;
 const signInAttemptKey = "weave.usage.sign-in";
@@ -58,18 +57,4 @@ export function takeSignInUsage(expectedId?: string): UsageAttempt | undefined {
 export function beginSearchUsage(area: SearchArea) {
   const attempt = beginUsage(`${area}-search-started`);
   return (outcome: SearchOutcome) => reportUsage(attempt, `${area}-search-${outcome}`);
-}
-
-export async function measureInitiativeSave<T>(save: (report: ReportUsage) => Promise<T>): Promise<T> {
-  const attempt = beginUsage("initiative-save-started");
-  const report = (event: string) => reportUsage(attempt, event);
-  try {
-    const result = await save(report);
-    report("initiative-save-completed");
-    return result;
-  } catch (error) {
-    report(error instanceof Error && error.message === "account_changed"
-      ? "initiative-save-account-changed" : "initiative-save-failed");
-    throw error;
-  }
 }

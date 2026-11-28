@@ -2,14 +2,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parseDocument } from "@weave/api/account-contract";
-import { saveAccountCard, loadAccountCard } from "../src/account/actions.ts";
+import { loadAccountCard } from "../src/account/actions.ts";
 import { AccountFailure } from "../src/account/client.ts";
-import { AnotherAccountsCard, loadedDraft, saveCommand } from "../src/account/document.ts";
+import { accountDocument, AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../src/account/document.ts";
 import { AccountSession } from "../src/account/session.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { revise, type DeviceDraft } from "../src/describe/contracts.ts";
-import { saveForProject } from "../src/initiative/project-save.ts";
 import { offersDeviceCardToTeam, saveDeviceCardToTeam } from "../src/partners/team-workspace.ts";
 import { projectChoiceKey } from "../src/social/project-choice.ts";
 
@@ -26,45 +25,6 @@ async function setup() {
   await controller.initialize();
   return { repository, controller, draft };
 }
-
-test("the account panel's Save cannot POST after sign-out and same-account reentry while device persistence waits", async t => {
-  const { repository, controller, draft } = await setup();
-  const entered = deferred(), release = deferred();
-  const persist = repository.save.bind(repository);
-  t.mock.method(repository, "save", async (...args: Parameters<typeof persist>) => {
-    entered.resolve(); await release.promise; return persist(...args);
-  });
-  let posts = 0, refreshes = 0;
-  const commands: Record<string, unknown>[] = [];
-  t.mock.method(globalThis, "fetch", async (_url: unknown, options?: RequestInit) => {
-    posts++;
-    const command = JSON.parse(String(options?.body));
-    commands.push(command);
-    return Response.json({ saved: { ...saved, id: command.id, document: command.document } });
-  });
-  const saving = saveAccountCard(controller, owner, async () => { refreshes++; });
-  await entered.promise;
-  const session = new AccountSession(async () => ({ available: true, signIn: "certified", user: { id: owner, email: null }, items: [] }));
-  session.clear();
-  await session.refresh();
-  release.resolve();
-  await assert.rejects(saving, changed);
-  assert.equal(posts, 0);
-  assert.equal(refreshes, 0);
-  assert.equal(controller.getSnapshot().draft.composer, draft.composer);
-  assert.equal(controller.getSnapshot().draft.account.saved, null);
-  assert.ok(controller.getSnapshot().draft.account.pending?.requestId, "the retry command stays recoverable on the device");
-  assert.equal(repository.value?.account.pending?.requestId, controller.getSnapshot().draft.account.pending?.requestId);
-  assert.deepEqual(await controller.backups(), []);
-  const requestId = controller.getSnapshot().draft.account.pending!.requestId;
-  await saveAccountCard(controller, owner, async () => { refreshes++; });
-  await controller.settled();
-  assert.equal(posts, 1, "only a new explicit Save may send the retained command");
-  assert.equal(refreshes, 1);
-  assert.equal(controller.getSnapshot().draft.account.saved?.owner, owner);
-  assert.equal(repository.value?.account.pending, null);
-  assert.equal(commands[0]!.requestId, requestId);
-});
 
 test("the account panel's Load cannot commit a replacement after sign-out while the repository waits", async t => {
   const { repository, controller, draft } = await setup();
@@ -108,47 +68,57 @@ test("the account panel's Load stops while waiting for earlier device writes wit
   assert.deepEqual(await controller.backups(), []);
 });
 
-test("the account panel's completed Save and Load retain their intended behavior and a committed Load stays on device after sign-out", async t => {
+test("the account panel's completed Load backs up the device draft and stays on the device after sign-out", async t => {
   const { repository, controller, draft } = await setup();
-  let refreshes = 0;
   t.mock.method(globalThis, "fetch", async (_url: unknown, options?: RequestInit) => {
-    if (options?.method !== "POST") return Response.json({ user: { id: owner, email: null }, saved });
-    const command = JSON.parse(String(options.body));
-    assert.equal(command.accountId, owner);
-    assert.equal(JSON.stringify(command).includes("Synthetic device words"), false);
-    return Response.json({ saved: { ...saved, id: command.id, revision: command.expectedRevision + 1, document: command.document } });
+    assert.notEqual(options?.method, "POST", "opening an earlier private save sends nothing (DL-155)");
+    return Response.json({ user: { id: owner, email: null }, saved });
   });
-  const contentKey = await saveAccountCard(controller, owner, async () => { refreshes++; });
-  await controller.settled();
-  assert.equal(refreshes, 1);
-  assert.equal(controller.getSnapshot().draft.account.saved?.contentKey, contentKey);
-  assert.equal(controller.getSnapshot().draft.account.pending, null);
   const backups = await loadAccountCard(controller, owner, saved.id);
   assert.equal(backups.length, 1);
   assert.equal(backups[0]!.draft.composer, draft.composer);
   assert.equal(await backups[0]!.draft.attachments[0]!.blob.text(), "Synthetic local file");
   const committed = controller.getSnapshot().draft;
+  assert.equal(committed.account.saved?.id, saved.id);
   new AccountSession().clear();
   assert.equal(controller.getSnapshot().draft, committed);
   assert.equal(repository.value?.id, committed.id);
   assert.deepEqual(await controller.backups(), backups);
 });
 
+test("opening an earlier private save refuses another account's or another card's response and keeps the device draft", async t => {
+  const { repository, controller, draft } = await setup();
+  const responses = [
+    { user: { id: "b1000000-0000-4000-8000-000000000009", email: null }, saved },
+    { user: { id: owner, email: null }, saved: { ...saved, id: "b3000000-0000-4000-8000-000000000009" } },
+  ];
+  let next = 0;
+  t.mock.method(globalThis, "fetch", async () => Response.json(responses[next++]));
+  await assert.rejects(loadAccountCard(controller, owner, saved.id), changed, "another account's answer");
+  await assert.rejects(loadAccountCard(controller, owner, saved.id),
+    (error: unknown) => error instanceof AccountFailure && error.code === "account_unavailable", "another card's answer");
+  assert.equal(controller.getSnapshot().draft, draft);
+  assert.equal(repository.value, draft);
+  assert.deepEqual(await controller.backups(), []);
+});
+
 // A card is never copied into another account (DL-055). The refusal is in the save path itself,
 // so it holds whichever button, dialog or return from sign-in reaches it.
 const other = "b1000000-0000-4000-8000-000000000002";
 const refused = (error: unknown) => error instanceof AnotherAccountsCard && /belongs to another account/u.test(error.message);
-/** Every way a card on this device reaches the server: the account panel's Save, the reviewed save behind Save Privately, sharing and linking, and the copy into a team workspace. */
+/**
+ * The one way a card on this device still reaches the server: the copy into a team workspace. Private saves
+ * ended with DL-155 (step 4), and their client helpers with step 7.
+ */
 const TEAM = "b4000000-0000-4000-8000-000000000001";
 const entryPoints: readonly [name: string, save: (controller: DraftController) => Promise<unknown>][] = [
-  ["the account panel's Save", (controller) => saveAccountCard(controller, owner, async () => {})],
-  ["the reviewed save", (controller) => saveForProject(controller, owner, new AbortController().signal)],
   ["the save of a device card to a team", (controller) => saveDeviceCardToTeam(controller.getSnapshot().draft, owner, TEAM, null, new AbortController().signal)],
 ];
 /** Another account's card as it sits on a shared device, in each way a card can belong to someone. */
 function theirCards(): readonly [state: string, draft: DeviceDraft][] {
   const theirs = loadedDraft(saved, other);
-  const binding = saveCommand(revise(theirs, { account: { saved: null, pending: null } }), other).binding;
+  // The device's mark of a save that account asked for, as an earlier build left it.
+  const binding = { id: saved.id, owner: other, revision: 0, contentKey: JSON.stringify(accountDocument(theirs)), requestId: crypto.randomUUID() };
   return [
     ["saved by another account", theirs],
     ["saved by another account and changed since", revise(theirs, { confirmed: { ...theirs.confirmed!, name: "Changed synthetic card" } })],
@@ -191,28 +161,25 @@ test("a card nobody saved, opened from another account's Certified project, is r
   // Once this account has chosen it too, or nobody has, the card is this account's to save.
   keys.push(projectChoiceKey(owner, unsaved.id));
   window.localStorage.length = keys.length;
-  assert.equal(saveCommand(unsaved, owner, [other, owner]).command.accountId, owner);
-  assert.equal(saveCommand(unsaved, owner).command.id, unsaved.id);
-  assert.throws(() => saveCommand(unsaved, owner, [other]), refused);
+  assert.equal(belongsToAnotherAccount(unsaved, owner, [other, owner]), false);
+  assert.equal(belongsToAnotherAccount(unsaved, owner), false);
+  assert.equal(belongsToAnotherAccount(unsaved, owner, [other]), true);
 });
 
-test("the account a card belongs to still saves it, after another account was refused", async t => {
+test("the account a card belongs to still copies it into its team, after another account was refused", async t => {
   const commands: Record<string, unknown>[] = [];
   t.mock.method(globalThis, "fetch", async (_url: unknown, options?: RequestInit) => {
     const command = JSON.parse(String(options?.body));
     commands.push(command);
-    return Response.json({ saved: { ...saved, id: command.id, revision: command.expectedRevision + 1, document: command.document } });
+    return Response.json({ saved: { ...saved, id: TEAM, revision: 1, document: command.document } });
   });
   const mine = loadedDraft(saved, owner);
   const changed = revise(mine, { confirmed: { ...mine.confirmed!, name: "Changed synthetic card" } });
-  const controller = new DraftController(new MemoryDraftRepository(changed));
-  await controller.initialize();
-  await assert.rejects(saveForProject(controller, other, new AbortController().signal), refused);
+  await assert.rejects(saveDeviceCardToTeam(changed, other, TEAM, null, new AbortController().signal), refused);
   assert.equal(commands.length, 0);
-  await saveAccountCard(controller, owner, async () => {});
+  await saveDeviceCardToTeam(changed, owner, TEAM, null, new AbortController().signal);
   assert.equal(commands.length, 1);
-  assert.deepEqual([commands[0]!.accountId, commands[0]!.id], [owner, saved.id], "the same card, in the same account");
-  assert.equal(controller.getSnapshot().draft.account.saved?.owner, owner);
+  assert.deepEqual([commands[0]!.action, commands[0]!.workspaceId], ["team_save", TEAM]);
 });
 
 test("the account a card belongs to can still copy it into its team, and a retry sends the same request", async t => {

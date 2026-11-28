@@ -10,28 +10,24 @@ import { Facts } from "../ui/Facts.tsx";
 import { TaskDialog } from "../ui/TaskDialog.tsx";
 import { useSocialFixture } from "./context.tsx";
 import { ExampleDoor, ExampleSave } from "./Door.tsx";
-import { exposureLabel, shareGate, type ShareIntent } from "./gate.ts";
+import { publishGate, publishLabel } from "./gate.ts";
 import { ProjectStep, WorkspaceRow } from "./Project.tsx";
 import { publicFacts } from "./words.ts";
 
-const TITLES: Record<ShareIntent, string> = { share: "Share For Matching", publish: PUBLISH_ACTION };
 const CARD_STEPS: Partial<Record<RouteName, string>> = {
   initiative: "Describe your initiative",
   needs: "Add needs and offers",
 };
 
 /**
- * Opens the review for one of the two ways an entry leaves the team: sharing for matching with
- * people signed in, or publishing on Certified for anyone. Saving does neither. An example of the
- * target until Weave has team workspaces and Certified publishing.
+ * Opens the review for publishing on Certified, where anyone can read an entry. Saving does not publish.
+ * An example of the target, in development only.
  */
-export function ShareAction({
-  start = "publish",
+export function PublishAction({
   label,
   variant = "secondary",
   size,
 }: {
-  start?: ShareIntent;
   label?: string;
   variant?: "primary" | "secondary" | "quiet";
   size?: "sm";
@@ -42,9 +38,9 @@ export function ShareAction({
   const [busy, setBusy] = useState(false);
   if (!import.meta.env.DEV || !fixture) return null;
   const { service, refresh } = fixture;
-  const exposure = start === "share" ? status.sharing : status.publishing;
+  const exposure = status.publishing;
   // A withdrawal waits on Certified, so the only thing to do is look again.
-  const waiting = start === "publish" && exposure?.state === "withdrawing";
+  const waiting = exposure?.state === "withdrawing";
   async function check() {
     if (busy) return;
     setBusy(true);
@@ -66,10 +62,10 @@ export function ShareAction({
         disabled={busy}
         onClick={() => (waiting ? void check() : setOpen(true))}
       >
-        {waiting ? exposureLabel(start, "withdrawing") : (label ?? exposureLabel(start, exposure?.state))}
+        {waiting ? publishLabel("withdrawing") : (label ?? publishLabel(exposure?.state))}
       </button>
-      <TaskDialog title={TITLES[start]} open={open} onClose={close}>
-        <ShareSteps intent={start} onClose={close} />
+      <TaskDialog title={PUBLISH_ACTION} open={open} onClose={close}>
+        <PublishSteps onClose={close} />
       </TaskDialog>
     </>
   );
@@ -91,17 +87,16 @@ function Stage({ children }: { children: ReactNode }) {
 }
 
 /** Shows the one step still missing, then the review. */
-function ShareSteps({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
+function PublishSteps({ onClose }: { onClose(): void }) {
   const fixture = useSocialFixture();
   const { draft } = useDraft();
   const status = useCardStatus();
   if (!import.meta.env.DEV || !fixture) return null;
-  const gate = shareGate(fixture.state, status, intent);
-  const sharing = intent === "share";
+  const gate = publishGate(fixture.state, status);
   if (gate === "sign-in")
     return (
       <ExampleDoor
-        reason={sharing ? "Sign in with Certified to share for matching." : "Sign in with Certified to publish."}
+        reason="Sign in with Certified to publish."
         onDone={(result) => {
           if (result === "cancelled") onClose();
         }}
@@ -110,11 +105,7 @@ function ShareSteps({ intent, onClose }: { intent: ShareIntent; onClose(): void 
   if (gate === "project")
     return (
       <div className="rc-stack">
-        <p>
-          {sharing
-            ? "Sharing needs a Certified project, so people can see whose needs and offers these are."
-            : "A listing is published under a Certified project."}
-        </p>
+        <p>A listing is published under a Certified project.</p>
         <ProjectStep onDone={() => undefined} onCancel={onClose} />
       </div>
     );
@@ -132,7 +123,7 @@ function ShareSteps({ intent, onClose }: { intent: ShareIntent; onClose(): void 
   if (gate === "workspace")
     return (
       <Stage key={gate}>
-        <p>{sharing ? "A group shares from its team workspace." : "A group publishes from its team workspace."}</p>
+        <p>A group publishes from its team workspace.</p>
         <WorkspaceRow primary focus />
         <div className="rc-action-bar">
           <button className="rc-button" data-variant="quiet" type="button" onClick={onClose}>
@@ -157,20 +148,19 @@ function ShareSteps({ intent, onClose }: { intent: ShareIntent; onClose(): void 
       </Stage>
     );
   }
-  if (gate === "save") return <SaveGate intent={intent} onClose={onClose} />;
-  return <Review intent={intent} onClose={onClose} />;
+  if (gate === "save") return <SaveGate onClose={onClose} />;
+  return <Review onClose={onClose} />;
 }
 
-/** Sharing and publishing use the saved copy, so an unsaved card saves first, as its own tap. */
-function SaveGate({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
+/** Publishing uses the saved copy, so an unsaved card saves first, as its own tap. */
+function SaveGate({ onClose }: { onClose(): void }) {
   const status = useCardStatus();
   const [message, setMessage] = useState("");
   if (!import.meta.env.DEV || status.save?.needs !== "save") return null;
   return (
     <Stage>
       <p>
-        {status.unsaved ? "Save your changes first." : "Save your initiative first."}{" "}
-        {intent === "share" ? "Sharing uses the saved copy." : "Publishing uses the saved copy."}
+        {status.unsaved ? "Save your changes first." : "Save your initiative first."} Publishing uses the saved copy.
       </p>
       <p className="rc-meta">{status.save.note}</p>
       <div className="rc-action-bar">
@@ -192,7 +182,7 @@ function SaveGate({ intent, onClose }: { intent: ShareIntent; onClose(): void })
  * The review: who will see it, where it goes, what exactly they see, and the needs and offers to
  * send. One confirming tap, and the page reports the outcome once the service answers.
  */
-function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
+function Review({ onClose }: { onClose(): void }) {
   const fixture = useSocialFixture();
   const { draft } = useDraft();
   const status = useCardStatus();
@@ -210,15 +200,14 @@ function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
   const { service, state, refresh } = fixture;
   const project = state.project;
   if (!project) return null;
-  const sharing = intent === "share";
-  const exposure = sharing ? status.sharing : status.publishing;
+  const exposure = status.publishing;
   const entries = chosenEntries(draft, "all");
   // An entry needs a kind of support before it can leave the team. A private save does not.
   const open = entries.filter((entry) => entry.kinds.length > 0).map((entry) => entry.id);
-  const sent = (sharing ? state.shared : state.published)?.entries;
+  const sent = state.published?.entries;
   const before = sent === undefined ? null : sent === "all" ? open : open.filter((id) => sent.includes(id));
-  // A first publish starts from what is already shared, so an entry kept from matching is not offered to everyone.
-  const earlier = sharing ? undefined : state.shared?.entries;
+  // A first publish starts from what an example card shared earlier, so an entry kept from matching is not offered to everyone.
+  const earlier = state.shared?.entries;
   const start = earlier === undefined || earlier === "all" ? open : open.filter((id) => earlier.includes(id));
   const ids = (picked ?? before ?? start).filter((id) => open.includes(id));
   const chosen = entries.filter((entry) => ids.includes(entry.id));
@@ -250,13 +239,11 @@ function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
       <p>
         {live && exposure
           ? exposure.line
-          : sharing
-            ? "People signed in to Weave can see what you choose until you close or withdraw it."
-            : `Anyone can read what you publish here. It goes on Certified as a listing under ${project.name}.`}
+          : `Anyone can read what you publish here. It goes on Certified as a listing under ${project.name}.`}
       </p>
       {open.length > 0 ? (
         <fieldset className="rc-choice-group">
-          <legend>{sharing ? "Needs and offers to share" : "Needs and offers to publish"}</legend>
+          <legend>Needs and offers to publish</legend>
           {entries.map((entry, index) => (
             <label className="rc-choice" key={entry.id}>
               <input
@@ -291,9 +278,7 @@ function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
       {open.length > 0 && (
         <>
           <p className="rc-meta">
-            {sharing
-              ? "They see each one's kinds of support and details, and your initiative's name, place, description and links. Nothing is published, and you can stop at any time."
-              : "Each listing shows its kinds of support and details, and your project's name, place, description and links."}
+            Each listing shows its kinds of support and details, and your project's name, place, description and links.
           </p>
           <details>
             <summary className="rc-footer-link">See exactly what they see</summary>
@@ -324,13 +309,9 @@ function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
             data-variant="primary"
             type="button"
             disabled={busy}
-            onClick={() =>
-              void run(() =>
-                sharing ? service.share(ids, publicKey(draft, ids)) : service.publish(ids, publicKey(draft, ids)),
-              )
-            }
+            onClick={() => void run(() => service.publish(ids, publicKey(draft, ids)))}
           >
-            {sharing ? "Share" : "Publish"}
+            Publish
             {chosen.length ? ` ${entryCount(chosen)}` : ""}
           </button>
         )}
@@ -340,9 +321,9 @@ function Review({ intent, onClose }: { intent: ShareIntent; onClose(): void }) {
             data-variant="secondary"
             type="button"
             disabled={busy}
-            onClick={() => void run(() => (sharing ? service.stopSharing() : service.withdraw()))}
+            onClick={() => void run(() => service.withdraw())}
           >
-            {sharing ? "Stop Sharing" : "Ask To Withdraw"}
+            Ask To Withdraw
           </button>
         )}
         <button className="rc-button" data-variant="quiet" type="button" disabled={busy} onClick={onClose}>
@@ -368,5 +349,5 @@ function entryNote(entry: { kind: "needs" | "offers"; kinds: readonly string[] }
     .map(({ title }) => title)
     .join(", ");
   const what = entry.kind === "needs" ? "A need." : "An offer.";
-  return titles ? `${what} ${titles}` : `${what} Add a kind of support to share it.`;
+  return titles ? `${what} ${titles}` : `${what} Add a kind of support to publish it.`;
 }

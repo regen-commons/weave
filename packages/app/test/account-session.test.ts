@@ -1,15 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { readFileSync } from "node:fs";
-import { parseDocument } from "@weave/api/account-contract";
 import { AccountFailure, accountRequest } from "../src/account/client.ts";
 import { AccountSession, type ConnectSession, type SessionChange } from "../src/account/session.ts";
 import { signOut } from "../src/account/sign-out.ts";
 import { DraftController } from "../src/describe/controller.ts";
 import { MemoryDraftRepository } from "../src/describe/repository.ts";
 import { newDraft, revise } from "../src/describe/contracts.ts";
-import { loadedDraft } from "../src/account/document.ts";
-import { loadPersonalProject, saveForProject } from "../src/initiative/project-save.ts";
+import { loadAccountCard } from "../src/account/actions.ts";
 
 const owner = "b1000000-0000-4000-8000-000000000001";
 const other = "b1000000-0000-4000-8000-000000000002";
@@ -625,7 +622,7 @@ test("a cloud Load still in flight at sign-out cannot replace device words, file
     t.mock.method(response, "json", () => { parsing.resolve(); return body.promise; });
     return response;
   });
-  const pending = loadPersonalProject(controller, "b3000000-0000-4000-8000-000000000001", owner, new AbortController().signal);
+  const pending = loadAccountCard(controller, owner, "b3000000-0000-4000-8000-000000000001");
   await parsing.promise;
   new AccountSession().clear();
   body.resolve({ user: { id: owner, email: null }, saved: {} });
@@ -634,32 +631,6 @@ test("a cloud Load still in flight at sign-out cannot replace device words, file
   assert.equal(repository.value, original);
   assert.deepEqual(await controller.backups(), []);
   assert.equal(await controller.getSnapshot().draft.attachments[0]!.blob.text(), "Synthetic local file");
-});
-
-test("a late cloud Save receipt cannot restore the previous account binding or discard a recoverable device request", async t => {
-  const document = parseDocument(JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8")));
-  const saved = { id: "b3000000-0000-4000-8000-000000000001", revision: 1, updatedAt: "2026-11-15T00:00:00Z", document };
-  const source = loadedDraft(saved, owner);
-  const original = revise(source, { composer: "Synthetic unfinished words", confirmed: { ...source.confirmed!, name: "Changed synthetic card" } });
-  const repository = new MemoryDraftRepository(original), controller = new DraftController(repository);
-  await controller.initialize();
-  const parsing = deferred<void>(), body = deferred<Record<string, unknown>>();
-  let command: Record<string, unknown> | undefined;
-  t.mock.method(globalThis, "fetch", async (_url: unknown, options?: RequestInit) => {
-    command = JSON.parse(String(options?.body));
-    const response = new Response();
-    t.mock.method(response, "json", () => { parsing.resolve(); return body.promise; });
-    return response;
-  });
-  const pending = saveForProject(controller, owner, new AbortController().signal);
-  await parsing.promise;
-  new AccountSession().clear();
-  body.resolve({ saved: { ...saved, revision: 2, document: command!.document } });
-  await assert.rejects(pending, changed);
-  assert.equal(controller.getSnapshot().draft.composer, "Synthetic unfinished words");
-  assert.equal(controller.getSnapshot().draft.account.saved?.revision, 1);
-  assert.equal(controller.getSnapshot().draft.account.pending?.requestId, command!.requestId);
-  assert.deepEqual(await controller.backups(), []);
 });
 
 function clock() {

@@ -9,8 +9,8 @@ export type NetworkMatch = SearchResponse["results"][number];
 export type MatchingSearch = SearchResponse;
 
 /**
- * What the matching endpoint still answers (DL-155, step 5): `state`, which publishing a team's saved card reads
- * for its entries' revisions until step 6, and `listing_search`, partners for the project's published listings.
+ * What the matching endpoint still answers (DL-155): `state`, the entry revisions a group project's team draft
+ * publishes from (D48), and `listing_search`, partners for the project's published listings.
  * Sharing, its search and the saved partners kept on the server have ended; partners are kept on the device.
  */
 type Commands = {

@@ -4,7 +4,6 @@ import {
   parseSummaries,
   parseUser,
   record,
-  type AccountDocument,
   type AccountUser,
   type DeletedInitiative,
   type SavedInitiative,
@@ -32,11 +31,8 @@ export interface AccountProvider {
   authorize(token: string): Promise<AccountUser>;
   signOut(token: string): Promise<void>;
   list(token: string, offset: number): Promise<InitiativeSummary[]>;
+  /** Reads one earlier private save. Weave takes no new one (DL-155); these stay readable until the user decides (D49). */
   load(token: string, id: string): Promise<SavedInitiative>;
-  save(
-    token: string,
-    command: { id: string; expectedRevision: number; requestId: string; document: AccountDocument },
-  ): Promise<SavedInitiative>;
   /** Removes one personal saved card at its exact revision. A retry with the same request ID repeats the result. */
   deleteInitiative(
     token: string,
@@ -220,25 +216,6 @@ export function createSupabaseAccountProvider(
           await rpc(
             "delete_initiative",
             { p_id: command.id, p_expected_revision: command.expectedRevision, p_request_id: command.requestId },
-            token,
-          ),
-        );
-      } catch (error) {
-        if (error instanceof AccountError) throw error;
-        throw new AccountError(503, "account_unavailable");
-      }
-    },
-    async save(token, command) {
-      try {
-        return parseSaved(
-          await rpc(
-            "save_initiative",
-            {
-              p_id: command.id,
-              p_expected_revision: command.expectedRevision,
-              p_request_id: command.requestId,
-              p_document: command.document,
-            },
             token,
           ),
         );
