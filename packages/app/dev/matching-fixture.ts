@@ -313,6 +313,17 @@ function supportCommand(token: string, actor: string, command: SupportCommand) {
   throw new AccountError(400, "invalid_project_command");
 }
 
+/** Another project's published offer, as Weave's record holds it once read back (DL-155, step 5). */
+const publishedListings = [{
+  kind: "offer", uri: "at://did:plc:weave-matching-fixture/com.regencommons.weave.supportListing/3mfixtureoffr",
+  cid: `b${"f".repeat(58)}`, projectUri: sourceUri, projectName: "Stream Survey Lab (fixture)",
+  record: {
+    $type: "com.regencommons.weave.supportListing", projectUri: sourceUri, kind: "offer",
+    title: "GPS watershed mapping training", description: "A two-day field course for volunteer stream monitors.",
+    capitalForms: ["intellectual"], status: "open", createdAt: "2026-11-20T00:00:00.000Z",
+  },
+}];
+
 export const projectEvidenceFixture = (origin: string) => createProjectHandler({
   origin,
   async resolveActor(request) {
@@ -448,6 +459,7 @@ export const projectEvidenceFixture = (origin: string) => createProjectHandler({
       workspaceId: command.workspaceId, corpusVersion: "certified-fixture", status: "bounded",
       indexedAt: now, availableUntil: new Date(Date.now() + 300_000).toISOString(),
       truncated: false, evidence: publicEvidence.map((row) => ({ ...row, fetchedAt: now })),
+      listings: publishedListings, listingsTruncated: false,
     };
   },
 });

@@ -2,10 +2,13 @@ import { PROJECT_MODEL_VERSION } from "./project-index-vector.ts";
 import { record } from "./account-contract.ts";
 import { AccountError, createSupabaseWeaveRpc } from "./account-provider.ts";
 import {
-  parseMatchingLeads, parseMatchingPreview, parseMatchingSearch, parseMatchingShortlist, parseMatchingState, parseProjectEvidence,
-  type MatchingCommand, type MatchingCoverage, type MatchingLeads, type MatchingPreview, type MatchingSearch, type MatchingState,
+  parseListingShortlist, parseMatchingLeads, parseMatchingPreview, parseMatchingSearch, parseMatchingShortlist, parseMatchingState,
+  parseProjectEvidence, type MatchingCommand, type MatchingCoverage, type MatchingLeads, type MatchingPreview, type MatchingSearch,
+  type MatchingState,
 } from "./matching-contract.ts";
-import { PARTNER_ENGINE_VERSION, rankPartnerMatches, type ProjectEvidence, type SharedPartnerEntry } from "./partner-matcher.ts";
+import {
+  PARTNER_ENGINE_VERSION, rankPartnerMatches, type ListingPartnerEntry, type ProjectEvidence, type SharedPartnerEntry,
+} from "./partner-matcher.ts";
 import { publicEvidenceForMatching } from "./partner-ranking.ts";
 
 type MatchingResponse = MatchingState | MatchingPreview | MatchingLeads | MatchingSearch;
@@ -19,31 +22,80 @@ function rank(initiativeId: string, payload: unknown): MatchingSearch {
   const groups = parseMatchingShortlist(raw.groups);
   const sharedByEntry: Record<string, SharedPartnerEntry[]> = {};
   const publicEvidenceByEntry: Record<string, ProjectEvidence[]> = {};
-  let malformed = false, evidenceCount = 0, modelUsed = false;
+  const read = readPublicEvidence();
   groups.forEach(({ entry, candidates, publicEvidence, publicModelVersion }) => {
     if (entry.initiativeId !== initiativeId) throw Error("invalid_data");
     const key = `${entry.kind}:${entry.entryId}`;
     sharedByEntry[key] = candidates;
-    const evidence = publicEvidence;
-    if (!Array.isArray(evidence) || evidence.length > 80) {
-      malformed = true;
-      return;
-    }
-    if (publicModelVersion === PROJECT_MODEL_VERSION) modelUsed = true;
-    const parsed = evidence.flatMap(value => {
-      try {
-        const row = parseProjectEvidence(value);
-        evidenceCount++;
-        return [row];
-      } catch {
-        malformed = true;
-        return [];
-      }
-    });
+    const parsed = read.passages(publicEvidence);
+    if (!parsed) return;
+    // As before: a model counts as used only for evidence that was a list.
+    if (publicModelVersion === PROJECT_MODEL_VERSION) read.modelUsed();
     publicEvidenceByEntry[key] = publicEvidenceForMatching(entry, parsed);
   });
+  return parseMatchingSearch({ initiativeId, coverage: read.coverage(groups.length > 0, raw.externalCoverage), results: rankPartnerMatches({
+    queries: groups.map(group => group.entry),
+    sharedByEntry,
+    publicEvidenceByEntry,
+    limitPerEntryAndKind: 5,
+  }) });
+}
+
+/**
+ * Partners for a linked project's published listings (DL-155, step 5): other projects' current listings of the
+ * other kind, as direct fits, and public project evidence, ranked as a shared entry's were. The project's own
+ * public evidence is never its own partner.
+ */
+function rankListings(workspaceId: string, payload: unknown): MatchingSearch {
+  const { groups, externalCoverage } = parseListingShortlist(payload, workspaceId);
+  const listingsByEntry: Record<string, ListingPartnerEntry[]> = {};
+  const publicEvidenceByEntry: Record<string, ProjectEvidence[]> = {};
+  const read = readPublicEvidence();
+  for (const { query, projectUri, candidates, publicEvidence } of groups) {
+    const key = `${query.kind}:${query.entryId}`;
+    // Platform leaves out the project's own repository; so does this, rather than trust it alone.
+    const repository = projectUri.split("/")[2];
+    listingsByEntry[key] = candidates.filter(listing => listing.projectUri.split("/")[2] !== repository);
+    const parsed = read.passages(publicEvidence);
+    if (parsed) publicEvidenceByEntry[key] = publicEvidenceForMatching(query, parsed.filter(row => row.projectUri !== projectUri));
+  }
+  return parseMatchingSearch({ initiativeId: workspaceId, coverage: read.coverage(groups.length > 0, externalCoverage),
+    results: rankPartnerMatches({ queries: groups.map(group => group.query), listingsByEntry, publicEvidenceByEntry,
+      limitPerEntryAndKind: 5 }) });
+}
+
+/** Reads each query's public passages and says how complete the public evidence was. */
+function readPublicEvidence() {
+  let malformed = false, evidenceCount = 0, modelUsed = false;
+  return {
+    modelUsed() { modelUsed = true; },
+    passages(evidence: unknown): ProjectEvidence[] | null {
+      if (!Array.isArray(evidence) || evidence.length > 80) {
+        malformed = true;
+        return null;
+      }
+      return evidence.flatMap(value => {
+        try {
+          const row = parseProjectEvidence(value);
+          evidenceCount++;
+          return [row];
+        } catch {
+          malformed = true;
+          return [];
+        }
+      });
+    },
+    coverage(joined: boolean, externalCoverage: unknown): MatchingCoverage {
+      return coverageOf(joined, externalCoverage, { malformed, evidenceCount, modelUsed });
+    },
+  };
+}
+
+function coverageOf(joined: boolean, externalCoverage: unknown,
+  { malformed, evidenceCount, modelUsed }: { malformed: boolean; evidenceCount: number; modelUsed: boolean }): MatchingCoverage {
+  const raw = { externalCoverage };
   const coverage: MatchingCoverage = {
-    shared: groups.length ? "available" : "not_joined",
+    shared: joined ? "available" : "not_joined",
     external: evidenceCount ? "partial" : "unavailable",
     corpusVersion: null,
     modelVersion: modelUsed ? PROJECT_MODEL_VERSION : null,
@@ -61,12 +113,7 @@ function rank(initiativeId: string, payload: unknown): MatchingSearch {
       }
     }
   }
-  return parseMatchingSearch({ initiativeId, coverage, results: rankPartnerMatches({
-    queries: groups.map(group => group.entry),
-    sharedByEntry,
-    publicEvidenceByEntry,
-    limitPerEntryAndKind: 5,
-  }) });
+  return coverage;
 }
 
 export function createMatchingProvider(rpc: WeaveRpc): MatchingProvider {
@@ -88,6 +135,8 @@ export function createMatchingProvider(rpc: WeaveRpc): MatchingProvider {
               p_entries: command.action === "withdraw" ? command.entries : null }, token));
           case "search":
             return rank(p_id, await rpc("matching_shortlist", { p_id, p_entries: command.entries ?? null }, token));
+          case "listing_search":
+            return rankListings(p_id, await rpc("listing_shortlist", {}, token));
           case "leads":
             return parseMatchingLeads(await rpc("matching_leads", { p_id }, token));
           case "set_lead":

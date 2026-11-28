@@ -12,6 +12,22 @@ export type PartnerEntry = {
   summary: JsonObject;
 };
 export type SharedPartnerEntry = PartnerEntry & { confirmedAt: string; expiresAt: string | null };
+/**
+ * Another project's need or offer, as Weave published it and read it back (DL-155, step 5). The record holds
+ * a title, a description and kinds of support, so its terms, place, timing and capacity are unknown.
+ */
+export type ListingPartnerEntry = {
+  uri: string;
+  cid: string;
+  projectUri: string;
+  projectName: string;
+  kind: PartnerKind;
+  title: string;
+  description: string;
+  capitalForms: string[];
+  createdAt: string;
+  expiresAt: string | null;
+};
 export type ProjectEvidence = {
   id: string;
   projectUri: string;
@@ -43,20 +59,26 @@ export type PartnerMatch = {
   evidenceKind: PartnerEvidenceKind;
   evidence:
     | { type: "shared"; entryId: string; revision: number; title: string; passage: string; confirmedAt: string; expiresAt: string | null }
+    | { type: "listing"; uri: string; cid: string; title: string; passage: string; createdAt: string; expiresAt: string | null }
     | ({ type: "public" } & ProjectEvidence);
   reasons: { type: "shared_terms" | "related_terms"; terms: string[] }[];
   unknowns: Unknown[];
   reciprocal: boolean;
-  action: "review_entry" | "open_source";
+  action: "review_entry" | "open_listing" | "open_source";
 };
 
-const genericTerms = new Set(
+/**
+ * Words too common to show a fit. The listing search leaves the same words out of its queries
+ * (`weave_listing_query_terms` in supabase/candidates/weave-matching-published-listings.sql); a test keeps the two equal.
+ */
+export const PARTNER_GENERIC_TERMS: ReadonlySet<string> = new Set(
   ("about across after all also and another any anyone are area around assistance available before been being both but can could development did doing each " +
    "enable enough even every first for from give good group had has have help here how initiative into its just kind local looking make may might more most must need needs " +
    "offer offers only other our ours out over part people please project provide public relevant same seeking services should some such support team than that the " +
    "their them then there these they this those through together too under until very want was way well were what when where which while will with " +
    "within work working would you your").split(" "),
 );
+const genericTerms = PARTNER_GENERIC_TERMS;
 const fields = ["title", "description", "purpose"] as const;
 const str = (value: unknown): string => typeof value === "string" ? value.trim() : "";
 const strings = (value: unknown): string[] =>
@@ -202,10 +224,23 @@ const compare = (a: Ranked, b: Ranked) =>
   || b.freshness - a.freshness
   || a.match.candidateId.localeCompare(b.match.candidateId, "en");
 
+/** A listing as a partner entry, so it meets the same direct-fit checks a shared entry meets. */
+function listingEntry(listing: ListingPartnerEntry): SharedPartnerEntry {
+  return {
+    initiativeId: listing.projectUri, entryId: listing.uri, revision: 0, kind: listing.kind,
+    value: { title: listing.title, description: listing.description, capitalForms: listing.capitalForms, status: "open" },
+    summary: { name: listing.projectName, locations: [] },
+    confirmedAt: listing.createdAt, expiresAt: listing.expiresAt,
+  };
+}
+
 export function rankPartnerMatches(input: {
   queries: readonly PartnerEntry[];
   shared?: readonly SharedPartnerEntry[];
   sharedByEntry?: Readonly<Record<string, readonly SharedPartnerEntry[]>>;
+  /** Other projects' published listings: direct fits, labeled as that project's published need or offer. */
+  listings?: readonly ListingPartnerEntry[];
+  listingsByEntry?: Readonly<Record<string, readonly ListingPartnerEntry[]>>;
   publicEvidence?: readonly ProjectEvidence[];
   publicEvidenceByEntry?: Readonly<Record<string, readonly ProjectEvidence[]>>;
   now?: number;
@@ -223,13 +258,15 @@ export function rankPartnerMatches(input: {
     const queryRef = { kind: query.kind, entryId: query.entryId, revision: query.revision };
 
     const entryKey = `${query.kind}:${query.entryId}`;
-    for (const other of input.sharedByEntry?.[entryKey] ?? input.shared ?? []) {
-      if (other.value.status !== "open" || !(Date.parse(other.confirmedAt) <= now && (other.expiresAt === null || Date.parse(other.expiresAt) > now))) continue;
-      if (other.kind === query.kind || other.initiativeId === query.initiativeId) continue;
+    // A shared entry or a published listing: a direct fit when its words support the query and nothing
+    // stated rules it out.
+    const direct = (other: SharedPartnerEntry, shown: Pick<PartnerMatch, "candidateId" | "evidence" | "action">) => {
+      if (other.value.status !== "open" || !(Date.parse(other.confirmedAt) <= now && (other.expiresAt === null || Date.parse(other.expiresAt) > now))) return;
+      if (other.kind === query.kind || other.initiativeId === query.initiativeId) return;
       const reasons = supportingEvidence(query, partnerQueryProjection(other), other.kind === "offer");
-      if (!reasons.length) continue;
+      if (!reasons.length) return;
       const unknowns = compatible(query, other);
-      if (!unknowns) continue;
+      if (!unknowns) return;
       const key = JSON.stringify([query.initiativeId, other.initiativeId]);
       const supported = directions.get(key) ?? new Set<PartnerKind>();
       supported.add(query.kind);
@@ -237,22 +274,38 @@ export function rankPartnerMatches(input: {
       candidates.push({
         match: {
           query: queryRef,
-          candidateId: candidateId(other),
+          ...shown,
           counterpart: { id: other.initiativeId, name: str(other.summary.name) },
           evidenceKind: other.kind === "offer" ? "confirmed_offer" : "confirmed_need",
-          evidence: {
-            type: "shared", entryId: other.entryId, revision: other.revision, title: str(other.value.title),
-            passage: partnerQueryProjection(other), confirmedAt: other.confirmedAt, expiresAt: other.expiresAt,
-          },
           reasons,
           unknowns,
           reciprocal: false,
-          action: "review_entry",
         },
         overlap: reasons.reduce((sum, reason) => sum + reason.terms.length, 0),
         capital: intersects(strings(query.value.capitalForms), strings(other.value.capitalForms)),
         freshness: Date.parse(other.confirmedAt),
         retrieval: 0,
+      });
+    };
+    for (const other of input.sharedByEntry?.[entryKey] ?? input.shared ?? []) {
+      direct(other, {
+        candidateId: candidateId(other),
+        evidence: {
+          type: "shared", entryId: other.entryId, revision: other.revision, title: str(other.value.title),
+          passage: partnerQueryProjection(other), confirmedAt: other.confirmedAt, expiresAt: other.expiresAt,
+        },
+        action: "review_entry",
+      });
+    }
+    for (const listing of input.listingsByEntry?.[entryKey] ?? input.listings ?? []) {
+      const other = listingEntry(listing);
+      direct(other, {
+        candidateId: `listing:${listing.uri}`,
+        evidence: {
+          type: "listing", uri: listing.uri, cid: listing.cid, title: listing.title,
+          passage: partnerQueryProjection(other), createdAt: listing.createdAt, expiresAt: listing.expiresAt,
+        },
+        action: "open_listing",
       });
     }
 
@@ -289,7 +342,7 @@ export function rankPartnerMatches(input: {
     ? Math.min(10, Math.max(1, input.limitPerEntryAndKind ?? 5)) : 5;
   return groups.flatMap(({ origin, candidates }) => {
     for (const { match } of candidates) {
-      if (match.evidence.type !== "shared") continue;
+      if (match.evidence.type === "public") continue;
       match.reciprocal = directions.get(JSON.stringify([origin, match.counterpart.id]))?.size === 2;
     }
     const seen = new Set<string>();

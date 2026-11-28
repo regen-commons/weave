@@ -33,6 +33,11 @@ const evidenceContext: Record<NetworkMatch["evidenceKind"], string> = {
   inferred_capability: "The source describes related work. Availability is unknown.",
   potential_use: "Your offer could support the work described here. The source gives no confirmed need.",
 };
+/** A direct fit from another project's published listing (DL-155, step 5). */
+const listingContext: Record<"need" | "offer", string> = {
+  offer: "The project published this offer. Check the details before making plans.",
+  need: "The project published this need. Check the details before making plans.",
+};
 
 /** One reason a match rests on: shared words, related wording, or what links the two sides (DL-144). */
 export type MatchReason = { readonly type: "shared_terms" | "related_terms" | "complement"; readonly terms: readonly string[] };
@@ -60,12 +65,15 @@ export function MatchDetails({ match }: { match: Omit<NetworkMatch, "reasons"> &
     <>
       {evidence.type === "shared" ? (
         <p className="rc-meta">Confirmed on <MatchingDate value={evidence.confirmedAt} />. {evidence.expiresAt ? <>Sharing ends on <MatchingDate value={evidence.expiresAt} />.</> : "Shared until closed or withdrawn."}</p>
+      ) : evidence.type === "listing" ? (
+        <p className="rc-meta">Published on <MatchingDate value={evidence.createdAt} />. {evidence.expiresAt ? <>Open until <MatchingDate value={evidence.expiresAt} />.</> : "Open until the project closes it."}</p>
       ) : (
         <p className="rc-meta">
           Source dated <MatchingDate value={evidence.sourceCreatedAt} />. Checked on <MatchingDate value={evidence.fetchedAt} />.
         </p>
       )}
-      {!match.partial && <p>{evidenceContext[match.evidenceKind]}</p>}
+      {!match.partial && <p>{evidence.type === "listing"
+        ? listingContext[match.evidenceKind === "confirmed_need" ? "need" : "offer"] : evidenceContext[match.evidenceKind]}</p>}
       {match.reasons.map(({ type, terms }) => <p className="rc-meta" key={`${type}:${terms.join(", ")}`}>
         {reasonLead(type)}{terms.join(", ")}.
       </p>)}
@@ -286,15 +294,18 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
         kinds={entry.kinds} unknowns={match.unknowns}
         basis={evidence.type === "shared" ? (
           <>Shared in Weave on <MatchingDate value={evidence.confirmedAt} />.</>
+        ) : evidence.type === "listing" ? (
+          <>Published by the project on <MatchingDate value={evidence.createdAt} />.</>
         ) : (
           <>
             Source dated <MatchingDate value={evidence.sourceCreatedAt} />, checked on{" "}
             <MatchingDate value={evidence.fetchedAt} />.
           </>
         )}
-        actions={((evidence.type === "public" && projectAddress(evidence.projectUri)) || !compact) && (
+        actions={((evidence.type === "public" && projectAddress(evidence.projectUri))
+          || (evidence.type === "listing" && projectAddress(match.counterpart.id)) || !compact) && (
           <>
-            {!compact && !readOnly && (
+            {!compact && !readOnly && evidence.type !== "listing" && (
               <LeadButton label={lead ? "Remove From Saved" : "Save"} name={name}
                 variant={lead ? "quiet" : "secondary"} disabled={disabled || readOnly}
                 onClick={() => lead
@@ -302,13 +313,14 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                   : onChange(entry, match.candidateId, "saved")} />
             )}
             {evidence.type === "public" && <InitiativeLink uri={evidence.projectUri} name={name} />}
-            {!compact && !readOnly && (
+            {evidence.type === "listing" && <InitiativeLink uri={match.counterpart.id} name={name} />}
+            {!compact && !readOnly && evidence.type !== "listing" && (
               <LeadButton label="Hide" name={name} disabled={disabled || readOnly}
                 onClick={() => onChange(entry, match.candidateId, "dismissed")} />
             )}
           </>
         )}>
-        {evidence.type === "shared" ? (
+        {evidence.type !== "public" ? (
           <>
             <p><strong>{evidence.title}</strong></p>
             {evidence.passage && <p>{evidence.passage}</p>}
@@ -325,8 +337,11 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
         const heading = `${id}-need-${need.entryId}`;
         const confirmed = fits.filter(({ entry, match }) => entry.kind === "need"
           && entry.entryId === need.entryId && match.evidenceKind === "confirmed_offer");
+        const listingCards = publicResults?.renderCards(
+          ({ kind, entryId }) => kind === "need" && entryId === need.entryId, needCardLevel, "listings",
+        );
         const publicCards = publicResults?.renderCards(
-          ({ kind, entryId }) => kind === "need" && entryId === need.entryId, needCardLevel,
+          ({ kind, entryId }) => kind === "need" && entryId === need.entryId, needCardLevel, "public",
         );
         const partialCards = publicResults?.renderCards(
           ({ kind, entryId }) => kind === "need" && entryId === need.entryId, needCardLevel, "partial",
@@ -344,6 +359,12 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                 </CardGrid>
               </>
             )}
+            {listingCards && (
+              <>
+                <Evidence className="rc-heading" data-size="section">Published Offers</Evidence>
+                {listingCards}
+              </>
+            )}
             {publicCards && (
               <>
                 <Evidence className="rc-heading" data-size="section">From Public Project Details</Evidence>
@@ -356,7 +377,7 @@ export function NetworkResults({ search, leads, entries, compact, blocked, onCha
                 {partialCards}
               </>
             )}
-            {search && publicResults?.checked && !confirmed.length && !publicCards && !partialCards && <p>No partners found for this need yet.</p>}
+            {search && publicResults?.checked && !confirmed.length && !listingCards && !publicCards && !partialCards && <p>No partners found for this need yet.</p>}
           </section>
         );
       })}

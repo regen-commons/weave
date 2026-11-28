@@ -37,11 +37,16 @@ export function privatePartnerQueries(
   );
 }
 
+/**
+ * Ranks the draft's entries against the snapshot on this device: other projects' published listings as direct
+ * fits (DL-155, step 5), then public project evidence.
+ */
 export function rankCertifiedSuggestions(
   workspaceId: string, queries: readonly PartnerEntry[], evidence: PublicEvidenceSnapshot["evidence"],
+  listings: PublicEvidenceSnapshot["listings"] = [],
 ): RankedPartnerMatch[] {
   return rankPartners({ queries: queries.filter(({ initiativeId }) => initiativeId === workspaceId),
-    publicEvidence: evidence, limitPerEntryAndKind: 3 });
+    publicEvidence: evidence, listings, limitPerEntryAndKind: 3 });
 }
 
 /** One project in Partners for you: every need and offer of the person's that it fits, and its words once. */
@@ -75,6 +80,8 @@ export function projectSuggestions(
     const project = projects.get(match.counterpart.id)
       ?? { id: match.counterpart.id, name: match.counterpart.name, fits: [], passages: [] };
     projects.set(project.id, project);
+    // A project with two listings that fit one entry names that entry once, with its best fit.
+    if (project.fits.some((fit) => fit.query === query)) continue;
     project.fits.push({ query, match });
     const text = match.evidence.passage.trim();
     if (text && !project.passages.some((passage) => passage.text === text))
