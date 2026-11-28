@@ -203,11 +203,17 @@ test("a review opens on the first step still missing, and a group member reads w
   assert.equal(shareGate(service.snapshot(), { save: null }, "share"), null);
   assert.equal(shareGate(service.snapshot(), { save: null }, "publish"), null, "a personal project's owner can publish");
 
+  // A group member waits for the team workspace, then needs edit access in it to publish (28 November 2026).
   const member = createSocialFixture("private", "2026-11-04");
   await member.linkProject(SEED_LIBRARY_RECORD.uri);
   assert.equal(shareGate(member.snapshot(), { save: null }, "share"), "workspace");
-  assert.equal(shareGate(member.snapshot(), { save: null }, "publish"), "authority", "said before any other step");
-  await assert.rejects(member.publish(["need-1"], "key"), /Only a group admin or owner can publish/);
+  assert.equal(shareGate(member.snapshot(), { save: null }, "publish"), "workspace", "the workspace comes first");
+  await member.requestWorkspace();
+  await member.checkAgain();
+  assert.equal(shareGate(member.snapshot(), { save: null }, "publish"), "authority", "no edit access until an admin grants it");
+  await assert.rejects(member.publish(["need-1"], "key"), /Only teammates who can edit the team workspace can publish/);
+  const editor = { ...member.snapshot(), project: { ...member.snapshot().project!, accessRole: "editor" as const } };
+  assert.notEqual(shareGate(editor, { save: null }, "publish"), "authority", "a member with an editor grant can publish");
 
   assert.equal(exposureLabel("share", undefined), "Share for matching");
   assert.equal(exposureLabel("share", "on"), "Change or stop sharing");

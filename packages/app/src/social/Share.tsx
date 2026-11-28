@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CAPITALS } from "../capitals.ts";
 import { useDraft } from "../describe/use-draft.ts";
-import { cardRoute, chosenEntries, entryCount, PUBLISH_ACTION, publicCard, publicKey } from "../initiative/status.ts";
+import { cardRoute, chosenEntries, entryCount, GROUP_PUBLISH_AUTHORITY, PUBLISH_ACTION, publicCard, publicKey } from "../initiative/status.ts";
 import { askTerms } from "../intake/presentation.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { pathTo, type RouteName } from "../routes.ts";
@@ -121,7 +121,7 @@ function ShareSteps({ intent, onClose }: { intent: ShareIntent; onClose(): void 
   if (gate === "authority")
     return (
       <Stage key={gate}>
-        <p>Only a group admin or owner can publish on Certified.</p>
+        <p>{GROUP_PUBLISH_AUTHORITY}</p>
         <div className="rc-action-bar">
           <button className="rc-button" data-variant="secondary" type="button" data-task-focus onClick={onClose}>
             Close

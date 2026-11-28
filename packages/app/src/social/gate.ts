@@ -1,4 +1,4 @@
-import type { CardStatus, Exposure } from "../initiative/status.ts";
+import { canPublishForGroup, type CardStatus, type Exposure } from "../initiative/status.ts";
 import type { SocialState } from "./fixture.ts";
 
 /** The two ways a need or offer leaves the team. Each is its own explicit action. */
@@ -18,10 +18,9 @@ export function shareGate(
   if (!state.identity) return "sign-in";
   const project = state.project;
   if (!project) return "project";
-  // Publishing authority comes from the Certified group. Said first, so nobody saves or asks for a
-  // workspace only to be told they cannot publish.
-  if (intent === "publish" && project.group && project.role === "member") return "authority";
   if (project.workspace === "absent" || project.workspace === "requested") return "workspace";
+  // Publishing for a group needs edit access in its team workspace, which a member gets from a workspace admin.
+  if (intent === "publish" && project.group && !canPublishForGroup(project)) return "authority";
   if (status.save?.needs === "save") return "save";
   // Nothing saved and no save on offer: the card is not checked yet.
   if (!state.saved) return "card";
