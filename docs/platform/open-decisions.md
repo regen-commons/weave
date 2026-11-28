@@ -56,6 +56,7 @@ Prototype product proposals, from [DL-019 to DL-021](../../packages/design-syste
 | D47 | Where does Weave read published listings from, for matching and public pages? | Start from Weave's working record of what it published and read back (`weave_workspace.support_listings`), served through `private.weave_public_support_listings`. Later, find listings other apps write by listing each indexed project repository's `com.regencommons.weave.supportListing` collection, or through Jetstream if Hypercerts carries the collection. Never treat a listing as current without its read-back. | Step 5 of the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing) | Decided as recommended (user, 27 November 2026) |
 | D48 | How does a team prepare a need or offer before it is public? | In the group project's shared team draft, in its team workspace: teammates with a Weave grant read it, editors and admins change it together, and its needs and offers are published from it. Publishing needs current group membership and a Weave editor or admin grant. Group publishing stays behind `WEAVE_SUPPORT_GROUP_LIFECYCLE_VERIFIED`. Earlier recommendation, set aside: drafts only on a device or passed on as a downloaded file, with no shared private draft on Weave. | Step 6 of the removal plan | Revised by the user on 28 November 2026: needs and offers drafted under a group project are visible to the team |
 | D49 | What happens to the private saves and shares already in Platform? | End the existing shares when published listings take over matching (step 5). Keep private saves read-only, with Open on This Device, Download, Make It Public and Delete, for at least 60 days after new saves stop, then ask the user again before deleting what remains. The server's delete guard still refuses a card with a project link, a published listing or a project setup in progress. These accounts have no contact address (D23), so the notice can only be in Your Initiatives. | Step 7 of the removal plan | Decided as recommended (user, 27 November 2026) |
+| D50 | What does a weekly pulse (R23) attach to, now that personal saves are gone? | None yet: the user chooses. The pulse was composed per saved initiative, and a person no longer has one. Options seen: (a) a project with current published listings, built from public data, for whoever opts in for that project; (b) a group project's team draft, for teammates with a Weave grant who opt in; (c) a digest the device computes from its draft against the public snapshot and shows in Weave, with no email and nothing stored on Platform; (d) only the regional pulses for stewards and funders, with initiative pulses deferred. Options (a) and (b) need a contact address and consent the accounts do not have (D23), and the "still accurate" link would have to confirm a listing or the team draft instead of a saved record. | Phase 1, before the pulse is built | Open (raised 28 November 2026, step 8 of the removal plan) |
 
 ## Earlier prototype questions
 
@@ -299,7 +300,7 @@ server-assisted matching from entries already shared for that purpose.
 
 ### Certified-only sign-in and private saving
 
-**Superseded in part on 26 November 2026 by DL-155:** Certified stays the only sign-in, but needs and offers now live only on the device or in public listings, so new private saves stop. See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
+**Superseded in part on 26 November 2026 by DL-155:** Certified stays the only sign-in, but needs and offers now live only on the device, in a group project's shared team draft (D48, revised 28 November 2026) or in public listings, so new private saves stop. See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
 
 Decided by the user on 6 November 2026: Certified is the only Weave sign-in flow.
 The internal Weave account is created or retrieved from the proven Certified
@@ -377,7 +378,7 @@ require approval from an actor authorized to add them in Certified. A pending
 invite can start before the teammate has a Certified account. After the teammate
 signs in, an admin confirms the resulting identity before granting access.
 
-**Superseded in part on 26 November 2026 by DL-155:** a team workspace no longer holds private needs or offers (D48). See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
+**Superseded in part on 26 November 2026 by DL-155, and revised by D48 on 28 November 2026:** a group project's team workspace keeps its shared team draft, which teammates with a Weave grant read and editors and admins publish from. Sharing for matching ended in step 5, and personal saves are retired. See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
 
 Needs and offers saved in the team workspace are visible to teammates with
 workspace read access, including before sharing for matching. Personal saves
@@ -410,7 +411,7 @@ sharing decisions. See the
 
 ### Public support listings in the first release
 
-**Superseded in part on 26 November 2026 by DL-155:** publishing starts from the device draft with no private save first, and an edit on the device leaves the public listing as it is until the person publishes again or withdraws it. See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
+**Superseded in part on 26 November 2026 by DL-155:** publishing starts from the device draft, or a group project's team draft (D48), with no private save first, and an edit on the device leaves the public listing as it is until the person publishes again or withdraws it. See the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
 
 The first user-facing release includes an explicit AT Protocol publish action
 once the team proves consent, authorization and read-back. A listing refers

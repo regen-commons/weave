@@ -10,6 +10,11 @@ evidence, including projects that have stated no needs or offers. The
 [build plan and UI handoff](05-technical-spec.md#76-build-plan-and-ui-handoff)
 define completion before interface polish. Inferred fit never asserts availability.
 
+Saving revision, 26 and 28 November 2026 (DL-155, D48): a need or offer lives on a
+person's device, in a group project's shared team draft, or in public as a support
+listing. Personal private saves and sharing for matching with signed-in Weave users
+are retired; see the [removal plan](08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
+
 Companion documents: [proposal brief](01-proposal-brief.md) · [business model canvas](02-business-model-canvas.md) · [logical architecture](03-logical-architecture.md) · [technical spec](05-technical-spec.md) · [research digest](06-research-digest.md) · [agent scaffolding](07-agent-scaffolding.md) · [saving and accounts](08-accounts-and-saving.md) · [open decisions](open-decisions.md) · [design system](../../DESIGN.md)
 
 The [4 November prototype review](prototype/review-decisions.md) records earlier interface decisions. The Certified and matching decisions in this PRD and [Saving and accounts](08-accounts-and-saving.md) guide the current preview and design handoff.
@@ -74,7 +79,7 @@ Personas are deliberately framed by lens rather than by organisation type, becau
 - Recipe: a partnership forming around an opportunity or a shared problem. It names the base (the opportunity or problem), the ingredients needed (lenses and forms of capital), who has joined, status (forming, drafting, submitted, funded, not this time) and a working doc. This is the Partnerships tab of the hub doc, made live.
 - Place: a bioregion, subrealm, realm, watershed basin, country or a custom named place. Initiatives relate to places as based in, works in, or global.
 - Pulse: the weekly email digest, personal to each initiative and region.
-- Account: the internal Weave record that owns saved initiatives, reached through a proven Certified identity. It is created or retrieved automatically after Certified sign-in, with no separate registration or credentials. It is not membership.
+- Account: the internal Weave record for a proven Certified identity, which holds the session, project links and workspace grants, and any private saves made before DL-155 until they are removed (D49). It is created or retrieved automatically after Certified sign-in, with no separate registration or credentials. It is not membership.
 - Member: a Regen Commons member profile (existing data model). A person becomes a member only by choosing to apply.
 - Steward: a council member with the existing steward role; stewards tidy, they do not filter.
 
@@ -128,7 +133,7 @@ Intake and records
 - R2 The four public initiative fields are the only ones asked for. Stage, lenses, themes, beneficiaries, languages and eligibility details are derived from the description, locations and links, and shown in pencil for confirmation or correction. Scale is not a separate field.
 - R3 At most four needs and four offers can be added per initiative, with a counter and an explicit notice if extraction hears more; a list saved with five under the earlier limit stays readable and saveable (DL-111). Each card has Change Details and Remove, and Continue keeps what is still in pencil; every applicable form of capital (multi-select of all eight, shown alike), place scope, timeframe or capacity, exchange terms and status (open, met, withdrawn, expired).
 - R4 Location capture that accepts free text, "global", multiple places, and an optional pin or place search; the system attaches bioregion, subrealm, realm, watershed basin and country, shown as removable chips.
-- R5 Editing after saving with revision history; records show last confirmed date; records unconfirmed for 180 days are marked "may be out of date" and excluded from pulse suggestions until confirmed.
+- R5 Editing with revision history: a device draft keeps its device backups (DL-112), and a group project's team draft keeps its revision; a published listing changes only when it is published again or withdrawn (DL-155); records show last confirmed date; records unconfirmed for 180 days are marked "may be out of date" and excluded from pulse suggestions until confirmed.
 - R6 Import of the September 2026 hub doc rows and the existing local project profiles as unconfirmed records for their owners to claim. Imported records show in pencil until claimed.
 
 AI assistance
@@ -161,7 +166,7 @@ Recipes and introductions
 
 Pulse and notifications
 
-- R23 Opt-in weekly pulse per saved initiative, off by default, with new partners, closing opportunities, regional needs, recipes needing an ingredient, and the "still accurate" confirmation; unsubscribe and frequency controls; regional pulses for stewards and funders who opt in.
+- R23 Opt-in weekly pulse per initiative, off by default (what a pulse attaches to now that personal saves are gone is open, [D50](open-decisions.md#for-the-builders)), with new partners, closing opportunities, regional needs, recipes needing an ingredient, and the "still accurate" confirmation; unsubscribe and frequency controls; regional pulses for stewards and funders who opt in.
 - R24 Future transactional emails: introduction requests and acceptances, recipe updates and steward notices, using separately consented contact details. Certified owns sign-in messages; Weave does not send a saving code or welcome email.
 
 Accounts, membership and access
@@ -169,7 +174,7 @@ Accounts, membership and access
 - R25 Certified is the only Weave sign-in flow for new and returning users. A verified Certified identity establishes the internal Weave account/session through Supabase. No separate Weave registration, password, email-code flow, account linking, migration or fallback identity path. Weave requests no email access for private saving; a public Certified project is not required.
 - R26 A platform profile per account, linked to a Regen Commons member profile only when one exists; a separate "apply for membership" path that pre-fills the six-step application from the initiative, offered in context and never straight after saving.
 - R27 Visibility levels: private, network and public, chosen by the owner, with private as the default; and sharing scopes: open directory networks, knowledge commons, off by default. Changing scope stops future sharing and emits a retraction event to connected networks. Stewards cannot read private initiatives.
-- R28 Access tiers configurable by stewards: open (anyone can browse, Certified users can save and share from an owned initiative), members-first (saving open, matches and pulse for members and people who have applied), members-only (whole platform behind membership). Phase 0 and 1 run open; the council can tighten later without a code change.
+- R28 Access tiers configurable by stewards: open (anyone can browse, Certified users can publish for a project they have authority for), members-first (saving open, matches and pulse for members and people who have applied), members-only (whole platform behind membership). Phase 0 and 1 run open; the council can tighten later without a code change.
 
 Interoperability and knowledge
 

@@ -66,7 +66,10 @@ Example public record with fictional data:
 
 ## Pilot boundaries
 
-- Keep private saves and Weave-only shares in Platform. A workspace editor explicitly
+- A listing is the only public copy of a need or offer. Before it, the need or offer
+  is in the person's device draft or a group project's shared team draft (DL-155,
+  D48); there are no private saves or Weave-only shares to fall back on. The person
+  with authority for the project, or for a group a Weave editor or admin, explicitly
   publishes the reviewed public fields. AT repositories are
   [public](https://atproto.com/specs/repository).
 - Resolve `projectUri` to a current project record. For the pilot, accept a
@@ -90,10 +93,12 @@ repository holds it. `support_review` with an `entry` (`title`, optional
 `description`, `capitalForms` and optional `lenses`) builds the public record from
 those fields alone, under the same limits `parseSupportListing` puts on the record,
 and Weave never sees the draft again. A review of a saved entry, with
-`expectedRevision` and `expectedEntryRevision`, still works until private saves
-retire, as step 4 of the
-[removal plan](../../../docs/platform/08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing)
-sets out. Both need `supabase/candidates/weave-publish-from-draft.sql` on Platform.
+`expectedRevision` and `expectedEntryRevision`, is how a group project publishes
+from its team draft. A personal save made before DL-155 is opened on the device and
+published from there, since step 4 of the
+[removal plan](../../../docs/platform/08-accounts-and-saving.md#retiring-private-saves-and-weave-only-sharing).
+Both reviews need `supabase/candidates/weave-publish-from-draft.sql` on Platform,
+applied on 27 November 2026.
 
 `support_review` returns the exact public record, repository DID, audience
 `public-atproto`, saved revision, entry revision and a ten-minute review expiry. A
@@ -112,9 +117,10 @@ pending; the server does not send a second create that might arrive after withdr
 
 A listing published from a draft does not follow later edits: the public record stays
 as it is until the person withdraws it and publishes again, which keeps its record
-key and first date. For a listing published from a saved entry, editing published
-details or closing or deleting the entry queues withdrawal with the private change,
-and replacement details stay private until another explicit publish. Confirming that
+key and first date. For a listing published from a saved entry, which is now a
+group project's team draft, editing published details or closing or deleting the
+entry queues withdrawal with the team-draft change, and replacement details stay in
+the team draft until another explicit publish. Confirming that
 the parent project was removed or unlisted queues withdrawal of either. A saved card
 deleted with its account leaves its project link and Weave's record of the listing,
 so the withdrawal can still finish; the delete guard still refuses a card that a
@@ -128,8 +134,8 @@ This slice recognizes withdrawal through another app when verified read-back ret
 `RecordNotFound`. A changed record, including one that now has a terminal status,
 reports a conflict for review. A terminal status alone does not prove that the public
 details were deleted. External deletion changes only the public publication state;
-it preserves the saved entry and any eligible Weave matching share. Other readers
-may retain records that were previously public.
+it preserves the draft entry. Other readers may retain records that were
+previously public.
 
 `support_state` returns at most 100 current or historical publication rows and a
 workspace-bound `nextCursor`. Follow the cursor to reach older pending withdrawals,
@@ -153,8 +159,9 @@ The adapter blocks both group creation and deletion while this gate is off. The
 forwards its input to the PDS, but source inspection does not verify a deployed
 service. The standard
 [delete Lexicon](https://github.com/bluesky-social/atproto/blob/main/lexicons/com/atproto/repo/deleteRecord.json)
-defines the expected-CID condition. Group-page display, partner indexing and schema
-publication remain separate work.
+defines the expected-CID condition. Weave's own published listings take part in
+partner matching since step 5 of the removal plan. Group-page display, finding
+listings that other apps write (D47) and schema publication remain separate work.
 
 Regen Commons can [publish the schema](https://atproto.com/guides/publishing-lexicons)
 under its own namespace. After the independent reader test, ask Hypercerts about
