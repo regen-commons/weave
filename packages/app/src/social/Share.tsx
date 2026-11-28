@@ -121,7 +121,7 @@ function ShareSteps({ intent, onClose }: { intent: ShareIntent; onClose(): void 
   if (gate === "authority")
     return (
       <Stage key={gate}>
-        <p>Only a group admin or owner can publish on Certified. You can still share for matching.</p>
+        <p>Only a group admin or owner can publish on Certified.</p>
         <div className="rc-action-bar">
           <button className="rc-button" data-variant="secondary" type="button" data-task-focus onClick={onClose}>
             Close

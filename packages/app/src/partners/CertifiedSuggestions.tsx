@@ -119,10 +119,16 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
   }, [workspaceId, snapshot, queries]);
 
   const ranks = snapshot && ranked?.snapshot === snapshot && ranked.queries === queries ? ranked.matches : null;
-  const server = listed?.workspaceId === workspaceId ? listed.results : [];
+  // The server's answer, once it is in: cards wait for it, so its listings never push the device's down.
+  const answered = listed?.workspaceId === workspaceId ? listed.results : null;
+  const server = answered ?? [];
   // Without the public snapshot the device ranks nothing, but the server's listing matches still stand.
   const failed = current?.status === "error";
-  const matches = ranks ? withListingMatches(ranks, server) : failed && server.length ? withListingMatches([], server) : null;
+  const matches = ranks && answered ? withListingMatches(ranks, answered)
+    : failed && server.length ? withListingMatches([], server) : null;
+  // Whether one of the server's listing matches is for an entry this draft holds, so it can show.
+  const listingShown = server.some(({ evidence, query }) => evidence.type === "listing"
+    && queries.some(({ kind, entryId }) => kind === query.kind && entryId === query.entryId));
   const Heading = compact ? "h3" : "h2";
   const PartialHeading = compact ? "h4" : "h3";
   const onShortlist = (change: ShortlistChange) => setShortlistFull(change === "full");
@@ -139,6 +145,7 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
       </CardGrid>
     );
   };
+  const cards = renderCards(compact ? 4 : 3);
   const partialCards = renderCards(compact ? 5 : 4, "partial");
   return (
     <section className="rc-stack" aria-labelledby={heading}>
@@ -159,20 +166,21 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
               ? "Link an available Certified project to see suggestions."
               : current.code === "project_consent_required" ? "Confirm Certified project access to see suggestions."
                 : "Public Certified evidence is unavailable right now."}</p>
-            {matches && renderCards(compact ? 4 : 3)}
+            {matches && cards}
           </>
         ) : !matches ? <CardGridSkeleton kind="partner" count={compact ? 2 : 3} label="Checking public Certified evidence" /> : (
           <>
             <p className="rc-meta">
               Compared on this device with a limited set of public Certified projects and their public needs and offers.
-              {server.length > 0 && " Your own public needs and offers were also compared with other initiatives' on Weave."}
+              {listingShown && " Your own public needs and offers were also compared with other initiatives' on Weave."}
               {snapshot?.status === "stale" && " The index may be out of date."}
               {snapshot?.status === "partial" && " The index is incomplete."}
               {snapshot?.truncated && " More projects are indexed."}
               {snapshot?.indexedAt && <> Last full check <MatchingDate value={snapshot.indexedAt} />.</>}
             </p>
-            {matches.length === 0 && <p>No matches in this collection.</p>}
-            {renderCards(compact ? 4 : 3)}
+            {/* Matches for an entry this draft no longer holds show no card, so the line follows what is drawn. */}
+            {!cards && !partialCards && <p>No matches in this collection.</p>}
+            {cards}
             {partialCards && (
               <section className="rc-section" aria-labelledby={`${heading}-partial`}>
                 <PartialHeading className="rc-heading" data-size="section" id={`${heading}-partial`}>Partial Fits</PartialHeading>

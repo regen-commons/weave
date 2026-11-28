@@ -92,16 +92,13 @@ export function projectSuggestions(
 
 /**
  * The server's matches for the project's own published listings beside this device's (DL-155, step 5): other
- * projects' listings first, as direct fits, then the device's suggestions, then any public evidence only the
- * server found. A candidate shows once for each entry, at its first place.
+ * projects' listings first, as direct fits, then the device's suggestions. Public project evidence comes from the
+ * device alone, which reads each entry's place, kind and limits; the server's reading of it does not. A candidate
+ * shows once for each entry, at its first place.
  */
 export function withListingMatches(device: readonly RankedPartnerMatch[], server: readonly PartnerMatch[]): RankedPartnerMatch[] {
   const seen = new Set<string>();
-  const ordered = [
-    ...server.filter(({ evidence }) => evidence.type === "listing"),
-    ...device,
-    ...server.filter(({ evidence }) => evidence.type !== "listing"),
-  ];
+  const ordered = [...server.filter(({ evidence }) => evidence.type === "listing"), ...device];
   return ordered.filter((match) => {
     const key = `${match.query.kind}:${match.query.entryId}/${match.candidateId}`;
     if (seen.has(key)) return false;

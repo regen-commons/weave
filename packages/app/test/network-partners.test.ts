@@ -403,7 +403,7 @@ test("a project with two published offers that fit one need names that need once
   assert.equal(project?.fits[0]?.match, matches[0]);
 });
 
-test("the server's listing matches lead, the device's follow, and a candidate shows once per entry (DL-155)", async () => {
+test("the server's listing matches lead, the device's follow, a candidate shows once per entry, and server public evidence stays out (DL-155)", async () => {
   const { withListingMatches } = await import("../src/partners/certified-suggestions.ts");
   const query = { kind: "need" as const, entryId: crypto.randomUUID(), revision: 0 };
   const listing = (rkey: string) => ({ query, candidateId: `listing:at://did:plc:benbbbbbbbbbbbbbbbbbbbbb/com.regencommons.weave.supportListing/${rkey}`,
@@ -417,7 +417,23 @@ test("the server's listing matches lead, the device's follow, and a candidate sh
       sourceIndexedAt: null, fetchedAt: new Date().toISOString(), extractionVersion: "x", kind: "work" as const } });
   const device = [listing("3mlstdaaaaaaa"), publicMatch("at://did:plc:a/org.hypercerts.collection/1")];
   const server = [publicMatch("at://did:plc:b/org.hypercerts.collection/2"), listing("3mlsteaaaaaaa"), listing("3mlstdaaaaaaa")];
+  // The server's public evidence never joins: the device ranks public projects by each entry's place and limits.
   assert.deepEqual(withListingMatches(device, server).map(({ candidateId }) => candidateId.slice(-14)), [
-    "/3mlsteaaaaaaa", "/3mlstdaaaaaaa", "rcerts.collection/1".slice(-14), "rcerts.collection/2".slice(-14),
+    "/3mlsteaaaaaaa", "/3mlstdaaaaaaa", "rcerts.collection/1".slice(-14),
   ]);
+});
+
+test("a server match for an entry this draft no longer holds draws no card, so the empty line shows (DL-155)", async () => {
+  const { privatePartnerQueries, projectSuggestions, withListingMatches } = await import("../src/partners/certified-suggestions.ts");
+  const workspace = crypto.randomUUID();
+  const queries = privatePartnerQueries(workspace, 0, [ask("Weekend volunteers for our seed library")], []);
+  const uri = "at://did:plc:benbbbbbbbbbbbbbbbbbbbbb/com.regencommons.weave.supportListing/3mlstdaaaaaaa";
+  const orphan = { query: { kind: "need" as const, entryId: crypto.randomUUID(), revision: 0 }, candidateId: `listing:${uri}`,
+    counterpart: { id: "at://did:plc:benbbbbbbbbbbbbbbbbbbbbb/org.hypercerts.collection/3mlistingben1", name: "Ben" },
+    evidenceKind: "confirmed_offer" as const, action: "open_listing" as const, reciprocal: false, reasons: [], unknowns: [],
+    evidence: { type: "listing" as const, uri, cid: `b${"d".repeat(58)}`, title: "Offer", passage: "Offer",
+      createdAt: new Date().toISOString(), expiresAt: null } };
+  const matches = withListingMatches([], [orphan]);
+  assert.equal(matches.length, 1);
+  assert.deepEqual(projectSuggestions(matches, queries), []);
 });

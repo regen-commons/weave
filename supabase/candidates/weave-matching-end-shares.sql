@@ -26,6 +26,16 @@ begin
   end if;
 end $$;
 
+-- Save, share, withdraw and the embedding job's store take each card's row lock. Taking it first makes a store
+-- that starts now wait until this commits, then find nothing shared and store nothing.
+do $$
+begin
+  perform from weave.initiatives i
+  where exists(select from weave.needs n where n.initiative_id = i.id and n.matching_audience is not null and not n.matching_withdrawn)
+    or exists(select from weave.offers o where o.initiative_id = i.id and o.matching_audience is not null and not o.matching_withdrawn)
+  for update;
+end $$;
+
 -- Every share still on ends, whether current, expired or changed since it was shared. A new share version marks
 -- the change, as a withdrawal always has, and the prune triggers drop the entry's query vectors.
 update weave.needs set matching_withdrawn = true,
