@@ -50,8 +50,9 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   const social = useSocialFixture();
   const liveSocial = useSocial();
   const account = useAccount();
+  // Partners For You reads again after the card's listings change.
   const [matchVersion, setMatchVersion] = useState(0);
-  // Sharing done from Partners For You, which the sharing row in Saving And Sharing reads again.
+  // Public listings changed by Make It Public, which the rows in Saving And Sharing read again.
   const [sharedVersion, setSharedVersion] = useState(0);
   const { draft, ready, error, controller } = useDraft();
   const status = useCardStatus();
@@ -162,7 +163,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
         )}
       </Section>
       <Section id="finish-partners" title="Partners For You">
-        {examples ? <ExamplePartners compact /> : <PartnerExperience refreshVersion={matchVersion} mode="preview" separateActions onShared={() => setSharedVersion(v => v + 1)} />}
+        {examples ? <ExamplePartners compact /> : <PartnerExperience refreshVersion={matchVersion} mode="preview" separateActions />}
       </Section>
     </Stack>
   );
@@ -303,7 +304,7 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                   )}
                   {!example && project?.workspaceId && project.group && <StatusLine actions={<ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="secondary">Open Team Workspace</ButtonLink>}>Your team workspace is ready. This device card stays private until you choose to save it there.</StatusLine>}
                   {!example && project?.workspaceId && !project.group && project.workspaceId !== active?.id && <StatusLine actions={<ButtonLink href={pathTo("your-initiatives")} variant="secondary">Open Saved Initiative</ButtonLink>}>This project already has a saved initiative. Your device work stays here until you choose to open it.</StatusLine>}
-                  {!example && project && !project.group && active && project.workspaceId === active.id && <LiveExposure saved={{ id: active.id, revision: active.revision, document: active.document, updatedAt: new Date().toISOString() }} owner={active.owner}
+                  {!example && project && !project.group && active && project.workspaceId === active.id && <LiveExposure saved={{ id: active.id, revision: active.revision, document: active.document, updatedAt: new Date().toISOString() }}
                     publishHeld={status.unsaved} onChanged={() => setMatchVersion(v => v + 1)} refreshVersion={sharedVersion} />}
                   {/* Listings made public from the draft have no saved card behind them (DL-155), so they are found by the project. */}
                   {!example && project && !project.group && !(active && project.workspaceId === active.id) && (

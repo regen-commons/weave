@@ -58,7 +58,7 @@ test("nothing waits behind a visible line of loading text: a page, list or sheet
   const waiting = /<p role="status">\s*(?:\{[^}]*\?\s*)?"?(?:Loading|Opening|Checking|Comparing|Connecting|Finishing)\b/u;
   for (const file of files) assert.doesNotMatch(read(file), waiting, file);
   for (const file of ["pages/RecordDetail.tsx", "pages/Opportunity.tsx", "pages/TeamWorkspace.tsx", "partners/ExamplePartners.tsx",
-    "partners/PartnerDiscovery.tsx", "partners/CertifiedSuggestions.tsx", "partners/PartnerExperience.tsx", "ui/FirstFunding.tsx", "App.tsx"])
+    "partners/PartnerDiscovery.tsx", "partners/CertifiedSuggestions.tsx", "ui/FirstFunding.tsx", "App.tsx"])
     assert.match(read(file), /<(?:CardGridSkeleton|LinesSkeleton|DraftSkeleton)\b/u, file);
 });
 

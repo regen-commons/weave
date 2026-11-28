@@ -15,7 +15,7 @@ import { Link } from "../router.tsx";
 import { ShareMenu } from "../ui/ShareMenu.tsx";
 import { InitiativeShortlistButton, SHORTLIST_FULL } from "../shortlist/ShortlistButton.tsx";
 import { entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
-import { MatchDetails, PartialFitDetails } from "./NetworkResults.tsx";
+import { MatchDetails, PartialFitDetails } from "./FitDetails.tsx";
 import { contactLine, missingLine, projectAddress, projectFit, projectPassages, rememberedProject, requestPublicProject } from "./public-project.ts";
 import { sharedByLine, type PublicProjectCard } from "./public-projects.ts";
 import { MatchingDate } from "./SharingReview.tsx";

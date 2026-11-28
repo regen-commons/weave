@@ -12,7 +12,6 @@ import { useSetAside } from "../account/set-aside.ts";
 import { SaveDeviceToTeam } from "../partners/SaveDeviceToTeam.tsx";
 import { WorkspaceAccess } from "../initiative/WorkspaceAccess.tsx";
 import { TeamEntries } from "../partners/TeamEntries.tsx";
-import { SavedMatching } from "../partners/PartnerExperience.tsx";
 import { CertifiedSuggestions } from "../partners/CertifiedSuggestions.tsx";
 import { requestTeamWorkspace, startTeamAccess, teamPartnerQueries } from "../partners/team-workspace.ts";
 import { teamWorkspacePath } from "../routes.ts";
@@ -212,15 +211,9 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
       {/* Under the record on a wide screen and after Saving and sharing on a phone, so the panel stays
           beside the whole page. */}
       <StepLayout wide more={saved ? <Stack wide>
-          <CertifiedSuggestions workspaceId={workspaceId} queries={queries} compact={false} online={online}
-            onAccessLost={loseAccess} renderResults={(publicResults) => (
-              <SavedMatching key={saved.revision} refreshVersion={matchVersion}
-                active={{ id: workspaceId, owner: state!.user!.id, revision: saved.revision,
-                  document: saved.document, contentKey: JSON.stringify(saved.document) }} synced={!editing}
-                compact={false} online={online} onExpired={() => loseAccess("sign_in_required")}
-                fixture={false} team readOnly={loaded.accessRole === "viewer" || editing} presentation="results"
-                publicResults={publicResults} />
-            )} />
+          {/* Read again after Make It Public, so the team's new listings are matched (DL-155, step 5). */}
+          <CertifiedSuggestions key={`${workspaceId}/${saved.revision}/${matchVersion}`} workspaceId={workspaceId}
+            queries={queries} compact={false} online={online} onAccessLost={loseAccess} />
           <Section id="team-funding" title="Funding That Fits">
             <FirstFunding workspace={{ id: workspaceId, subject: loadedDraft(saved, owner) }} />
           </Section>
@@ -229,8 +222,8 @@ function WorkspaceContent({ workspaceId }: { workspaceId: string }) {
           <StatusLine actions={offerSave ? <SaveDeviceToTeam workspaceId={workspaceId} onSaved={saveResult} primary={ownCard} /> : undefined}>
             {saved ? "Saved in the team workspace. Teammates with access can see it." : "Nothing saved to this team yet."}
           </StatusLine>
-          {saved && <LiveExposure saved={saved} owner={owner} team readOnly={readOnly || editing} online={online}
-            onExpired={() => loseAccess("sign_in_required")} onChanged={() => setMatchVersion(v => v + 1)} />}
+          {saved && <LiveExposure saved={saved} readOnly={readOnly || editing} online={online}
+            onChanged={() => setMatchVersion(v => v + 1)} />}
         </Section>
         {!readOnly && <Section id="change-team" title="Change It"><div className="rc-action-bar" data-layout="rows">
           <button className="rc-button" data-variant={saved || ownCard ? "quiet" : "primary"} type="button" disabled={!online}

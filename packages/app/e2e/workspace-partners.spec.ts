@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { parseTeamSaved } from "../../api/src/account-contract.ts";
-import { rankPartnerMatches, type PartnerEntry, type ProjectEvidence, type SharedPartnerEntry } from "../../api/src/partner-matcher.ts";
+import { rankPartnerMatches, type ListingPartnerEntry, type PartnerEntry, type ProjectEvidence } from "../../api/src/partner-matcher.ts";
 import { emptyFundingForm } from "../src/funding/contracts.ts";
 import { EMPTY_ASK, type AskFields } from "../src/intake/contracts.ts";
 
@@ -71,9 +71,30 @@ function entriesOf(project: Project, additionalNeed: boolean): PartnerEntry[] {
   ];
 }
 
+// A third project that publishes in the snapshot only.
+const seedKeepers = { ...greenGoods, id: "00000000-0000-4000-8000-000000000041", did: "did:plc:efghijklmnopqrstuvwxyzab", name: "Valley Seed Keepers",
+  offer: ask("00000000-0000-4000-8000-000000000043", "Community groups to trial a pilot app",
+    "Our community groups can trial the app, test documenting activities and reviewing evidence, and give feedback.", ["experiential"]) };
+
+/** A project's need and offer as Weave publishes them: another project's listings, read back (DL-155, step 5). */
+function listingsOf(project: Project): ListingPartnerEntry[] {
+  return [[project.offer, "offer", "3mlstoffraaaa"], [project.need, "need", "3mlstneedaaaa"]].map(([entry, kind, rkey]) => {
+    const { value } = entry as typeof project.offer;
+    return { kind: kind as "offer" | "need", uri: `at://${project.did}/com.regencommons.weave.supportListing/${rkey as string}`,
+      cid: `b${"q".repeat(58)}`, projectUri: uriOf(project.did), projectName: project.name, title: value.title,
+      description: value.description, capitalForms: [...value.capitalForms], createdAt: date, expiresAt: null };
+  });
+}
+/** The snapshot's form of a listing: the record Weave read back, with its address, version and project name. */
+const snapshotListing = (listing: ListingPartnerEntry) => ({
+  kind: listing.kind, uri: listing.uri, cid: listing.cid, projectUri: listing.projectUri, projectName: listing.projectName,
+  record: { $type: "com.regencommons.weave.supportListing", projectUri: listing.projectUri, kind: listing.kind, title: listing.title,
+    description: listing.description, capitalForms: listing.capitalForms, status: "open", createdAt: listing.createdAt },
+});
+
 async function openWorkspace(page: Page, project: Project, counterpart: Project, {
-  confirmed = true, additionalNeed = true, publicAvailable = true, extraEvidence = [] as ProjectEvidence[],
-  listings = [] as unknown[],
+  listed = true, additionalNeed = true, publicAvailable = true, extraEvidence = [] as ProjectEvidence[],
+  snapshotListings = [] as ListingPartnerEntry[],
 } = {}) {
   const queries = entriesOf(project, additionalNeed);
   const uri = uriOf(project.did);
@@ -87,10 +108,8 @@ async function openWorkspace(page: Page, project: Project, counterpart: Project,
       funding: { form: emptyFundingForm(), programAnswers: {} },
     },
   });
-  const shared: SharedPartnerEntry[] = confirmed
-    ? entriesOf(counterpart, false).map((entry) => ({ ...entry, confirmedAt: date, expiresAt: null }))
-    : [];
-  const results = rankPartnerMatches({ queries, shared });
+  // The server's answer for the team's published listings: the other project's listings, as direct fits.
+  const results = listed ? rankPartnerMatches({ queries, listings: listingsOf(counterpart) }) : [];
   const publicEvidence = [
     ...extraEvidence,
     ...evidence(uriOf(counterpart.did), counterpart.name, counterpart.passages),
@@ -121,7 +140,7 @@ async function openWorkspace(page: Page, project: Project, counterpart: Project,
         if (!publicAvailable) return route.fulfill({ status: 503, json: { error: "public_evidence_unavailable" } });
         return route.fulfill({ json: { workspaceId: project.id, corpusVersion: "fixture", status: "bounded",
           indexedAt: date, availableUntil: new Date(Date.now() + 600_000).toISOString(), truncated: false, evidence: publicEvidence,
-          listings, listingsTruncated: false } });
+          listings: snapshotListings.map(snapshotListing), listingsTruncated: false } });
       default:
         return route.fulfill({ status: 400, json: { error: "invalid_request" } });
     }
@@ -131,16 +150,15 @@ async function openWorkspace(page: Page, project: Project, counterpart: Project,
     switch (command.action) {
       case "state":
         return route.fulfill({ json: { initiativeId: project.id, initiativeRevision: 1, entries: queries.map(({ kind, entryId, revision }) => ({
-          kind, entryId, revision, shareVersion: 1, status: "open", sharing: "shared", confirmedAt: date, expiresAt: null,
+          kind, entryId, revision, shareVersion: 1, status: "open", sharing: "private", confirmedAt: null, expiresAt: null,
         })) } });
-      case "search":
+      case "listing_search":
         return route.fulfill({ json: { initiativeId: project.id, results, coverage: {
           shared: "available", external: "unavailable", corpusVersion: null, modelVersion: null, engineVersion: "partner-concepts-v2",
         } } });
-      case "leads":
-        return route.fulfill({ json: { initiativeId: project.id, leads: [] } });
       default:
-        return route.fulfill({ status: 400, json: { error: "invalid_request" } });
+        // Sharing for matching has ended (DL-155, step 5): nothing else is asked of the matching endpoint.
+        return route.fulfill({ status: 410, json: { error: "matching_shares_retired" } });
     }
   });
   await page.goto("/your-initiatives");
@@ -154,57 +172,57 @@ test.use({ serviceWorkers: "block" });
 
 for (const [project, counterpart] of [[greenGoods, techAndSun], [techAndSun, greenGoods]] as const) {
   for (const colorScheme of ["light", "dark"] as const) {
-    test(`${project.name} puts confirmed offers first for each shared need in ${colorScheme}`, async ({ page }, info) => {
+    test(`${project.name} finds ${counterpart.name.split(":")[0]}'s published listings first, kept with a bookmark, in ${colorScheme}`, async ({ page }, info) => {
       await page.emulateMedia({ colorScheme });
       const partners = await openWorkspace(page, project, counterpart);
-      const need = partners.getByRole("region", { name: project.need.value.title, exact: true });
-      await expect(need.getByRole("heading", { level: 4 })).toHaveText(["Confirmed Offers", "From Public Project Details"]);
-      await expect(need.getByRole("heading", { level: 5 }).first()).toHaveText(counterpart.name);
-      await expect(need.locator(".rc-fit").first()).toHaveText("Strong fit");
-      await expect(need.getByRole("link", { name: `Open Initiative : ${counterpart.name}` })).toBeVisible();
-      await expect(need.getByRole("heading", { name: /Seeds of Hope|Nkhoma Mountain/ })).toHaveCount(0);
+      const card = partners.locator(".rc-card").first();
+      await expect(card.getByRole("heading", { level: 3 })).toHaveText(counterpart.name);
+      await expect(card.locator(".rc-fit")).toHaveText("Strong fit");
+      await expect(card.getByText(project.need.value.title, { exact: true })).toBeVisible();
+      await expect(card.getByRole("link", { name: `Open Initiative : ${counterpart.name}` })).toBeVisible();
+      // A partner is kept on this device's shortlist: no Save, Hide, sharing or withdrawal anywhere (DL-155, step 5).
+      await expect(page.getByRole("button", { name: /^(Save|Hide|Stop Sharing|Withdraw From Matching|Remove From Saved)$/u })).toHaveCount(0);
+      const bookmark = card.getByRole("button", { name: `Add to shortlist: ${counterpart.name}` });
+      await bookmark.focus();
+      await page.keyboard.press("Enter");
+      await expect(bookmark).toHaveAttribute("aria-pressed", "true");
 
-      const empty = partners.getByRole("region", { name: unfilled.value.title, exact: true });
-      await expect(empty.getByText("No partners found for this need yet.")).toBeVisible();
-      const offers = partners.getByRole("region", { name: "Direct Fits" });
-      await expect(offers.getByText(project.offer.value.title, { exact: true })).toBeVisible();
-      const headings = partners.getByRole("heading", { level: 3 });
-      await expect(headings.nth(0)).toHaveText(project.need.value.title);
-      await expect(headings.nth(1)).toHaveText(unfilled.value.title);
-
-      const why = need.getByText("Why this fits", { exact: true });
+      const why = card.getByText("Why these fit", { exact: true });
       await why.focus();
       await page.keyboard.press("Enter");
-      await expect(need.getByText(/Details to check include/)).toBeVisible();
-      await page.keyboard.press("Enter");
+      await expect(card.getByText("The project published this offer. Check the details before making plans.")).toBeVisible();
 
       if (process.env.WEAVE_PARTNER_PROOF) {
-        await partners.screenshot({ path: info.outputPath("partners.png") });
+        await card.screenshot({ path: info.outputPath(`listing-partner-${colorScheme}.png`) });
         if (info.project.name === "phone") {
           await page.setViewportSize({ width: 375, height: 780 });
-          await partners.screenshot({ path: info.outputPath("partners-375.png") });
+          await card.screenshot({ path: info.outputPath(`listing-partner-${colorScheme}-375.png`) });
         }
       }
     });
   }
 }
 
-test("Tech & Sun can find Green Goods from public details without a confirmed offer", async ({ page }) => {
-  const partners = await openWorkspace(page, techAndSun, greenGoods, { confirmed: false, additionalNeed: false });
-  const need = partners.getByRole("region", { name: techAndSun.need.value.title, exact: true });
-  await expect(need.getByRole("heading", { level: 4 })).toHaveText(["From Public Project Details"]);
-  await expect(need.getByRole("heading", { level: 5 })).toHaveText(["Green Goods"]);
-  await expect(need.locator(".rc-fit")).toHaveText("Possible fit");
-  await expect(need.getByText("Availability is unknown.", { exact: true })).toBeVisible();
+test("Tech & Sun can find Green Goods from public details without a published listing", async ({ page }) => {
+  const partners = await openWorkspace(page, techAndSun, greenGoods, { listed: false, additionalNeed: false });
+  const card = partners.locator(".rc-card", { has: page.getByRole("heading", { name: "Green Goods", exact: true }) });
+  await expect(card.locator(".rc-fit")).toHaveText("Possible fit");
+  await expect(card.getByText("Availability is unknown.", { exact: true })).toBeVisible();
 });
 
-test("Green Goods keeps confirmed offers when public evidence is unavailable", async ({ page }) => {
+test("Green Goods keeps the server's listing matches when public evidence is unavailable", async ({ page }) => {
   const partners = await openWorkspace(page, greenGoods, techAndSun, { publicAvailable: false, additionalNeed: false });
-  const need = partners.getByRole("region", { name: greenGoods.need.value.title, exact: true });
-  await expect(need.getByRole("heading", { level: 4 })).toHaveText(["Confirmed Offers"]);
-  await expect(need.getByRole("heading", { name: techAndSun.name, exact: true })).toBeVisible();
   await expect(partners.getByText("Public Certified evidence is unavailable right now.")).toBeVisible();
-  await expect(need.getByText("No partners found for this need yet.")).toHaveCount(0);
+  await expect(partners.getByRole("heading", { name: techAndSun.name, exact: true })).toBeVisible();
+});
+
+test("a published offer in the public snapshot is a direct fit on the device, with no server match", async ({ page }) => {
+  const partners = await openWorkspace(page, greenGoods, techAndSun, {
+    listed: false, additionalNeed: false, snapshotListings: listingsOf(seedKeepers).filter(({ kind }) => kind === "offer"),
+  });
+  const card = partners.locator(".rc-card", { has: page.getByRole("heading", { name: seedKeepers.name, exact: true }) });
+  await expect(card).toBeVisible();
+  await expect(card.getByText("They offer what you need", { exact: false })).toBeVisible();
 });
 
 for (const colorScheme of ["light", "dark"] as const) {
@@ -223,18 +241,19 @@ for (const colorScheme of ["light", "dark"] as const) {
         "We collect plastic for recycling and use a traceability app.",
       ]),
     ];
-    const partners = await openWorkspace(page, project, techAndSun, { confirmed: false, additionalNeed: false, extraEvidence });
-    const need = partners.getByRole("region", { name: project.need.value.title, exact: true });
-    await expect(need.getByRole("heading", { level: 4 })).toHaveText(["From Public Project Details", "Partial Fits"]);
-    await expect(need.getByRole("heading", { level: 5 })).toHaveText(["Plastic batch tracking", "Circular supply chain platform"]);
-    await expect(need.locator(".rc-fit")).toHaveText(["Possible fit", "Partial fit"]);
-    await expect(need.getByText("Provides traceability for circular supply chains.", { exact: true })).toBeVisible();
-    await expect(need.getByText("Check whether the tool tracks individual lots of recycled plastic.", { exact: true })).toBeVisible();
-    const partialSource = need.getByRole("link", { name: /Open Initiative.*Circular supply chain platform/u });
+    const partners = await openWorkspace(page, project, techAndSun, { listed: false, additionalNeed: false, extraEvidence });
+    const direct = partners.locator(".rc-card", { has: page.getByRole("heading", { name: "Plastic batch tracking", exact: true }) });
+    await expect(direct.locator(".rc-fit")).toHaveText("Possible fit");
+    const partial = partners.getByRole("region", { name: "Partial Fits" });
+    await expect(partial.getByRole("heading", { level: 4 })).toHaveText(["Circular supply chain platform"]);
+    await expect(partial.locator(".rc-fit")).toHaveText(["Partial fit"]);
+    await expect(partial.getByText("Provides traceability for circular supply chains.", { exact: true })).toBeVisible();
+    await expect(partial.getByText("Check whether the tool tracks individual lots of recycled plastic.", { exact: true })).toBeVisible();
+    const partialSource = partial.getByRole("link", { name: /Open Initiative.*Circular supply chain platform/u });
     await partialSource.focus();
     await expect(partialSource).toBeFocused();
     if (process.env.WEAVE_PARTNER_PROOF) {
-      const partialHeading = need.getByRole("heading", { name: "Partial Fits", exact: true });
+      const partialHeading = partners.getByRole("heading", { name: "Partial Fits", exact: true });
       const framePartialFits = () => partialHeading.evaluate((heading) => {
         heading.scrollIntoView({ block: "start" });
         window.scrollBy(0, -150);
@@ -247,33 +266,5 @@ for (const colorScheme of ["light", "dark"] as const) {
         await page.screenshot({ path: info.outputPath("partial-fits-375.png") });
       }
     }
-  });
-}
-
-// DL-155, step 5: another project's published offer, from the snapshot, is a direct fit under its own heading.
-const seedKeepers = { did: "did:plc:efghijklmnopqrstuvwxyzab", name: "Valley Seed Keepers" };
-const publishedOffer = {
-  kind: "offer", uri: `at://${seedKeepers.did}/com.regencommons.weave.supportListing/3mlstoffraaaa`, cid: `b${"q".repeat(58)}`,
-  projectUri: uriOf(seedKeepers.did), projectName: seedKeepers.name,
-  record: {
-    $type: "com.regencommons.weave.supportListing", projectUri: uriOf(seedKeepers.did), kind: "offer",
-    title: "Community groups to trial a pilot app", capitalForms: ["experiential"], status: "open", createdAt: date,
-    description: "Our community groups can trial the app, test documenting activities and reviewing evidence, and give feedback.",
-  },
-};
-for (const colorScheme of ["light", "dark"] as const) {
-  test(`a published offer from another project shows under Published Offers in ${colorScheme}`, async ({ page }, info) => {
-    await page.emulateMedia({ colorScheme });
-    const partners = await openWorkspace(page, greenGoods, techAndSun, { additionalNeed: false, listings: [publishedOffer] });
-    const need = partners.getByRole("region", { name: greenGoods.need.value.title, exact: true });
-    await expect(need.getByRole("heading", { name: "Published Offers", exact: true })).toBeVisible();
-    const card = need.locator(".rc-card", { has: page.getByRole("heading", { name: seedKeepers.name, exact: true }) });
-    await expect(card).toBeVisible();
-    await expect(card.getByRole("button", { name: /Save|Hide/ })).toHaveCount(0);
-    const why = card.getByText("Why this fits", { exact: true });
-    await why.focus();
-    await page.keyboard.press("Enter");
-    await expect(card.getByText("The project published this offer. Check the details before making plans.")).toBeVisible();
-    if (process.env.WEAVE_PARTNER_PROOF) await need.screenshot({ path: info.outputPath(`published-offer-${colorScheme}.png`) });
   });
 }

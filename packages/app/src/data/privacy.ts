@@ -59,7 +59,7 @@ export const STORAGE_SUMMARY: readonly Term[] = [
   ],
   [
     "Sharing and publishing",
-    "Nothing is published until you choose it, and you see what leaves first. Publishing on Certified is public. Weave no longer shares for matching; a share made before stays until you withdraw it.",
+    "Nothing is published until you choose it, and you see what leaves first. Publishing on Certified is public. Weave no longer shares for matching, and shares made before have ended.",
   ],
   [
     "Talking and the assistant",
@@ -97,7 +97,7 @@ export const DATA_POLICY: readonly { title: string; body: readonly string[] }[] 
     title: "Teams, Sharing And Publishing",
     body: [
       "Each of these is its own choice, and each shows what leaves before you confirm.",
-      "A team workspace can be read by the teammates who are given access to it. Publishing on Certified creates a public record that anyone, and other apps, can read. Weave no longer shares needs and offers with other signed-in people for matching; those shared before stay visible to them, with your initiative's name, description, places and themes, until you withdraw them or matching moves to public listings.",
+      "A team workspace can be read by the teammates who are given access to it. Publishing on Certified creates a public record that anyone, and other apps, can read. Weave no longer shares needs and offers with other signed-in people for matching, and those shared before have ended. Other initiatives find yours through your public listings.",
       "Opening or linking your Certified projects needs a separate permission, which Certified asks you for. Signing in goes on to that question. With it, Weave reads your Certified projects and the groups you belong to for as long as you stay signed in.",
       "Weave also uses that permission to check that you still belong to a group whenever you open or change its team workspace, its sharing, its invitations or who has access. If Certified says you have left the group, Weave stops your access to that workspace.",
       "Weave stores that permission encrypted on its server and can use it for up to 30 days. Signing out ends it: Weave can no longer use it and deletes its stored copy. If that deletion fails, the copy stays encrypted and unusable until it expires.",

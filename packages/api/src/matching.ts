@@ -33,9 +33,11 @@ export function createMatchingHandlers({ provider, secureCookies = true, origin 
         let command;
         try { command = parseMatchingCommand(body); }
         catch { throw new AccountError(400, "invalid_data"); }
-        // DL-155, step 4: nothing new is shared with signed-in Weave users. Withdrawing a share, partner
-        // suggestions and saved partners go on until published listings take over matching (step 5, D49).
-        if (command.action === "preview" || command.action === "share" || command.action === "renew")
+        // DL-155: nothing new is shared with signed-in Weave users (step 4), and published listings took over
+        // matching (step 5). A share still on is withdrawn by Platform, so searching shares, withdrawing one
+        // and the saved partners kept on the server end here; partners are kept on the device's shortlist.
+        // `state` stays, since publishing a team's saved card reads its entry revisions until step 6.
+        if (["preview", "share", "renew", "withdraw", "search", "leads", "set_lead"].includes(command.action))
           throw new AccountError(410, "matching_shares_retired");
         return response(200, await provider.execute(token, command));
       } catch (error) {

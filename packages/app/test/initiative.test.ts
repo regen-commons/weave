@@ -7,7 +7,6 @@ import { confirmDraft, newDraft, pendingDetails, revise } from "../src/describe/
 import { draftFromRecord, draftWithRecord, waitingSuggestions } from "../src/initiative/import.ts";
 import { privatePartnerQueries } from "../src/partners/certified-suggestions.ts";
 import { partnersWaitingLine } from "../src/social/words.ts";
-import { sharedLine } from "../src/partners/use-network-matching.ts";
 import {
   cardName,
   cardRoute,
@@ -348,33 +347,20 @@ test("a project already on Certified is never read as unpublished: the row and b
   assert.match(live, />\{PUBLISH_ACTION\}<\/button>/u);
 });
 
-// DL-155, step 4: Weave no longer shares needs and offers with people signed in. Partners For You lists only
-// what is still shared from before, each with Withdraw From Matching, and never asks for a new share. The
-// line that named unshared entries as private and asked to share them (23 November 2026) is gone with it.
-test("Partners For You lists only what is still shared, to withdraw it, and never asks to share", () => {
-  assert.equal(sharedLine(1), "1 need or offer is still shared with people signed in.");
-  assert.equal(sharedLine(3, true), "3 needs and offers are still shared with people signed in from this workspace.");
-  const partners = readFileSync(new URL("../src/partners/PartnerExperience.tsx", import.meta.url), "utf8");
-  assert.match(partners, /sharing === "shared" \|\| sharing === "expired" \|\| sharing === "needs_review"/u,
-    "a share still on, ended or changed since can be withdrawn; nothing else is listed");
-  assert.match(partners, />Withdraw From Matching<\/button>/u);
-  for (const file of ["../src/partners/PartnerExperience.tsx", "../src/partners/ExamplePartners.tsx", "../src/partners/use-network-matching.ts",
-    "../src/partners/TeamEntries.tsx", "../src/ui/TeamSlots.tsx"]) {
+// DL-155, step 5: sharing for matching has ended. No screen lists, stops or withdraws a share, saved and hidden
+// partners are no longer kept on the server, and a partner is kept on the device's shortlist instead.
+test("sharing for matching has ended: nothing lists, stops or withdraws a share, and partners are kept on the shortlist", () => {
+  for (const file of ["../src/partners/PartnerExperience.tsx", "../src/partners/CertifiedSuggestions.tsx",
+    "../src/social/LiveExposure.tsx", "../src/pages/TeamWorkspace.tsx", "../src/pages/YourInitiative.tsx",
+    "../src/partners/ExamplePartners.tsx", "../src/partners/TeamEntries.tsx", "../src/ui/TeamSlots.tsx"]) {
     const source = readFileSync(new URL(file, import.meta.url), "utf8");
-    assert.doesNotMatch(source, /Share (it|them) for matching|>Share For Matching<|Review What You’ll Share|until you share them/u, file);
+    assert.doesNotMatch(source, /Stop Sharing|Withdraw From Matching|Share For Matching|Shared before|SavedMatching|set_lead|Remove From Saved|"withdraw"/u, file);
   }
-});
-
-// A share still on can be stopped from Partners For You (DL-155, step 4). Stop Sharing opens the same
-// step as Saving And Sharing, and the rows that show sharing follow once it closes.
-test("Partners For You can stop a share still on, and the rows that show it follow", () => {
-  const partners = readFileSync(new URL("../src/partners/PartnerExperience.tsx", import.meta.url), "utf8");
-  assert.match(partners, /onClick=\{\(\) => setSharing\(true\)\}>Stop Sharing<\/button>/u, "one tap opens the step");
-  assert.match(partners, /<SavedMatching[^>]*presentation="sharing"/u, "the same step as Saving And Sharing");
-  assert.match(partners, /onClose=\{\(\) => \{ setSharing\(false\); network\.refresh\(\); onShared\?\.\(\); \}\}/u, "and the results follow");
+  const suggestions = readFileSync(new URL("../src/partners/CertifiedSuggestions.tsx", import.meta.url), "utf8");
+  assert.match(suggestions, /<InitiativeShortlistButton project=\{\{ uri: project\.id, name: project\.name \}\} place="card"/u);
+  assert.match(suggestions, /matchingRequest\(workspaceId, "listing_search", \{\}, controller\.signal\)/u, "the project's listings are matched on the server");
   const page = readFileSync(new URL("../src/pages/YourInitiative.tsx", import.meta.url), "utf8");
-  assert.match(page, /onShared=\{\(\) => setSharedVersion\(v => v \+ 1\)\}/u);
+  assert.match(page, /<PartnerExperience refreshVersion=\{matchVersion\}/u, "suggestions read again after the listings change");
   assert.match(page, /<LiveExposure[\s\S]*?refreshVersion=\{sharedVersion\}/u);
-  assert.match(readFileSync(new URL("../src/social/LiveExposure.tsx", import.meta.url), "utf8"), /version, online, team, refreshVersion\]/u);
-  assert.doesNotMatch(partners, /action: "(share|renew)"/u, "nothing here can share or renew");
+  assert.match(readFileSync(new URL("../src/social/LiveExposure.tsx", import.meta.url), "utf8"), /version, online, refreshVersion\]/u);
 });

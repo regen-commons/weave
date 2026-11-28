@@ -5,7 +5,9 @@ import {
   parseMatchingPreview, parseMatchingSearch, parseMatchingState, matchingCandidateId,
   type MatchingEntryRef, type MatchingEntryState, type MatchingLead, type MatchingPreview, type MatchingState,
 } from "@weave/api/matching-contract";
-import { PARTNER_ENGINE_VERSION, rankPartnerMatches, type ProjectEvidence, type SharedPartnerEntry } from "@weave/api/partner-matcher";
+import {
+  PARTNER_ENGINE_VERSION, rankPartnerMatches, type ListingPartnerEntry, type ProjectEvidence, type SharedPartnerEntry,
+} from "@weave/api/partner-matcher";
 import { parseTeamDocument, type AccountDocument, type JsonObject, type SavedInitiative } from "@weave/api/account-contract";
 import { createProjectHandler } from "../../api/src/project-http.ts";
 import { sessionCookies } from "../../api/src/account-http.ts";
@@ -485,7 +487,7 @@ const matchingProvider: MatchingProvider = {
     const { account, saved } = team ?? fixtureInitiative(token, initiativeId);
     // Matching starts from a saved team card; an empty workspace has nothing to match yet.
     if (!saved) throw new AccountError(404, "not_found");
-    if (team?.accessRole === "viewer" && !["state", "search", "leads"].includes(action))
+    if (team?.accessRole === "viewer" && !["state", "search", "leads", "listing_search"].includes(action))
       throw new AccountError(403, "workspace_edit_required");
     const card = reconcile(team ? initiativeId : account, saved);
     const state = () => ({
@@ -510,6 +512,19 @@ const matchingProvider: MatchingProvider = {
       queries: rows.flatMap((row) => projection(initiativeId, row)), shared: allShared(), publicEvidence,
     });
     if (action === "state") return state();
+    if (action === "listing_search") {
+      // DL-155, step 5: partners for the workspace's published listings. The fixture takes the card's open entries
+      // as its listings and matches them against the other project's published offer in the dev snapshot.
+      const queries = [...card.entries.values()].flatMap(({ kind, entryId, status, value }) => status === "open"
+        ? [{ initiativeId, entryId, revision: 0, kind, value, summary: reviewSummary(saved.document) as JsonObject }] : []);
+      const listings: ListingPartnerEntry[] = publishedListings.map(({ kind, uri, cid, projectUri, projectName, record }) => ({
+        kind: kind as "offer", uri, cid, projectUri, projectName, title: record.title, description: record.description,
+        capitalForms: record.capitalForms, createdAt: record.createdAt, expiresAt: null }));
+      return parseMatchingSearch({ initiativeId, results: rankPartnerMatches({ queries, listings }), coverage: {
+        shared: queries.length ? "available" : "not_joined", external: "partial", corpusVersion: "local-fictional-corpus",
+        modelVersion: null, engineVersion: PARTNER_ENGINE_VERSION,
+      } });
+    }
     if (action === "leads") return resultLeads();
     if (action === "search") {
       const rows = command.entries ? select(command.entries) : [...card.entries.values()];

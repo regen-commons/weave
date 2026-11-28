@@ -1,5 +1,5 @@
 import type { PublicEvidenceSnapshot } from "@weave/api/matching-contract";
-import type { PartnerEntry } from "@weave/api/partner-matcher";
+import type { PartnerEntry, PartnerMatch } from "@weave/api/partner-matcher";
 import { rankPartners, type RankedPartnerMatch } from "@weave/api/partner-ranking";
 
 type DraftEntry = {
@@ -88,4 +88,21 @@ export function projectSuggestions(
       project.passages.push({ text, sourceUrl: match.evidence.type === "public" ? match.evidence.sourceUrl : null });
   }
   return [...projects.values()];
+}
+
+/**
+ * The server's matches for the project's own published listings beside this device's (DL-155, step 5): other
+ * projects' listings first, as direct fits, then the device's suggestions. Public project evidence comes from the
+ * device alone, which reads each entry's place, kind and limits; the server's reading of it does not. A candidate
+ * shows once for each entry, at its first place.
+ */
+export function withListingMatches(device: readonly RankedPartnerMatch[], server: readonly PartnerMatch[]): RankedPartnerMatch[] {
+  const seen = new Set<string>();
+  const ordered = [...server.filter(({ evidence }) => evidence.type === "listing"), ...device];
+  return ordered.filter((match) => {
+    const key = `${match.query.kind}:${match.query.entryId}/${match.candidateId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }

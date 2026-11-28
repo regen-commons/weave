@@ -104,7 +104,7 @@ function AccountPublicSupport({ workspaceId, saved, readOnly, expanded, visible 
     .map((entry) => ({ kind, entryId: entry.id, title: String(entry.value.title) })));
   const Container = expanded ? "div" : "details";
   return <Container className="rc-stack" aria-busy={busy}>{!expanded && <summary>Public support listings</summary>}
-    <p>Public listings can be read outside Weave. Publishing is separate from sharing for matching.</p>
+    <p>Public listings can be read outside Weave, and other initiatives find them in their partner suggestions.</p>
     {entries.length > 0 && <ul className="rc-ask-summary">{entries.map((e) => <li key={`${e.kind}/${e.entryId}`}><strong>{e.title}</strong>
       {!readOnly && <button className="rc-button" data-variant="quiet" type="button" disabled={busy || pending !== null}
         onClick={() => void prepare(e.kind, e.entryId)}>Review Public Listing</button>}</li>)}</ul>}
