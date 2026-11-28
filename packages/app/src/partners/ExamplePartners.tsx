@@ -12,7 +12,7 @@ import { ShareCard } from "../ui/ShareCard.tsx";
 import { PUBLIC_PARTNER_EVIDENCE } from "./catalog.ts";
 import { PREVIEW_FITS } from "./groups.ts";
 import { localPartnerQuery, rankLocalPartners, type PartnerMatch } from "./match.ts";
-import { FitCard, FitGroups } from "./NetworkResults.tsx";
+import { FitCard, FitGroups } from "./FitDetails.tsx";
 import { EvidenceCard } from "./PartnerDiscovery.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import { DescribePrompt } from "../ui/DescribePrompt.tsx";

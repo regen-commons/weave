@@ -89,7 +89,7 @@ test("a question that replaces or withdraws something is asked in a dialog, not 
   const { readFileSync } = await import("node:fs");
   const { fileURLToPath } = await import("node:url");
   const source = (path: string) => readFileSync(fileURLToPath(new URL(`../src/${path}`, import.meta.url)), "utf8");
-  for (const file of ["account/AccountSection.tsx", "pages/YourInitiatives.tsx", "partners/PartnerExperience.tsx"]) {
+  for (const file of ["account/AccountSection.tsx", "pages/YourInitiatives.tsx"]) {
     assert.doesNotMatch(source(file), /aria-label="Confirm/u, `${file} asks in a notice`);
     assert.match(source(file), /<TaskDialog\b/u, file);
   }
@@ -97,5 +97,6 @@ test("a question that replaces or withdraws something is asked in a dialog, not 
   // Starting an initiative replaces nothing, so it asks nothing (DL-112).
   for (const file of ["account/AccountSection.tsx", "pages/YourInitiatives.tsx"])
     assert.doesNotMatch(source(file), /Start a new initiative\?|Back up (this card )?and start new/iu, file);
-  assert.match(source("partners/PartnerExperience.tsx"), /Withdraw From Matching\?/u);
+  // Sharing for matching ended in DL-155 step 5, so there is no share left to withdraw and nothing to ask.
+  assert.doesNotMatch(source("partners/PartnerExperience.tsx"), /Withdraw From Matching/u);
 });

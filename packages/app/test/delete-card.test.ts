@@ -6,7 +6,7 @@ import { backUpCopies, CardReferenced, cardReferences, deletableCards, deleteFai
   forgetSavedCard, namesakesLine } from "../src/account/delete-card.ts";
 import { privateSavesExport, exportedMessage } from "../src/account/export-saves.ts";
 import { backUpDraft, backUpWarning, NOT_BACKED_UP } from "../src/describe/device-removal.ts";
-import { parseMatchingSearch } from "@weave/api/matching-contract";
+import { parseMatchingState } from "@weave/api/matching-contract";
 import { matchingFixture, seedFixtureShare } from "../dev/matching-fixture.ts";
 import { EMPTY_ASK } from "../src/intake/contracts.ts";
 import { AccountFailure, type AccountState } from "../src/account/client.ts";
@@ -332,10 +332,10 @@ function fixtureRequest(token: string, origin = "http://localhost:5175") {
 test("a card shared for matching is deleted with its sharing, and a refusal names a Certified project only when the account lists it", async () => {
   const token = fixtureSession(owner), request = fixtureRequest(token);
   const shared = crypto.randomUUID(), plain = crypto.randomUUID();
-  // The shared card offers what another account needs, so that account can find it in its partner search.
+  // A card with an offer, shared for matching before Weave stopped taking new shares.
   const ask = (title: string) => ({ id: crypto.randomUUID(), value: { ...EMPTY_ASK, title, capitalForms: ["intellectual" as const] } });
   const offer = ask("GPS mapping training");
-  const offering = { ...document, needs: [], offers: [offer] }, needing = { ...document, needs: [ask("GPS watershed mapping")], offers: [] };
+  const offering = { ...document, needs: [], offers: [offer] };
   for (const [id, doc] of [[shared, offering], [plain, document]] as const)
     await seedFixtureSave(token, { id, document: doc });
   // Shared for matching before Weave stopped taking new shares.
@@ -349,17 +349,14 @@ test("a card shared for matching is deleted with its sharing, and a refusal name
   const service = createLiveSocialService({ account, controller, request, refreshAccount: async () => ({ ...account, items: await items() }),
     openWorkspace: () => {}, signIn: async () => {}, signedOut: () => {} });
   const revision = (id: string) => service.snapshot().cards.find((card) => card.id === id)!.revision!;
-  // Someone else searching for partners can find the shared card until it is deleted.
-  const searcher = crypto.randomUUID(), theirs = crypto.randomUUID(), theirToken = fixtureSession(searcher), theirRequest = fixtureRequest(theirToken);
-  await seedFixtureSave(theirToken, { id: theirs, document: needing });
-  await seedFixtureShare(theirToken, theirs);
-  const found = async () => parseMatchingSearch(await theirRequest("", { action: "search", initiativeId: theirs }, "/api/matching"))
-    .results.some(({ evidence }) => evidence.type === "shared" && evidence.entryId === offer.id);
-  assert.ok(await found(), "the shared card is a candidate before it is deleted");
+  // The share made earlier reads through `state` until the card is deleted (DL-155, step 5: nobody can search shares).
+  const sharing = async () => parseMatchingState(await request("", { action: "state", initiativeId: shared }, "/api/matching"))
+    .entries.find(({ entryId }) => entryId === offer.id)?.sharing;
+  assert.equal(await sharing(), "shared", "the card is shared before it is deleted");
   // Its sharing goes with it: a personal save cannot reach matching to withdraw it first (QA notes, 26 November 2026).
   assert.equal((await service.deleteCard!({ id: shared, revision: revision(shared) }, crypto.randomUUID())).deleted.id, shared);
   assert.ok(!(await items()).some((item) => item.id === shared), "the shared card is gone");
-  assert.ok(!(await found()), "and no longer a candidate for anyone");
+  await assert.rejects(sharing(), { code: "not_found" }, "and its sharing with it");
   // A card that is a listed project's workspace names that project; otherwise nothing is named that Weave did not check.
   assert.deepEqual(cardReferences(plain, [{ workspaceId: plain, name: "Water notes (fixture)" }]), { project: "Water notes (fixture)" });
   assert.equal(deleteFailure(new CardReferenced({ project: "Water notes (fixture)" })),

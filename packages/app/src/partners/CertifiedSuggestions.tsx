@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useState } from "react";
 import type { PublicEvidenceSnapshot } from "@weave/api/matching-contract";
 import type { PartnerEntry } from "@weave/api/partner-matcher";
 import type { RankedPartnerMatch } from "@weave/api/partner-ranking";
@@ -7,10 +7,11 @@ import { Card, CardGrid } from "../ui/Card.tsx";
 import { availabilityUnknownForAll, entryLine, FIT_BASIS, fitLead, fitStrength, strongestFit } from "./groups.ts";
 import { Fit } from "../ui/Fit.tsx";
 import { Icon } from "../ui/Icon.tsx";
-import { MatchDetails, PartialFitDetails } from "./NetworkResults.tsx";
+import { MatchDetails, PartialFitDetails } from "./FitDetails.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
-import { projectSuggestions, rankCertifiedSuggestions, type ProjectSuggestion } from "./certified-suggestions.ts";
-import { requestPublicEvidence } from "./matching-client.ts";
+import { projectSuggestions, rankCertifiedSuggestions, withListingMatches, type ProjectSuggestion } from "./certified-suggestions.ts";
+import { matchingRequest, requestPublicEvidence, type NetworkMatch } from "./matching-client.ts";
+import { InitiativeShortlistButton, SHORTLIST_FULL, type ShortlistChange } from "../shortlist/ShortlistButton.tsx";
 import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { projectAddress } from "./public-project.ts";
@@ -22,20 +23,13 @@ type SnapshotState = { workspaceId: string } & (
   | { status: "error"; code: string }
 );
 
-export type CertifiedPartnerResults = {
-  checked: boolean;
-  /**
-   * Cards for the selected entries. "matches" is every fit but the partial ones; beside other results, "listings"
-   * keeps other projects' published needs and offers (DL-155, step 5) apart from "public" project details.
-   */
-  renderCards: (select: (query: PartnerEntry) => boolean, level: 3 | 4 | 5 | 6,
-    group?: "matches" | "partial" | "listings" | "public") => ReactNode;
-};
-const inGroup = (match: RankedPartnerMatch, group: "matches" | "partial" | "listings" | "public") =>
-  group === "partial" ? !!match.partial
-    : !match.partial && (group === "matches" || (match.evidence.type === "listing") === (group === "listings"));
-
-export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compact, online, onAccessLost, renderResults }: {
+/**
+ * Partners For You (DL-155, step 5): the draft's kept needs and offers ranked on this device against public projects
+ * and other projects' published listings, with the project's own published listings matched on the server.
+ * Nothing about the draft leaves the device: the snapshot request names only the workspace, and the server
+ * reads the project's listings from Weave's own record. A partner is kept on the device's shortlist.
+ */
+export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compact, online, onAccessLost }: {
   workspaceId: string;
   queries: readonly PartnerEntry[];
   /**
@@ -46,10 +40,13 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
   compact: boolean;
   online: boolean;
   onAccessLost?: (code: string) => void;
-  renderResults?: (publicResults: CertifiedPartnerResults) => ReactNode;
 }) {
   const heading = useId();
   const [loaded, setLoaded] = useState<SnapshotState | null>(null);
+  // The server's matches for the project's own published listings. It may fail or find nothing without
+  // holding back the device's suggestions.
+  const [listed, setListed] = useState<{ workspaceId: string; results: readonly NetworkMatch[] } | null>(null);
+  const [shortlistFull, setShortlistFull] = useState(false);
   const [ranked, setRanked] = useState<{
     snapshot: PublicEvidenceSnapshot; queries: typeof queries; matches: RankedPartnerMatch[];
   } | null>(null);
@@ -77,6 +74,12 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
       });
     }
     load();
+    setListed(null);
+    void matchingRequest(workspaceId, "listing_search", {}, controller.signal).then((search) => {
+      if (!controller.signal.aborted) setListed({ workspaceId, results: search.results });
+    }).catch(() => {
+      if (!controller.signal.aborted) setListed({ workspaceId, results: [] });
+    });
     return () => {
       controller.abort();
       clearTimeout(refresh);
@@ -115,28 +118,32 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
     return stop;
   }, [workspaceId, snapshot, queries]);
 
-  const matches = snapshot && ranked?.snapshot === snapshot && ranked.queries === queries
-    ? ranked.matches : null;
+  const ranks = snapshot && ranked?.snapshot === snapshot && ranked.queries === queries ? ranked.matches : null;
+  const server = listed?.workspaceId === workspaceId ? listed.results : [];
+  // Without the public snapshot the device ranks nothing, but the server's listing matches still stand.
+  const failed = current?.status === "error";
+  const matches = ranks ? withListingMatches(ranks, server) : failed && server.length ? withListingMatches([], server) : null;
   const Heading = compact ? "h3" : "h2";
   const PartialHeading = compact ? "h4" : "h3";
-  const renderCards: CertifiedPartnerResults["renderCards"] = (select, level, group = "matches") => {
+  const onShortlist = (change: ShortlistChange) => setShortlistFull(change === "full");
+  const renderCards = (level: 3 | 4 | 5 | 6, group: "matches" | "partial" = "matches") => {
     // A project that fits several entries within this group shows once, naming each.
-    const projects = matches ? projectSuggestions(matches.filter((match) => inGroup(match, group)), queries.filter(select), compact ? 2 : undefined) : [];
+    const projects = matches ? projectSuggestions(matches.filter((match) => !!match.partial === (group === "partial")), queries, compact ? 2 : undefined) : [];
     if (!projects.length) return null;
     const Title = `h${level}` as const;
     return (
       <CardGrid>
         {projects.map((project) => (
-          <li key={project.id}><ProjectCard project={project} Title={Title} /></li>
+          <li key={project.id}><ProjectCard project={project} Title={Title} onShortlist={onShortlist} /></li>
         ))}
       </CardGrid>
     );
   };
-  const partialCards = !renderResults && renderCards(() => true, compact ? 5 : 4, "partial");
+  const partialCards = renderCards(compact ? 5 : 4, "partial");
   return (
     <section className="rc-stack" aria-labelledby={heading}>
       <Heading id={heading} className="rc-heading" data-size="section">Partners For You</Heading>
-      {renderResults?.({ checked: matches !== null, renderCards })}
+      {shortlistFull && <p className="rc-notice" data-tone="warning" role="status">{SHORTLIST_FULL}</p>}
       {!hasQueries ? (waiting.length ? (
         <>
           <p>{partnersWaitingLine(waiting)}</p>
@@ -147,21 +154,25 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
       ) : <p>Keep an open need or offer to see suggestions.</p>)
         : !online ? <p>Reconnect to check public Certified evidence.</p>
         : current?.status === "error" ? (
-          <p role="status">{["not_found", "project_not_found", "workspace_access_required"].includes(current.code)
-            ? "Link an available Certified project to see suggestions."
-            : current.code === "project_consent_required" ? "Confirm Certified project access to see suggestions."
-              : "Public Certified evidence is unavailable right now."}</p>
+          <>
+            <p role="status">{["not_found", "project_not_found", "workspace_access_required"].includes(current.code)
+              ? "Link an available Certified project to see suggestions."
+              : current.code === "project_consent_required" ? "Confirm Certified project access to see suggestions."
+                : "Public Certified evidence is unavailable right now."}</p>
+            {matches && renderCards(compact ? 4 : 3)}
+          </>
         ) : !matches ? <CardGridSkeleton kind="partner" count={compact ? 2 : 3} label="Checking public Certified evidence" /> : (
           <>
             <p className="rc-meta">
-              Compared on this device with a limited set of public Certified projects.
+              Compared on this device with a limited set of public Certified projects and their public needs and offers.
+              {server.length > 0 && " Your own public needs and offers were also compared with other initiatives' on Weave."}
               {snapshot?.status === "stale" && " The index may be out of date."}
               {snapshot?.status === "partial" && " The index is incomplete."}
               {snapshot?.truncated && " More projects are indexed."}
               {snapshot?.indexedAt && <> Last full check <MatchingDate value={snapshot.indexedAt} />.</>}
             </p>
-            {!renderResults && matches.length === 0 && <p>No matches in this collection.</p>}
-            {!renderResults && renderCards(() => true, compact ? 4 : 3)}
+            {matches.length === 0 && <p>No matches in this collection.</p>}
+            {renderCards(compact ? 4 : 3)}
             {partialCards && (
               <section className="rc-section" aria-labelledby={`${heading}-partial`}>
                 <PartialHeading className="rc-heading" data-size="section" id={`${heading}-partial`}>Partial Fits</PartialHeading>
@@ -178,7 +189,11 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
  * One project (DL-052, DL-064): how strong its best fit is, each of the person's needs and offers it
  * fits and which way, then the project's own words once and why each fits on request.
  */
-function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h3" | "h4" | "h5" | "h6" }) {
+function ProjectCard({ project, Title, onShortlist }: {
+  project: ProjectSuggestion; Title: "h3" | "h4" | "h5" | "h6";
+  /** Hears each press of the card's shortlist bookmark, where a partner is kept on this device (DL-155, step 5). */
+  onShortlist(change: ShortlistChange): void;
+}) {
   // The project opens at its Weave address, as on Initiatives (DL-136). One without an address shows no
   // link: its record's raw data is no page to read (DL-154).
   const address = projectAddress(project.id);
@@ -191,6 +206,8 @@ function ProjectCard({ project, Title }: { project: ProjectSuggestion; Title: "h
       <Fit level={strength} explanation={onlyPartial ? "Public evidence covers part of the need." : FIT_BASIS[strength]}
         label={onlyPartial ? "Partial fit" : undefined} />
       <Title className="rc-card-title">{project.name}</Title>
+      {/* Only a project with a Weave address can be kept (DL-153); the button draws nothing for any other. */}
+      <InitiativeShortlistButton project={{ uri: project.id, name: project.name }} place="card" onChange={onShortlist} />
       <ul className="rc-reasons">
         {project.fits.map(({ query, match }) => {
           const { direction, lead } = fitLead(match.evidenceKind);

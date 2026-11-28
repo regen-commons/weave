@@ -283,11 +283,6 @@
      "file": "packages/app/test/saved-presence.test.ts",
      "test": "uncertain project creation retries the same reviewed intent, and unreadable state sends no new write",
      "class": "module"
-    },
-    {
-     "file": "packages/app/test/matching-feedback.test.ts",
-     "test": "matching feedback replays the exact uncertain command and retains success/error and refresh feedback",
-     "class": "module"
     }
    ]
   },
@@ -419,26 +414,31 @@
   },
   {
    "id": "sharing-matching-synthetic",
-   "behavior": "Earlier shares, matching, editing, expiry and withdrawal on synthetic fixtures, with no new share taken",
+   "behavior": "Earlier shares end with no new share taken: state still reads, every share command is refused by name, and published listings are matched instead",
    "evidence": [
     {
      "file": "packages/app/test/network-partners.test.ts",
-     "test": "shares made earlier, evidence, leads, withdrawal and a returning account use the same initiative IDs",
+     "test": "sharing for matching has ended: an earlier share still reads, and every share command is refused by name",
      "class": "module"
     },
     {
      "file": "packages/app/test/network-partners.test.ts",
-     "test": "an earlier share is not reviewed, shared again or renewed, and a malformed command still fails as invalid",
+     "test": "team editing still saves, team state still reads, and nobody on a team can search, keep or withdraw a share",
      "class": "module"
     },
     {
      "file": "packages/app/test/network-partners.test.ts",
-     "test": "team editing still saves, a team's earlier share is withdrawn by an editor, and nobody shares anew",
+     "test": "a draft's kept need finds another project's published offer in the snapshot, as a direct fit from that project (DL-155)",
      "class": "module"
     },
     {
      "file": "packages/api/src/matching.test.ts",
-     "test": "matches both directions with shared entries and public evidence without confusing evidence classes",
+     "test": "the provider matches both directions with shared entries and public evidence without confusing evidence classes",
+     "class": "module"
+    },
+    {
+     "file": "packages/api/src/listing-matching.test.ts",
+     "test": "another project's published offer is a direct fit for a published need, under its own address",
      "class": "module"
     },
     {

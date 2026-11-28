@@ -66,7 +66,8 @@ test("rejects foreign origins, missing sessions, duplicate selection and injecte
   }
 });
 
-test("matches both directions with shared entries and public evidence without confusing evidence classes", async () => {
+// The share search and its narrow RPCs stay in the provider until step 7 removes them; the endpoint refuses them.
+test("the provider matches both directions with shared entries and public evidence without confusing evidence classes", async () => {
   const ownerOffer = { ...offer, initiativeId: owner };
   const peerNeed = { ...need, initiativeId: peer };
   const otherProject = source.projectUri.replace("/example", "/other");
@@ -83,12 +84,7 @@ test("matches both directions with shared entries and public evidence without co
       { entry: ownerOffer, candidates: [peerNeed], publicEvidence: [source, { ...source, sourceUrl: "javascript:bad()" }] },
     ] });
   });
-  const response = await createMatchingHandlers({ provider: createMatchingProvider(rpc) }).POST(
-    request({ action: "search", initiativeId: owner }),
-  );
-  assert.equal(response.status, 200);
-  assert.equal(response.headers.get("cache-control"), "private, no-store");
-  const { results, coverage } = parseMatchingSearch(await response.json());
+  const { results, coverage } = parseMatchingSearch(await createMatchingProvider(rpc).execute(token, { action: "search", initiativeId: owner }));
   assert.deepEqual(new Set(results.map((r: { evidenceKind: string }) => r.evidenceKind)),
     new Set(["confirmed_need", "confirmed_offer", "inferred_capability", "potential_use"]));
   assert.equal(results.filter((r: { action: string }) => r.action === "open_source").length, 2);
@@ -97,7 +93,7 @@ test("matches both directions with shared entries and public evidence without co
   assert.equal(coverage.modelVersion, null);
 });
 
-test("passes private mutations only to narrow RPCs and never returns database error details", async () => {
+test("the provider passes private mutations only to narrow RPCs and never returns database error details", async () => {
   const calls: { rpc: string; body: unknown }[] = [];
   const requestId = "50000000-0000-4000-8000-000000000002";
   const reviewId = "50000000-0000-4000-8000-000000000003";
@@ -105,16 +101,14 @@ test("passes private mutations only to narrow RPCs and never returns database er
     calls.push({ rpc: String(url).split("/").pop()!, body: JSON.parse(String(init?.body)) });
     return Response.json({ code: "PT409", message: "private-provider-details" }, { status: 409 });
   });
-  const { POST } = createMatchingHandlers({ provider: createMatchingProvider(rpc) });
-  const response = await POST(request({ action: "withdraw", initiativeId: owner, entries: [ref], requestId }));
+  await assert.rejects(createMatchingProvider(rpc).execute(token, { action: "withdraw", initiativeId: owner, entries: [ref], requestId }),
+    { status: 409, code: "matching_conflict" });
   assert.deepEqual(calls, [{ rpc: "matching_change", body: {
     p_id: owner, p_action: "withdraw", p_request_id: requestId, p_review_id: null, p_entries: [ref],
   } }]);
-  assert.equal(response.status, 409);
-  assert.deepEqual(await response.json(), { error: "matching_conflict" });
 });
 
-test("nothing new is shared for matching: a preview, a share and a renewal are refused by name before any RPC (DL-155)", async () => {
+test("sharing for matching is retired: a preview, a share, a renewal, a withdrawal, a share search and saved partners are refused by name before any RPC (DL-155)", async () => {
   const calls: string[] = [];
   const rpc = createSupabaseWeaveRpc("https://db.example.test", "publishable-fixture", async (url) => {
     calls.push(String(url).split("/").pop()!);
@@ -126,6 +120,10 @@ test("nothing new is shared for matching: a preview, a share and a renewal are r
     { action: "preview", initiativeId: owner, initiativeRevision: 1, entries: [ref] },
     { action: "share", initiativeId: owner, reviewId, requestId },
     { action: "renew", initiativeId: owner, reviewId, requestId },
+    { action: "withdraw", initiativeId: owner, entries: [ref], requestId },
+    { action: "search", initiativeId: owner },
+    { action: "leads", initiativeId: owner },
+    { action: "set_lead", initiativeId: owner, candidateId: `public:${source.projectUri}`, requestId, entry: ref, disposition: "saved" },
   ]) {
     const response = await POST(request(body));
     assert.equal(response.status, 410, body.action);
@@ -145,7 +143,7 @@ test("preserves Weave entry identity and rejects case-only duplicate IDs in vers
   }), /invalid_data/);
 });
 
-test("removes a saved lead by its entry key and still requires a current reference for saving", async () => {
+test("the provider removes a saved lead by its entry key, and a malformed lead is still invalid data at the endpoint", async () => {
   const entry = { kind: ref.kind, entryId: ref.entryId };
   const candidateId = `weave:${peer}:offer:${offerId}`;
   const requestId = "50000000-0000-4000-8000-000000000004";
@@ -162,10 +160,10 @@ test("removes a saved lead by its entry key and still requires a current referen
   const { POST } = createMatchingHandlers({ provider });
   assert.equal((await POST(request({ ...body, entry, disposition: "saved" }))).status, 400);
   assert.equal((await POST(request({ ...body, entry, disposition: "dismissed" }))).status, 400);
-  const response = await POST(request({ ...body, entry, disposition: "removed" }));
-  assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { initiativeId: owner, leads: [] });
-  assert.equal((await POST(request({ ...body, entry: ref, disposition: "removed" }))).status, 200);
+  assert.equal((await POST(request({ ...body, entry, disposition: "removed" }))).status, 410);
+  assert.equal(calls, 0);
+  assert.deepEqual(await provider.execute(token, parseMatchingCommand({ ...body, entry, disposition: "removed" })), { initiativeId: owner, leads: [] });
+  assert.deepEqual(await provider.execute(token, parseMatchingCommand({ ...body, entry: ref, disposition: "removed" })), { initiativeId: owner, leads: [] });
   assert.equal(calls, 2);
 });
 

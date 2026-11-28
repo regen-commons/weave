@@ -12,7 +12,7 @@ import type { PartnerEvidence } from "./evidence.ts";
 import { PREVIEW_FITS } from "./groups.ts";
 import { availableEvidence, localPartnerQuery, type PartnerMatch } from "./match.ts";
 import { queryLocalPartners } from "./local-query.ts";
-import { FitCard, FitGroups, SourceLink } from "./NetworkResults.tsx";
+import { FitCard, FitGroups, SourceLink } from "./FitDetails.tsx";
 import { MatchingDate } from "./SharingReview.tsx";
 import { DescribePrompt } from "../ui/DescribePrompt.tsx";
 import { CardGridSkeleton } from "../ui/CardSkeleton.tsx";

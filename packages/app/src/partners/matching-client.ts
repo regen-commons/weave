@@ -1,74 +1,26 @@
 import {
-  parseMatchingLeads, parseMatchingPreview, parseMatchingSearch, parseMatchingState, parsePublicEvidenceSnapshot,
-  type PublicEvidenceSnapshot, type MatchingLeadUpdate, type MatchingEntryRef, type MatchingEntryState,
-  type MatchingLead, type MatchingSearch as SearchResponse, type MatchingState as AccountMatchingState,
+  parseMatchingSearch, parseMatchingState, parsePublicEvidenceSnapshot,
+  type PublicEvidenceSnapshot, type MatchingSearch as SearchResponse, type MatchingState as AccountMatchingState,
 } from "@weave/api/matching-contract";
-import { accountRequest, AccountFailure, type AccountState } from "../account/client.ts";
-import { withConfirmedSession } from "../account/session-end.ts";
-import { SuggestionSchema } from "../describe/contracts.ts";
-import { AskSchema } from "../intake/contracts.ts";
-import { z } from "../validation.ts";
+import { accountRequest, AccountFailure } from "../account/client.ts";
 
-const revision = z.int().check(z.nonnegative());
-const entryRef = z.object({
-  kind: z.enum(["need", "offer"]),
-  entryId: z.uuid(),
-  revision,
-  shareVersion: revision,
-});
-const reviewFields = z.object({
-  summary: z.pick(SuggestionSchema, {
-    name: true,
-    description: true,
-    locations: true,
-    isGlobal: true,
-    lenses: true,
-    themes: true,
-  }),
-  entries: z.array(z.extend(entryRef, { value: AskSchema })),
-});
-function parseReview(data: unknown) {
-  const review = parseMatchingPreview(data);
-  return { ...review, ...reviewFields.parse(review) };
-}
-
-export type EntryRef = MatchingEntryRef;
 export type MatchingState = AccountMatchingState;
-export type MatchingEntry = MatchingEntryState;
-export type SharingPreview = ReturnType<typeof parseReview>;
-export type NetworkLead = MatchingLead;
 export type NetworkMatch = SearchResponse["results"][number];
 export type MatchingSearch = SearchResponse;
 
+/**
+ * What the matching endpoint still answers (DL-155, step 5): `state`, which publishing a team's saved card reads
+ * for its entries' revisions until step 6, and `listing_search`, partners for the project's published listings.
+ * Sharing, its search and the saved partners kept on the server have ended; partners are kept on the device.
+ */
 type Commands = {
   state: Record<string, never>;
-  preview: { initiativeRevision: number; entries: EntryRef[] };
-  share: { reviewId: string; requestId: string };
-  renew: { reviewId: string; requestId: string };
-  withdraw: { entries: EntryRef[]; requestId: string };
-  search: { entries?: EntryRef[] };
-  leads: Record<string, never>;
-  set_lead: MatchingLeadUpdate;
+  listing_search: Record<string, never>;
 };
 const responses = {
   state: parseMatchingState,
-  preview: parseReview,
-  share: parseMatchingState,
-  renew: parseMatchingState,
-  withdraw: parseMatchingState,
-  search: parseMatchingSearch,
-  leads: parseMatchingLeads,
-  set_lead: parseMatchingLeads,
+  listing_search: parseMatchingSearch,
 };
-
-/**
- * `matchingRequest` for a hook that stays on screen while the session renews: a refusal for want of a
- * session is confirmed through `/api/account` before it reads as an ended session (session-end.ts).
- */
-export function confirmedMatchingRequest(confirm: () => Promise<AccountState>, owner: string) {
-  return <Action extends keyof Commands>(initiativeId: string, action: Action, input: Commands[Action], signal: AbortSignal) =>
-    withConfirmedSession(() => matchingRequest(initiativeId, action, input, signal), confirm, owner);
-}
 
 export async function matchingRequest<Action extends keyof Commands>(
   initiativeId: string,
@@ -94,33 +46,5 @@ export async function requestPublicEvidence(workspaceId: string, signal: AbortSi
     return snapshot;
   } catch {
     throw new AccountFailure("public_evidence_unavailable");
-  }
-}
-
-export function entryReference({ kind, entryId, revision, shareVersion }: EntryRef): EntryRef {
-  return { kind, entryId, revision, shareVersion };
-}
-
-export function entryKey(entry: Pick<EntryRef, "kind" | "entryId">): string {
-  return `${entry.kind}:${entry.entryId}`;
-}
-
-export function leadKey(entry: Pick<EntryRef, "kind" | "entryId">, candidateId: string): string {
-  return `${entryKey(entry)}/${candidateId}`;
-}
-
-/** What a matching screen can still change: withdraw an earlier share, or keep or hide a partner (DL-155, step 4). */
-export type MatchingMutation =
-  | { action: "withdraw"; input: Commands["withdraw"] }
-  | { action: "set_lead"; input: Commands["set_lead"] };
-
-export function matchingMessage(error: unknown): string {
-  switch (error instanceof AccountFailure ? error.code : "") {
-    case "sign_in_required": return "Your session ended. Sign in again to continue matching.";
-    case "matching_conflict": return "The saved entry changed. Refresh matching, then review the latest saved version.";
-    case "connection_failed": return "Matching could not connect. Try again when you are online.";
-    case "rate_limited": return "Wait a moment before trying matching again.";
-    case "not_found": return "This saved initiative is no longer available in your account.";
-    default: return "Matching is unavailable right now. Try again in a moment.";
   }
 }
