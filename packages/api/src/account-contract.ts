@@ -18,12 +18,6 @@ export interface SavedInitiative {
   updatedAt: string;
   document: AccountDocument;
 }
-export interface InitiativeSummary {
-  id: string;
-  revision: number;
-  name: string;
-  updatedAt: string;
-}
 export interface AccountUser {
   id: string;
   email: string | null;
@@ -258,7 +252,6 @@ function checkedDocument(value: unknown): AccountDocument {
   if (new TextEncoder().encode(JSON.stringify(result)).length > 60000) throw Error("document_too_large");
   return result;
 }
-export function parseSaved(value: unknown): SavedInitiative { return checkedSave(value); }
 export function parseTeamSaved(value: unknown): SavedInitiative { return checkedSave(value); }
 export type WorkspaceAccessRole = "viewer" | "editor" | "admin";
 export function parseTeamWorkspace(value: unknown) {
@@ -289,48 +282,9 @@ function checkedSave(value: unknown): SavedInitiative {
     document: checkedDocument(o.document),
   };
 }
-/** What one account deletion removed and how many personal saved cards the account kept. */
-export interface DeletedInitiative {
-  id: string;
-  deleted: true;
-  revision: number;
-  removed: string[];
-  kept: number;
-}
-export function parseDeleted(value: unknown): DeletedInitiative {
-  const o = exact(value, ["id", "deleted", "revision", "removed", "kept"]);
-  if (
-    !uuid(o.id) ||
-    o.deleted !== true ||
-    !Number.isSafeInteger(o.revision) ||
-    Number(o.revision) < 1 ||
-    !Array.isArray(o.removed) ||
-    o.removed.length !== 1 ||
-    o.removed[0] !== o.id ||
-    !Number.isSafeInteger(o.kept) ||
-    Number(o.kept) < 0
-  )
-    throw Error("invalid_data");
-  return { id: o.id, deleted: true, revision: Number(o.revision), removed: [o.id], kept: Number(o.kept) };
-}
 export function parseUser(value: unknown): AccountUser {
   const o = record(value);
   if (!uuid(o.id)) throw Error("invalid_data");
   // GoTrue can serialize an absent optional email as an empty string.
   return { id: o.id, email: o.email === null || o.email === undefined || o.email === "" ? null : text(o.email, 254, true) };
-}
-export function parseSummaries(value: unknown): InitiativeSummary[] {
-  if (!Array.isArray(value) || value.length > 20) throw Error("invalid_data");
-  return value.map((value) => {
-    const o = record(value);
-    if (
-      !uuid(o.id) ||
-      !Number.isSafeInteger(o.revision) ||
-      Number(o.revision) < 1 ||
-      typeof o.updatedAt !== "string" ||
-      !Number.isFinite(Date.parse(o.updatedAt))
-    )
-      throw Error("invalid_data");
-    return { id: o.id, revision: Number(o.revision), updatedAt: o.updatedAt, name: text(o.name, 200, true) };
-  });
 }

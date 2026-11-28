@@ -1,9 +1,8 @@
 import { LiveSocialProvider, SocialFixtureProvider, useSocialFixture } from "./social/context.tsx";
 import { AccountDoorProvider } from "./account/door.tsx";
-import { AccountProvider, useAccount } from "./account/context.tsx";
+import { AccountProvider } from "./account/context.tsx";
 import { ForThisAccount } from "./account/SetAside.tsx";
 import { useSetAside } from "./account/set-aside.ts";
-import { accountKey } from "./account/document.ts";
 import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { readFixtures, EXAMPLE_SUBJECT, type FixtureContext } from "./fixtures.ts";
 import { DraftProvider } from "./describe/context.tsx";
@@ -275,14 +274,7 @@ export function App() {
 function AppFrame({ location, fixture }: { location: string; fixture?: FixtureContext }) {
   const social = useSocialFixture();
   const device = useDraft();
-  const account = useAccount();
   const setAside = useSetAside();
-  const saved = device.draft.account.saved;
-  const accountSaved =
-    !!account.state?.user &&
-    account.savedCheck === "present" &&
-    saved?.owner === account.state.user.id &&
-    saved.contentKey === accountKey(device.draft);
   const { pathname, search } = splitRoute(location);
   const route = matchRoute(pathname);
   // A record opened inside the app comes up over the page the person was on, and that page stays as it
@@ -345,7 +337,8 @@ function AppFrame({ location, fixture }: { location: string; fixture?: FixtureCo
   const status = headerStatus({
     page: pageRoute?.name,
     setAside: !!setAside,
-    accountSaved: accountSaved || (import.meta.env.DEV && !!fixture && !!social?.state.saved),
+    // Nothing is saved privately any more (DL-155, D49). In the examples a team workspace can hold the card.
+    accountSaved: import.meta.env.DEV && !!fixture && social?.state.saved?.place === "workspace",
     storage: device.storage,
   });
   return (

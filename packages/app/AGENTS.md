@@ -33,7 +33,7 @@ one account door is the Certified example in `src/social`; without one, the real
 sign-in in `src/account` runs. Without that parameter, development uses the real
 device draft too.
 `import.meta.env.DEV` removes invented records and service simulations from
-production. Account saving uses the same-origin API and stays unavailable until its server configuration is enabled.
+production. Sign-in uses the same-origin API and stays unavailable until its server configuration is enabled.
 
 ## Structure
 
@@ -72,9 +72,11 @@ production. Account saving uses the same-origin API and stays unavailable until 
 - Signing in only identifies the person. Publishing is its own tap with its own row, shows
   what leaves and who sees it first, and a refusal changes nothing (DL-032). Nothing is saved
   privately or shared for matching any more (DL-155, step 4): the server refuses both by name.
-  Private saves made before stay in Your Initiatives to open, download, make public or delete
-  (D49), and no share is still on. Only a group project's team workspace, its shared team draft,
-  still takes a save (D48).
+  The private saves made before are no longer listed, opened, downloaded or deleted (step 7, D49),
+  and no share is still on. A draft that carries the mark of an earlier private save is a device
+  draft: it reads "On this device" and claims no saved copy, while that mark still decides whose
+  the card is (DL-055). Only a group project's team workspace, its shared team draft, still takes
+  a save (D48).
 - Drafts stay on the device until the person makes them public. The browser uses same-origin account endpoints; the server calls Supabase only after configuration. The content security policy in `vercel.json` allows only this origin. Widen it only
   with the change that needs it, such as the Supabase project or model files.
 - Keep the words a person said or typed, their files and unfinished edits in the device draft. A

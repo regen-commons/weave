@@ -76,7 +76,7 @@ export function AccountDoorProvider({ children }: { children: ReactNode }) {
             </div>
           </div>
         ) : (
-          // Signed out, the door is the sign-in offer alone. Saved cards and backups are in Settings.
+          // Signed out, the door is the sign-in offer alone. Device backups are in Settings.
           <AccountSection autoFocus heading={false} showBackups={false} notice={problem} onBeginCard={() => setIntent(null)}
             onNotNow={() => setIntent(null)} />
         )}

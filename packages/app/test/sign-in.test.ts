@@ -45,8 +45,8 @@ test("storage failure, competing edits and unavailable sign-in keep the tab and 
   assert.equal(available.getSnapshot().draft.composer, "edited while connecting");
 });
 test("an email-free account is signed in and old email-code protocol responses are rejected", () => {
-  for (const email of [null, undefined, ""]) assert.equal(accountState({ available: true, signIn: "certified", user: { id: "b1000000-0000-4000-8000-000000000001", email }, items: [] }).user?.email, null);
-  assert.throws(() => accountState({ available: true, otpDigits: 8, user: null, items: [] }));
+  for (const email of [null, undefined, ""]) assert.equal(accountState({ available: true, signIn: "certified", user: { id: "b1000000-0000-4000-8000-000000000001", email } }).user?.email, null);
+  assert.throws(() => accountState({ available: true, otpDigits: 8, user: null }));
 });
 test("every callback result has a fixed message; only a finished sign-in is not a failure", () => {
   for (const result of signInResults) {

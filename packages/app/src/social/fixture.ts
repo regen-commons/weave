@@ -5,7 +5,6 @@
  * first-release target so the interface can be reviewed.
  */
 import type { Scenario } from "../fixtures.ts";
-import type { DeletedCard } from "../account/delete-card.ts";
 import { canPublishForGroup, GROUP_PUBLISH_AUTHORITY } from "../initiative/status.ts";
 
 /** Chosen need and offer identities, or every kept one. */
@@ -49,26 +48,18 @@ export interface ProjectLink {
   readonly workspaceId?: string;
   readonly accessRole?: "viewer" | "editor" | "admin";
 }
-export interface SavedCard {
-  readonly id: string;
-  readonly name: string;
-  readonly savedOn: string;
-  /** The saved revision the list showed. Deleting names exactly this revision. */
-  readonly revision?: number;
-}
 export interface SocialState {
   readonly identity: { readonly handle: string; readonly id?: string } | null;
-  /** Where Weave holds a copy of this device's card: for this person only, or for the project's team. */
   /**
-   * The saved copy. `key` is what was saved, so the page can say when this device has
-   * moved on since; a seeded example has none and counts as current.
+   * Where the example holds a copy of this device's card: the project's team workspace, or a private
+   * save seeded from before private saving ended, which the example's publishing rules still read.
+   * The card says it is on this device all the same (DL-155, D49). `key` is what was saved, so the
+   * page can say when this device has moved on since; a seeded example has none and counts as current.
    */
   readonly saved: {
     readonly place: "private" | "workspace";
     readonly on: string;
     readonly key: string | null;
-    /** The private save this is, so a renamed card stays one save. Null in a team workspace. */
-    readonly card: string | null;
   } | null;
   readonly project: ProjectLink | null;
   /**
@@ -91,11 +82,8 @@ export interface SocialState {
   } | null;
   /** The person's projects on Certified. */
   readonly records: readonly CertifiedRecord[];
-  /** Private saves that belong to no team workspace. */
-  readonly cards: readonly SavedCard[];
   readonly workspaces?: readonly CertifiedRecord[];
   readonly setupRequests?: readonly { requestId: string; projectUri: string; name: string }[];
-  readonly hasMoreCards?: boolean;
   readonly reminders: readonly string[];
   /** Matches saved to come back to. Saving one sends nothing to the other initiative. */
   readonly leads: readonly string[];
@@ -118,8 +106,6 @@ export interface SocialService {
   linkProject(uri: string, signal?: AbortSignal, options?: { keepCard?: boolean }): Promise<ProjectLink>;
   /** Opens a project's team workspace that already exists and reads what the team saved there. */
   openWorkspace(uri: string, key: string | null): Promise<ProjectLink>;
-  /** Loads a private save onto this device. Loading saves nothing new and links nothing. */
-  openCard(id: string, key: string | null): Promise<void>;
   /** Legacy creator recovery only in the live adapter. New public projects use the external editors. */
   createProject(card: PublicCard, groupLabel?: string): Promise<ProjectLink>;
   /** A member asks the group's admin or owner to set up the team workspace. */
@@ -136,9 +122,6 @@ export interface SocialService {
   deleteAccount(): Promise<void>;
   approveSetup?(projectUri: string, requestId: string): Promise<void>;
   recoverWorkspace?(projectUri: string): Promise<void>;
-  moreCards?(): Promise<void>;
-  /** Removes one private save at the revision the list showed. The device draft keeps its words. */
-  deleteCard?(card: { id: string; revision: number }, requestId: string): Promise<DeletedCard>;
 }
 
 export const EXAMPLE_HANDLE = "orchard.certified.one";
@@ -207,7 +190,6 @@ const slug = (name: string) =>
     .replace(/^-|-$/gu, "")
     .slice(0, 60) || "initiative";
 
-const orchardCard = (savedOn: string): SavedCard => ({ id: slug(ORCHARD_RECORD.name), name: ORCHARD_RECORD.name, savedOn, revision: 1 });
 const linkTo = (record: CertifiedRecord, created = false): ProjectLink => ({
   uri: record.uri,
   name: record.name,
@@ -227,7 +209,6 @@ const EMPTY: SocialState = {
   shared: null,
   published: null,
   records: [],
-  cards: [],
   reminders: [],
   leads: [],
   notifications: { funding: false, partners: false },
@@ -244,14 +225,13 @@ export function createSocialFixture(
   const sharing = scenario === "shared" || scenario === "published";
   // A linked example always has its project; otherwise the person has some projects or none.
   const owned = linked || projects === "some" ? EXAMPLE_RECORDS : [];
-  const seeded = orchardCard(scenario === "returning" ? "2026-11-01" : "2026-11-03");
   let state: SocialState = {
     ...EMPTY,
     identity: signed ? { handle: EXAMPLE_HANDLE } : null,
     saved: linked
-      ? { place: "workspace", on: "2026-11-03", key: null, card: null }
+      ? { place: "workspace", on: "2026-11-03", key: null }
       : scenario === "private"
-        ? { place: "private", on: seeded.savedOn, key: null, card: seeded.id }
+        ? { place: "private", on: "2026-11-03", key: null }
         : null,
     project: linked ? linkTo(ORCHARD_RECORD) : null,
     // An example of a card shared for matching before DL-155 ended it: nothing can share one now.
@@ -259,7 +239,6 @@ export function createSocialFixture(
     published:
       scenario === "published" ? { on: "2026-11-02", entries: "all", key: null, withdrawal: null } : null,
     records: signed ? owned : [],
-    cards: signed && !linked ? [seeded] : [],
   };
   function identity() {
     if (!state.identity) throw new Error("Sign in with Certified first.");
@@ -298,16 +277,7 @@ export function createSocialFixture(
       identity();
       if (place === "workspace" && state.project?.workspace !== "open")
         throw new Error("This project has no team workspace you can open yet.");
-      // A private save keeps its identity when the card is renamed, so a new name never makes a second save.
-      const open = state.saved?.card ?? null;
-      const id = place === "private" ? (open ?? slug(name)) : null;
-      const others = state.cards.filter((card) => card.id !== (id ?? open));
-      state = {
-        ...state,
-        saved: { place, on: today, key, card: id },
-        // A team workspace holds its own copy, so a private save that moves there leaves the personal list.
-        cards: id ? [{ id, name, savedOn: today, revision: (state.cards.find((card) => card.id === id)?.revision ?? 0) + 1 }, ...others] : others,
-      };
+      state = { ...state, saved: { place, on: today, key } };
     },
     async linkProject(uri) {
       identity();
@@ -315,13 +285,11 @@ export function createSocialFixture(
       if (!record) throw new Error("This project is not on Certified any more.");
       const link = linkTo(record);
       const open = link.workspace === "open";
-      const moved = open ? (state.saved?.card ?? null) : null;
       state = {
         ...state,
         project: link,
         // An open workspace takes an existing private save with it. Linking alone saves nothing.
-        saved: open && state.saved ? { ...state.saved, place: "workspace", card: null } : state.saved,
-        cards: moved ? state.cards.filter((card) => card.id !== moved) : state.cards,
+        saved: open && state.saved ? { ...state.saved, place: "workspace" } : state.saved,
         shared: null,
         published: null,
       };
@@ -337,23 +305,11 @@ export function createSocialFixture(
       state = {
         ...state,
         project: link,
-        saved: { place: "workspace", on: record.publishedOn, key, card: null },
+        saved: { place: "workspace", on: record.publishedOn, key },
         shared: null,
         published: null,
       };
       return link;
-    },
-    async openCard(id, key) {
-      identity();
-      const card = state.cards.find((item) => item.id === id);
-      if (!card) throw new Error("This saved initiative is not in Weave any more.");
-      state = {
-        ...state,
-        saved: { place: "private", on: card.savedOn, key, card: card.id },
-        project: null,
-        shared: null,
-        published: null,
-      };
     },
     async createProject(card) {
       identity();
@@ -371,12 +327,10 @@ export function createSocialFixture(
       };
       const link = linkTo(record, true);
       // The new group's workspace takes the private save the project was made from.
-      const moved = state.saved?.card ?? null;
       state = {
         ...state,
         project: link,
-        saved: state.saved ? { ...state.saved, place: "workspace", card: null } : null,
-        cards: moved ? state.cards.filter((item) => item.id !== moved) : state.cards,
+        saved: state.saved ? { ...state.saved, place: "workspace" } : null,
         records: [record, ...state.records.filter((item) => item.uri !== record.uri)],
         shared: null,
         published: null,
@@ -416,17 +370,6 @@ export function createSocialFixture(
     },
     async clearCard() {
       state = { ...state, saved: null, project: null, shared: null, published: null };
-    },
-    async deleteCard(card) {
-      identity();
-      const current = state.cards.find((item) => item.id === card.id);
-      if (!current) throw new Error("This card is no longer saved in your account.");
-      if (current.revision !== card.revision) throw new Error("This card changed somewhere else. Reload to see the latest version.");
-      const cards = state.cards.filter((item) => item.id !== card.id);
-      const bound = state.saved?.card === card.id;
-      state = { ...state, cards, saved: bound ? null : state.saved };
-      return { deleted: { id: card.id, deleted: true, revision: card.revision, removed: [card.id], kept: cards.length },
-        device: bound ? "unbound" : "unrelated" };
     },
     async remind(id) {
       saved();

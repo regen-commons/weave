@@ -81,7 +81,7 @@ export function chosenEntries(draft: DeviceDraft, entries: Entries) {
       })),
   );
 }
-/** Sharing or publishing an entry needs at least one kind of support; a private save does not. */
+/** Publishing an entry needs at least one kind of support; a team save does not. */
 export function shareable(draft: DeviceDraft, entries: Entries = "all") {
   return chosenEntries(draft, entries).filter((entry) => entry.kinds.length > 0);
 }
@@ -215,15 +215,10 @@ export function openSteps(status: CardStatus, workspace: WorkspaceState | null):
  */
 export const NOT_SAVED_YET = "On this device";
 /**
- * What a card says while nobody is signed in and it carries the mark of an earlier save. Whether
- * that copy is current cannot be known signed out, so the card never claims it was not saved.
+ * What the live account holds for this card: no session, or a session. Nothing is saved privately any
+ * more, and the earlier private saves are gone (DL-155, D49), so the account holds no copy of a card.
  */
-export const SAVED_SIGNED_OUT = "Saved to an account. Sign in to open the saved copy.";
-/** True for a card that some account saved, seen while nobody is signed in. */
-export const savedSignedOut = (draft: DeviceDraft, signedIn: boolean): boolean => !signedIn && !!draft.account.saved;
-
-/** What the live account holds for this card: no session, nothing, this version, or an earlier one. */
-export type AccountSave = "signed-out" | "none" | "current" | "changed";
+export type AccountSave = "signed-out" | "none";
 
 /** Saving to a team does not back up source words or files. Said where the person saves. */
 const SAVING_LIMIT = "Files and conversations stay on this device.";
@@ -236,36 +231,29 @@ export function cardStatus(
 ): CardStatus {
   const signed = example ? !!example.identity : account !== "signed-out";
   const publishing = example ? publishingOf(draft, example) : null;
-  const saved = example
-    ? signed
-      ? example.saved
-      : null
-    : account === "current" || account === "changed"
-      ? { place: "private" as const, key: null }
-      : null;
-  const unsaved =
-    !!saved && (example ? saved.key !== null && saved.key !== publicKey(draft) : account === "changed");
+  // Only a team workspace holds a copy of a card now. The example world still seeds a private save
+  // for its own publishing rules, and the card says what is true of it: it is on this device.
+  const saved = example && signed && example.saved?.place === "workspace" ? example.saved : null;
+  const unsaved = !!saved && saved.key !== null && saved.key !== publicKey(draft);
   // Where a save goes now: only a linked project's open team workspace, its shared team draft (D48).
   const team = signed && example?.project?.workspace === "open" ? example.project.group : null;
   const rows = { unsaved, save: saveStep(draft, signed, saved, unsaved, team), publishing };
   if (saved) {
-    const group = saved.place === "workspace" ? example?.project?.group : null;
+    const group = example?.project?.group;
     return {
       state: publishing && publishing.state !== "locked" && publishing.state !== "off" ? "published" : "saved",
       line: unsaved
-        ? group
-          ? "Changed on this device since you saved. Your team still sees the earlier version."
-          : "Changed on this device since your private save in Weave, which no longer changes."
+        ? "Changed on this device since you saved. Your team still sees the earlier version."
         : group
           ? `Saved in the ${group} workspace. Teammates with access can see it.`
-          : "Also kept as a private save in Weave, which no longer changes. Only you can see it.",
+          : "Saved in the team workspace. Teammates with access can see it.",
       ...rows,
     };
   }
   if (!hasDraft(draft)) return { state: "none", line: "", ...rows };
   if (storage === "memory") return { state: "memory", line: "Not stored on this device yet.", ...rows };
-  // Kept in this browser until the person saves it. The words say what is missing, not where it is.
-  return { state: "device", line: savedSignedOut(draft, signed) ? SAVED_SIGNED_OUT : `${NOT_SAVED_YET}.`, ...rows };
+  // Kept in this browser, whatever an earlier private save left on the draft (DL-155, D49).
+  return { state: "device", line: `${NOT_SAVED_YET}.`, ...rows };
 }
 
 function saveStep(
@@ -275,14 +263,12 @@ function saveStep(
   unsaved: boolean,
   team: string | null,
 ): SaveStep | null {
-  // Nothing is saved privately any more (DL-155, step 4). A team's open workspace still takes its card until step 6.
+  // Nothing is saved privately any more (DL-155, step 4). Only a team's open workspace takes its card (D48).
   if (!intakeComplete(draft) || !signed || !team) return null;
-  // A personal save does not follow the person into a team workspace on its own.
-  const moves = !!saved && saved.place !== "workspace";
-  if (saved && !unsaved && !moves) return null;
+  if (saved && !unsaved) return null;
   return {
     needs: "save",
-    label: unsaved && !moves ? "Save Changes" : "Save To Team Workspace",
+    label: unsaved ? "Save Changes" : "Save To Team Workspace",
     note: `Teammates with access to the ${team} workspace can see it. ${SAVING_LIMIT}`,
   };
 }

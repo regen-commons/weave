@@ -122,7 +122,7 @@ async function openWorkspace(page: Page, project: Project, counterpart: Project,
   ];
 
   await page.route("**/api/account", (route) => route.fulfill({ json: {
-    available: true, signIn: "certified", user: { id: "00000000-0000-4000-8000-000000000099" }, items: [],
+    available: true, signIn: "certified", user: { id: "00000000-0000-4000-8000-000000000099" },
   } }));
   await page.route("**/api/projects", (route) => {
     const command = route.request().postDataJSON();

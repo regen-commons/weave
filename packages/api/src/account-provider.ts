@@ -1,14 +1,4 @@
-import {
-  parseDeleted,
-  parseSaved,
-  parseSummaries,
-  parseUser,
-  record,
-  type AccountUser,
-  type DeletedInitiative,
-  type SavedInitiative,
-  type InitiativeSummary,
-} from "./account-contract.ts";
+import { parseUser, record, type AccountUser } from "./account-contract.ts";
 export class AccountError extends Error {
   status: number;
   code: string;
@@ -30,14 +20,6 @@ export interface AccountProvider {
   renew(refreshToken: string): Promise<AccountSessionTokens>;
   authorize(token: string): Promise<AccountUser>;
   signOut(token: string): Promise<void>;
-  list(token: string, offset: number): Promise<InitiativeSummary[]>;
-  /** Reads one earlier private save. Weave takes no new one (DL-155); these stay readable until the user decides (D49). */
-  load(token: string, id: string): Promise<SavedInitiative>;
-  /** Removes one personal saved card at its exact revision. A retry with the same request ID repeats the result. */
-  deleteInitiative(
-    token: string,
-    command: { id: string; expectedRevision: number; requestId: string },
-  ): Promise<DeletedInitiative>;
 }
 /** Supabase Auth sends its error code in a header, and in the body of its initial API version. */
 function supabaseErrorCode(response: Response, data: unknown): string | undefined {
@@ -104,8 +86,9 @@ function supabaseRequests(url: string, key: string, request: typeof fetch) {
       } catch {
         /* Never return provider data. */
       }
-      // Only a known reason is mapped to its own stable code; the provider's words never leave.
-      if (code === "PT409" && (message === "initiative_referenced" || message === "initiative_deleted"))
+      // Only a known reason is mapped to its own stable code; the provider's words never leave. A team save
+      // of a card that was removed is refused with initiative_deleted.
+      if (code === "PT409" && message === "initiative_deleted")
         throw new AccountError(409, message);
       if (["PT400", "PT401", "PT403", "PT404", "PT409", "PT429"].includes(code))
         throw new AccountError(
@@ -193,36 +176,6 @@ export function createSupabaseAccountProvider(
       const { response } = await call("/auth/v1/logout?scope=local", "POST", {}, token);
       if (!response.ok && ![401, 403, 404].includes(response.status))
         throw new AccountError(503, "sign_out_unconfirmed");
-    },
-    async list(token, offset) {
-      try {
-        return parseSummaries(await rpc("list_initiatives", { p_offset: offset }, token));
-      } catch (error) {
-        if (error instanceof AccountError) throw error;
-        throw new AccountError(503, "account_unavailable");
-      }
-    },
-    async load(token, id) {
-      try {
-        return parseSaved(await rpc("load_initiative", { p_id: id }, token));
-      } catch (error) {
-        if (error instanceof AccountError) throw error;
-        throw new AccountError(503, "account_unavailable");
-      }
-    },
-    async deleteInitiative(token, command) {
-      try {
-        return parseDeleted(
-          await rpc(
-            "delete_initiative",
-            { p_id: command.id, p_expected_revision: command.expectedRevision, p_request_id: command.requestId },
-            token,
-          ),
-        );
-      } catch (error) {
-        if (error instanceof AccountError) throw error;
-        throw new AccountError(503, "account_unavailable");
-      }
     },
   };
 }

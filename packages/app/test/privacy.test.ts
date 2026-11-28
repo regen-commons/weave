@@ -24,8 +24,8 @@ test("What we store and the data policy are two things: a short answer and the w
 
 test("who can read a saved copy is one statement, with the database's operators in it", () => {
   const who = summary.get("Who can read a saved copy")!;
-  assert.match(who, /only you/u);
-  assert.match(who, /teammates you give access/u);
+  assert.match(who, /only the teammates who have access/u);
+  assert.doesNotMatch(who, /only you/u, "no private save opens any more (DL-155, D49)");
   assert.match(who, /not encrypted/u);
   assert.match(who, /could read them/u);
   // The old copy said "private" in one sentence and "administrators can access" in the next.
@@ -38,9 +38,10 @@ test("the copy never says sign-in sends an email to Regen Commons, or that shari
   assert.doesNotMatch(everything, /not connected/u);
   assert.match(policy, /Certified handles your email address and the code/u);
   assert.match(policy, /Weave does not keep your email address/u);
-  // DL-155, step 4: nothing new is shared for matching or saved privately, and the policy says so (D49).
+  // DL-155: nothing new is shared for matching or saved privately (step 4), and the earlier saves are gone from
+  // Weave (step 7, D49). The policy says so.
   assert.match(policy, /Weave no longer shares needs and offers with other signed-in people for matching/u);
-  assert.match(policy, /Weave no longer saves initiatives privately\. Saves made before are kept .* for at least 60 days after private saving ended/u);
+  assert.match(policy, /Weave no longer saves initiatives privately\. The private saves made before, .* can no longer be opened, downloaded or deleted in Weave/u);
   assert.match(policy, /Publishing on Certified creates a public record/u);
   // The session really renews for up to 30 days and ends after 14 idle ones, as the policy says.
   assert.match(read("../api/src/account-session.ts"), /SESSION_CAP_SECONDS = 30 \* 24 \* 60 \* 60;/u);
@@ -96,15 +97,16 @@ test("what the copy says is saved is what a save sends", () => {
   const builder = read("src/account/document.ts");
   // Conversations, files and assistant records are not in the saved document.
   for (const kept of ["turns", "attachments", "runs", "composer"]) assert.doesNotMatch(builder.match(/export function accountDocument[\s\S]*?\n\}/u)?.[0] ?? "", new RegExp(`\\b${kept}\\b`, "u"), kept);
-  assert.match(summary.get("When you save")!, /Only to a team workspace now: .*Conversations and files are not sent\. Private saves made before are kept at least 60 days/u);
+  assert.match(summary.get("When you save")!, /Only to a team workspace now: .*Conversations and files are not sent\. Weave no longer keeps private saves\./u);
 });
 
 test("deletion is promised only as far as it exists", () => {
   assert.match(summary.get("Leaving")!, /Deleting a whole account is not available yet/u);
   assert.match(policy, /Deleting a whole account is not available in Weave yet/u);
-  assert.match(policy, /download your private saves or delete one in Your Initiatives/u, "download is offered, so the policy says so (D49)");
-  assert.match(read("src/pages/YourInitiatives.tsx"), />Download Private Saves<\/button>/u);
-  assert.match(read("src/account/delete-card.ts"), /deletableCards/u, "one saved card can be deleted");
+  // The private saves made before are gone from Weave (DL-155, step 7, D49), so nothing offers to download or delete one.
+  assert.match(policy, /can no longer be opened, downloaded or deleted in Weave/u);
+  assert.doesNotMatch(policy + [...summary.values()].join(" "), /download your private saves|delete one in Your Initiatives|kept at least 60 days/u);
+  assert.doesNotMatch(read("src/pages/YourInitiatives.tsx"), /Download Private Saves|Delete A Saved Card|Private Weave Saves/u);
   assert.match(read("src/describe/device-removal.ts"), /backupDeleteWarning/u, "one device backup can be deleted");
 });
 
@@ -128,7 +130,7 @@ test("what sign-in does and what leaves the device is written once and agrees wi
   // The same reader the policy names, in the same words, with no bare "private".
   assert.match(SIGN_IN.offer, /Your draft stays on this device/u);
   assert.doesNotMatch(Object.values(SIGN_IN).join(" "), /save your work|what you save/u, "signing in offers no private save (DL-155)");
-  assert.match(policy, /only you can open a saved copy/u, "the private saves made before stay readable only by their account");
+  assert.doesNotMatch(policy, /only you can open a saved copy/u, "no private save opens any more (D49)");
   assert.doesNotMatch(Object.values(SIGN_IN).join(" "), /\bprivate\b/u);
   // Signing in moves nothing: the step that starts it saves no card and sends no document.
   assert.doesNotMatch(read("src/account/sign-in.ts"), /accountDocument|saveAccountCard/u);

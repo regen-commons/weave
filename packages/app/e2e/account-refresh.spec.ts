@@ -8,10 +8,7 @@ const owner = "10000000-0000-4000-8000-000000000001";
 const workspaceId = "10000000-0000-4000-8000-000000000002";
 const groupDid = "did:plc:example";
 const projectUri = `at://${groupDid}/org.hypercerts.collection/example`;
-const signedIn = {
-  available: true, signIn: "certified", user: { id: owner, email: null },
-  items: [{ id: "10000000-0000-4000-8000-000000000003", name: "Orchard circle", revision: 1, updatedAt: "2026-11-24T00:00:00Z" }],
-};
+const signedIn = { available: true, signIn: "certified", user: { id: owner, email: null } };
 const homeActions = ".rc-home-actions > a";
 const headerSignIn = ".rc-app-header-state .rc-button";
 

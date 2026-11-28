@@ -4,8 +4,8 @@ import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { once } from "node:events";
 import { createAccountHandlers, GET } from "./account.ts";
-import { createSupabaseAccountProvider, AccountError, type AccountProvider } from "./account-provider.ts";
-import { ASK_LIMIT, STORED_ASK_LIMIT, parseDocument, parseSaved } from "./account-contract.ts";
+import { createSupabaseAccountProvider, createSupabaseWeaveRpc, AccountError, type AccountProvider } from "./account-provider.ts";
+import { ASK_LIMIT, STORED_ASK_LIMIT, parseDocument, parseTeamSaved } from "./account-contract.ts";
 const document = parseDocument(
   JSON.parse(readFileSync(new URL("./test-data/account.json", import.meta.url), "utf8")),
 );
@@ -23,13 +23,7 @@ function fixture() {
       assert.equal(token, "test.access.token");
       return user;
     },
-    signOut: async () => {},
-    list: async () => [{ id, revision: 1, name: "Synthetic initiative", updatedAt: saved.updatedAt }],
-    load: async () => saved,
-    deleteInitiative: async (_token, command) => {
-      calls.push(`delete:${command.id}:${command.expectedRevision}:${command.requestId}`);
-      return { id: command.id, deleted: true, revision: command.expectedRevision, removed: [command.id], kept: 2 };
-    },
+    signOut: async () => { calls.push("signOut"); },
   };
   return { provider, calls, handlers: createAccountHandlers({ provider }) };
 }
@@ -46,29 +40,31 @@ function post(body: unknown, headers: Record<string, string> = {}) {
   });
 }
 
-test("private account reads use the session and email-code sign-in is unavailable", async () => {
+test("the account state uses the session, lists no saved cards, and email-code sign-in is unavailable", async () => {
   const { handlers } = fixture();
   assert.equal((await handlers.POST(post({ action: "request_code", email: "example@weave.test" }))).status, 400);
   assert.equal((await handlers.POST(post({ action: "verify_code", email: "example@weave.test", code: "12345678" }))).status, 400);
-  const list = await handlers.GET(
+  const state = await handlers.GET(
     new Request("https://weave.test/api/account", {
       headers: { cookie: "__Host-weave_account=test.access.token" },
     }),
   );
-  assert.equal(list.status, 200);
-  const listed = (await list.json()) as { items: unknown[] };
-  assert.equal(listed.items.length, 1);
+  assert.equal(state.status, 200);
+  const body = (await state.json()) as Record<string, unknown>;
+  assert.deepEqual(Object.keys(body).sort(), ["available", "fixture", "renewIn", "signIn", "user"]);
+  assert.deepEqual(body.user, user);
+  const signedOut = await handlers.GET(new Request("https://weave.test/api/account"));
+  assert.deepEqual(await signedOut.json(), { available: true, signIn: "certified", fixture: false, user: null });
 });
-test("writes reject cross-site, oversized, missing-session and invalid unchecked data, and saves are retired by name", async () => {
+test("writes reject cross-site, non-JSON and oversized bodies first, and saves and deletions are retired by name", async () => {
   const { handlers, calls } = fixture();
   const command = { action: "delete", id, requestId, expectedRevision: 1 };
   const save = { action: "save", accountId: user.id, id, requestId, expectedRevision: 0, document };
   for (const [body, headers, status] of [
     [command, { origin: "https://other.test" }, 403],
     [command, { "content-type": "text/plain" }, 415],
-    [command, { cookie: "" }, 401],
-    [{ ...command, expectedRevision: 0 }, {}, 400],
-    [{ ...command, expectedRevision: 2147483647 }, {}, 400],
+    [command, { cookie: "" }, 410],
+    [{ ...command, expectedRevision: 0 }, {}, 410],
     [{ action: "request_code", email: "invalid" }, {}, 400],
     [{ action: "verify_code", email: user.email, code: "123456" }, {}, 400],
     [{ action: "nope" }, {}, 400],
@@ -79,14 +75,8 @@ test("writes reject cross-site, oversized, missing-session and invalid unchecked
   ] as const)
     assert.equal((await handlers.POST(post(body, headers))).status, status);
   assert.deepEqual(await (await handlers.POST(post(save))).json(), { error: "private_saves_retired" });
+  assert.deepEqual(await (await handlers.POST(post(command))).json(), { error: "private_saves_retired" });
   assert.equal(calls.length, 0, "nothing reached the provider");
-  assert.equal((await handlers.POST(post(command))).status, 200);
-  const duplicateCookie = await handlers.POST(
-    post(command, {
-      cookie: "__Host-weave_account=test.access.token; __Host-weave_account=other.access.token",
-    }),
-  );
-  assert.equal(duplicateCookie.status, 401);
 });
 test("revocation clears the cookie; unavailable providers and failed remote sign-out stay explicit", async () => {
   const { provider } = fixture();
@@ -94,8 +84,8 @@ test("revocation clears the cookie; unavailable providers and failed remote sign
     throw new AccountError(401, "sign_in_required");
   };
   const handlers = createAccountHandlers({ provider });
-  const expired = await handlers.POST(
-    post({ action: "delete", id, requestId, expectedRevision: 1 }),
+  const expired = await handlers.GET(
+    new Request("https://weave.test/api/account", { headers: { cookie: "__Host-weave_account=test.access.token" } }),
   );
   assert.equal(expired.status, 401);
   assert.match(expired.headers.get("set-cookie")!, /Max-Age=0/);
@@ -160,11 +150,7 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
             ? user
             : req.url === "/rest/v1/rpc/account_access"
               ? true
-              : req.url === "/rest/v1/rpc/list_initiatives"
-                ? []
-                : req.url === "/rest/v1/rpc/load_initiative"
-                  ? saved
-                  : {},
+              : {},
       ),
     );
   });
@@ -194,8 +180,6 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
   assert.deepEqual(seen[1]!.body, { refresh_token: "synthetic-refresh-1" });
   assert.equal(seen[1]!.headers.authorization, undefined, "renewal sends only the refresh token and the publishable key");
   assert.deepEqual(await provider.authorize("test.access.token"), user);
-  await provider.list("test.access.token", 0);
-  assert.deepEqual(await provider.load("test.access.token", id), saved);
   await provider.signOut("test.access.token");
   for (const item of seen) {
     assert.equal(item.headers.apikey, "sb_publishable_synthetic");
@@ -207,7 +191,7 @@ test("native HTTP adapter sends Auth and schema RPC requests with the person's t
   }
   fail = true;
   await assert.rejects(
-    provider.deleteInitiative("test.access.token", { id, requestId, expectedRevision: 1 }),
+    createSupabaseWeaveRpc(`http://127.0.0.1:${address.port}`, "sb_publishable_synthetic")("synthetic_command", {}, "test.access.token"),
     (error) =>
       error instanceof AccountError && error.code === "save_conflict" && error.message === "save_conflict",
   );
@@ -265,23 +249,14 @@ test("a private save is refused by name whichever account the cookie names, and 
   assert.deepEqual(reached, [], "no session check, no read and no write");
 });
 
-test("an earlier private save with an unclassified entry still loads", async () => {
+test("a team draft with an unclassified entry still loads", () => {
   const draft = structuredClone(document);
   const need = draft.needs[0];
   assert.ok(need);
   need.value.capitalForms = [];
   need.value.amount = null;
-  const checked = parseDocument(draft);
-  const receipt = { ...saved, document: checked };
-  const calls: string[] = [];
-  const provider = createSupabaseAccountProvider("https://db.example.test", "publishable-fixture", async url => {
-    calls.push(String(url).split("/").pop()!);
-    return Response.json(receipt);
-  });
-  assert.deepEqual(await provider.load("fixture.token", id), receipt);
-  // The browser parses the same receipt after the server's provider boundary.
-  assert.deepEqual(parseSaved(receipt), receipt);
-  assert.deepEqual(calls, ["load_initiative"]);
+  const receipt = { ...saved, document: parseDocument(draft) };
+  assert.deepEqual(parseTeamSaved(receipt), receipt);
 });
 
 test("a card saved under the earlier limits stays readable: five needs, five offers, six links and long answers", async () => {
@@ -321,87 +296,42 @@ test("a saved card carries any type of work the app offers, learning included, a
   assert.throws(() => withLenses(["schools"]), /invalid_data/);
 });
 
-test("delete removes one exact saved card through the provider and reports what was removed and kept", async () => {
-  const { handlers, calls } = fixture();
-  const command = { action: "delete", id, expectedRevision: 3, requestId };
-  const result = await handlers.POST(post(command));
-  assert.equal(result.status, 200);
-  assert.deepEqual(await result.json(), { deleted: { id, deleted: true, revision: 3, removed: [id], kept: 2 } });
-  assert.deepEqual(calls, [`delete:${id}:3:${requestId}`]);
-});
-
-test("delete rejects cross-site, non-JSON, oversized, signed-out and malformed commands before the provider", async () => {
+test("a deletion is refused by name before the session is read, after the origin, JSON and size checks", async () => {
   const { handlers, calls } = fixture();
   const command = { action: "delete", id, expectedRevision: 3, requestId };
   for (const [body, headers, status, error] of [
     [command, { origin: "https://other.test" }, 403, "origin_required"],
     [command, { "content-type": "text/plain" }, 415, "json_required"],
-    [command, { cookie: "" }, 401, "sign_in_required"],
     [{ ...command, padding: "x".repeat(65536) }, {}, 413, "request_too_large"],
-    [{ ...command, accountId: user.id }, {}, 400, "invalid_data"],
-    [{ action: "delete", id, expectedRevision: 3 }, {}, 400, "invalid_data"],
-    [{ action: "delete", id, requestId }, {}, 400, "invalid_data"],
-    [{ ...command, id: "not-a-uuid" }, {}, 400, "invalid_data"],
-    [{ ...command, requestId: "x" }, {}, 400, "invalid_data"],
-    [{ ...command, expectedRevision: 0 }, {}, 400, "invalid_data"],
-    [{ ...command, expectedRevision: 1.5 }, {}, 400, "invalid_data"],
-    [{ ...command, expectedRevision: "3" }, {}, 400, "invalid_data"],
-    [{ ...command, expectedRevision: 2147483647 }, {}, 400, "invalid_data"],
+    [command, { cookie: "" }, 410, "private_saves_retired"],
+    [command, {}, 410, "private_saves_retired"],
+    [{ action: "delete", id: "not-a-uuid" }, {}, 410, "private_saves_retired"],
   ] as const) {
     const result = await handlers.POST(post(body, headers));
     assert.equal(result.status, status, JSON.stringify(body).slice(0, 80));
     assert.deepEqual(await result.json(), { error });
+    assert.equal(result.headers.get("set-cookie"), null, "a refusal never touches the session");
   }
   assert.deepEqual(calls, []);
 });
 
-test("delete failures keep stable codes, clear an ended session and never echo the provider", async () => {
-  const command = { action: "delete", id, expectedRevision: 3, requestId };
-  for (const [failure, status, code] of [
-    [new AccountError(401, "sign_in_required"), 401, "sign_in_required"],
-    [new AccountError(404, "not_found"), 404, "not_found"],
-    [new AccountError(409, "save_conflict"), 409, "save_conflict"],
-    [new AccountError(409, "initiative_referenced"), 409, "initiative_referenced"],
-    [new Error("private provider detail"), 503, "account_unavailable"],
-  ] as const) {
-    const { provider } = fixture();
-    provider.deleteInitiative = async () => { throw failure; };
-    const result = await createAccountHandlers({ provider }).POST(post(command));
-    assert.equal(result.status, status);
-    assert.deepEqual(await result.json(), { error: code });
-    assert.equal(/Max-Age=0/.test(result.headers.get("set-cookie") ?? ""), status === 401);
-  }
-  const { provider } = fixture();
-  provider.authorize = async () => { throw new AccountError(401, "sign_in_required"); };
-  let removed = 0;
-  provider.deleteInitiative = async () => { removed++; throw new Error("unreachable"); };
-  assert.equal((await createAccountHandlers({ provider }).POST(post(command))).status, 401);
-  assert.equal(removed, 0, "an expired session never reaches the delete command");
-  const other = fixture().provider;
-  other.deleteInitiative = async () => ({ id: "b3000000-0000-4000-8000-000000000009", deleted: true, revision: 3,
-    removed: ["b3000000-0000-4000-8000-000000000009"], kept: 0 });
-  const mismatch = await createAccountHandlers({ provider: other }).POST(post(command));
-  assert.equal(mismatch.status, 503, "a result for another card is not reported as this deletion");
-});
-
-test("the delete RPC uses the person's token and maps only known database reasons", async () => {
+test("a Weave RPC uses the person's token and maps only known database reasons", async () => {
   const replies: { status: number; body: unknown }[] = [];
   const seen: { url: string; authorization: string | null; profile: string | null; body: unknown }[] = [];
-  const provider = createSupabaseAccountProvider("https://db.example.test", "sb_publishable_synthetic", async (url, init) => {
+  const rpc = createSupabaseWeaveRpc("https://db.example.test", "sb_publishable_synthetic", async (url, init) => {
     const headers = new Headers(init?.headers);
     seen.push({ url: String(url), authorization: headers.get("authorization"), profile: headers.get("content-profile"),
       body: JSON.parse(String(init?.body)) });
     const reply = replies.shift()!;
     return Response.json(reply.body, { status: reply.status });
   });
-  const command = { id, expectedRevision: 3, requestId };
-  replies.push({ status: 200, body: { id, deleted: true, revision: 3, removed: [id], kept: 4 } });
-  assert.deepEqual(await provider.deleteInitiative("test.access.token", command), { id, deleted: true, revision: 3, removed: [id], kept: 4 });
-  assert.deepEqual(seen[0], { url: "https://db.example.test/rest/v1/rpc/delete_initiative", authorization: "Bearer test.access.token",
-    profile: "weave", body: { p_id: id, p_expected_revision: 3, p_request_id: requestId } });
+  replies.push({ status: 200, body: { ok: true } });
+  assert.deepEqual(await rpc("synthetic_command", { p_id: id }, "test.access.token"), { ok: true });
+  assert.deepEqual(seen[0], { url: "https://db.example.test/rest/v1/rpc/synthetic_command", authorization: "Bearer test.access.token",
+    profile: "weave", body: { p_id: id } });
   for (const [body, status, code] of [
-    [{ code: "PT409", message: "initiative_referenced", details: "private detail" }, 409, "initiative_referenced"],
-    [{ code: "PT409", message: "initiative_deleted" }, 409, "initiative_deleted"],
+    [{ code: "PT409", message: "initiative_deleted", details: "private detail" }, 409, "initiative_deleted"],
+    [{ code: "PT409", message: "initiative_referenced" }, 409, "save_conflict"],
     [{ code: "PT409", message: "revision_conflict" }, 409, "save_conflict"],
     [{ code: "PT409", message: "something private" }, 409, "save_conflict"],
     [{ code: "PT404", message: "not_found" }, 404, "not_found"],
@@ -410,13 +340,8 @@ test("the delete RPC uses the person's token and maps only known database reason
     [{ code: "42501", message: "permission denied for table initiatives" }, 403, "account_unavailable"],
   ] as const) {
     replies.push({ status, body });
-    await assert.rejects(provider.deleteInitiative("test.access.token", command),
+    await assert.rejects(rpc("synthetic_command", {}, "test.access.token"),
       (error) => error instanceof AccountError && error.code === code && !error.message.includes("private"));
-  }
-  for (const body of [{ id, deleted: false, revision: 3, removed: [id], kept: 0 }, { id, deleted: true, revision: 3, removed: [], kept: 0 },
-    { id, deleted: true, revision: 3, removed: [id], kept: -1 }, { id, deleted: true, revision: 3, removed: [id], kept: 0, extra: 1 }]) {
-    replies.push({ status: 200, body });
-    await assert.rejects(provider.deleteInitiative("test.access.token", command), /account_unavailable/);
   }
 });
 
@@ -454,65 +379,55 @@ test("the session's two checks run together, and the user's answer is still judg
   await assert.rejects(adapter({ user: () => json(200, user), access: () => json(429, { code: "PT429" }) }).provider.authorize("t.t.t"), refused(429, "rate_limited"));
 });
 
-test("the list is read beside the authorization, and a refused session never sees it", async () => {
+test("the account state waits for the authorization, a refused session is ended, and no card opens by its ID", async () => {
   const get = (search = "") => new Request(`https://weave.test/api/account${search}`, { headers: { cookie: "__Host-weave_account=test.access.token" } });
-  function handlers(authorize: () => Promise<typeof user>, list: () => Promise<{ id: string; revision: number; name: string; updatedAt: string }[]>) {
+  function handlers(authorize: () => Promise<typeof user>) {
     const order: string[] = [];
     let revoked = 0;
     const { provider } = fixture();
     const made = createAccountHandlers({ provider: { ...provider,
-      authorize: async () => { order.push("authorize"); await new Promise(resolve => setImmediate(resolve)); const result = await authorize(); order.push("authorized"); return result; },
-      list: async () => { order.push("list"); return list(); },
+      authorize: async () => { order.push("authorize"); const result = await authorize(); order.push("authorized"); return result; },
       signOut: async () => { revoked++; } } });
     return { made, order, revoked: () => revoked };
   }
-  const items = [{ id, revision: 1, name: "Synthetic initiative", updatedAt: saved.updatedAt }];
-  const both = handlers(async () => user, async () => items);
+  const both = handlers(async () => user);
   const ok = await both.made.GET(get());
   assert.equal(ok.status, 200);
-  assert.deepEqual(both.order, ["list", "authorize", "authorized"], "the list is asked for before the authorization answers");
-  assert.equal(((await ok.json()) as { items: unknown[] }).items.length, 1);
+  assert.deepEqual(both.order, ["authorize", "authorized"]);
 
-  // A refused session gets the refusal alone, with its cookies cleared, though the list had answered.
-  const refusedSession = handlers(async () => { throw new AccountError(401, "sign_in_required"); }, async () => items);
+  // A refused session gets the refusal alone, with its cookies cleared.
+  const refusedSession = handlers(async () => { throw new AccountError(401, "sign_in_required"); });
   const refused = await refusedSession.made.GET(get());
   assert.equal(refused.status, 401);
   assert.deepEqual(await refused.json(), { error: "sign_in_required" });
   assert.equal(refused.headers.getSetCookie().filter(cookie => /Max-Age=0/u.test(cookie)).length, 2);
   assert.equal(refusedSession.revoked(), 0, "a browser with no renewal cookie has nothing more to revoke");
-  // One that could still renew is revoked at Supabase too, exactly as when the list waited its turn.
-  const renewable = handlers(async () => { throw new AccountError(401, "sign_in_required"); }, async () => items);
+  // One that could still renew is revoked at Supabase too.
+  const revokedOrder: string[] = [];
   const future = Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3000 })).toString("base64url");
   const stillValid = `synthetic.${future}.signature`;
   const refusedRenewable = await createAccountHandlers({ provider: { ...fixture().provider,
-    authorize: async () => { throw new AccountError(401, "sign_in_required"); }, list: async () => items,
-    signOut: async token => { assert.equal(token, stillValid); renewable.order.push("revoked"); } } })
+    authorize: async () => { throw new AccountError(401, "sign_in_required"); },
+    signOut: async token => { assert.equal(token, stillValid); revokedOrder.push("revoked"); } } })
     .GET(new Request("https://weave.test/api/account", { headers: {
       cookie: `__Host-weave_account=${stillValid}; __Host-weave_account_renewal=${Buffer.from("synthetic-refresh").toString("base64url")}` } }));
   assert.equal(refusedRenewable.status, 401);
-  assert.deepEqual(renewable.order, ["revoked"], "the rejected session is revoked once");
-  // An outage of the authorization is reported as that, even when the list failed too.
-  const outage = handlers(async () => { throw new AccountError(503, "account_unavailable"); }, async () => { throw new AccountError(401, "sign_in_required"); });
-  const unavailable = await outage.made.GET(get());
+  assert.deepEqual(revokedOrder, ["revoked"], "the rejected session is revoked once");
+  const unavailable = await handlers(async () => { throw new AccountError(503, "account_unavailable"); }).made.GET(get());
   assert.equal(unavailable.status, 503);
-  assert.equal(unavailable.headers.getSetCookie().length, 0, "a list's refusal never clears a session the authorization did not refuse");
-  // The list's own failure is reported once the session is authorized.
-  const broken = await handlers(async () => user, async () => { throw new AccountError(503, "account_unavailable"); }).made.GET(get());
-  assert.equal(broken.status, 503);
-  const throttled = await handlers(async () => user, async () => { throw new AccountError(429, "rate_limited"); }).made.GET(get());
+  assert.equal(unavailable.headers.getSetCookie().length, 0, "an outage never clears a session");
+  const throttled = await handlers(async () => { throw new AccountError(429, "rate_limited"); }).made.GET(get());
   assert.deepEqual([throttled.status, await throttled.json()], [429, { error: "rate_limited" }]);
-  // A malformed page is never read, and is refused only after the session is authorized, as before.
-  for (const search of ["?offset=-1", "?offset=1.5", "?offset=10001", "?offset=x"]) {
-    const invalid = handlers(async () => user, async () => items);
-    assert.equal((await invalid.made.GET(get(search))).status, 400, search);
-    assert.deepEqual(invalid.order, ["authorize", "authorized"], search);
-    const signedOut = handlers(async () => { throw new AccountError(401, "sign_in_required"); }, async () => items);
-    assert.equal((await signedOut.made.GET(get(search))).status, 401, search);
+  // An earlier saved card no longer opens, signed in or not, and the session is never read for it.
+  for (const request of [get(`?id=${id}`), get("?id=x"), new Request(`https://weave.test/api/account?id=${id}`)]) {
+    const load = handlers(async () => user);
+    const result = await load.made.GET(request);
+    assert.deepEqual([result.status, await result.json()], [410, { error: "private_saves_retired" }]);
+    assert.deepEqual(load.order, []);
+    assert.equal(result.headers.getSetCookie().length, 0);
   }
-  // Loading one card is unchanged: it waits for the authorization.
-  const load = handlers(async () => user, async () => items);
-  assert.equal((await load.made.GET(get(`?id=${id}`))).status, 200);
-  assert.deepEqual(load.order, ["authorize", "authorized"]);
+  // A page offset is no longer read.
+  assert.equal((await handlers(async () => user).made.GET(get("?offset=x"))).status, 200);
 });
 
 test("sign-out lets go of what ends with the session first, and nothing there can stop or fail it", async () => {

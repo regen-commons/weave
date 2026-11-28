@@ -4,7 +4,7 @@ import type { SignInAttempt } from "../../api/src/sign-in-store.ts";
 import { createAccountHandlers } from "@weave/api/account";
 import { AccountError, type AccountProvider } from "../../api/src/account-provider.ts";
 import { certifiedEmailHints } from "../../api/src/certified/email-hint.ts";
-import type { AccountDocument, DeletedInitiative, SavedInitiative } from "@weave/api/account-contract";
+import type { AccountDocument, SavedInitiative } from "@weave/api/account-contract";
 const sessions = new Map<string, string>();
 /** Refresh tokens rotate on use, as Supabase's do; a used or revoked one is refused. */
 const renewals = new Map<string, { id: string; token: string; signedInAt: number }>();
@@ -14,20 +14,13 @@ const issue = (id: string, signedInAt = Math.floor(Date.now() / 1000)) => {
   renewals.set(refreshToken, { id, token, signedInAt });
   return { token, expiresIn: 3600, refreshToken };
 };
+/**
+ * Personal saved cards as Platform holds them until the retirement migration runs (D49). The account
+ * endpoint no longer lists, opens or deletes them (DL-155, step 7); the matching fixture still links a
+ * personal project to one, as Platform's data from before allows.
+ */
 const records = new Map<string, { owner: string; saved: SavedInitiative }>();
 const requests = new Map<string, { input: string; saved: SavedInitiative }>();
-/** Removed IDs stay reserved, as in the database candidate, so a stale first save cannot bring a card back. */
-const removed = new Map<string, { owner: string; requestId: string; deleted: DeletedInitiative }>();
-/**
- * Whether anything else still refers to a card, such as a project link or a support listing. The project
- * and matching fixtures register it, so deletion refuses as the database does
- * (weave-initiative-deletion-stale-references.sql), with one generic code whatever the reference is.
- */
-let referenced: (id: string) => boolean = () => false;
-export function fixtureReferences(check: (id: string) => boolean) { referenced = check; }
-/** Called once a card is deleted, so the matching fixture drops its entries and partners, as the database does. */
-let forget: (id: string) => void = () => {};
-export function fixtureDeleted(drop: (id: string) => void) { forget = drop; }
 const owner = (token: string) => {
   const id = sessions.get(token);
   if (!id) throw new AccountError(401, "sign_in_required");
@@ -74,44 +67,11 @@ const provider: AccountProvider = {
     sessions.delete(token);
     for (const [refreshToken, renewal] of renewals) if (renewal.token === token) renewals.delete(refreshToken);
   },
-  async list(token, offset) {
-    const id = owner(token);
-    return [...records.values()]
-      .filter((row) => row.owner === id)
-      .map(({ saved }) => ({
-        id: saved.id,
-        revision: saved.revision,
-        name: String(saved.document.initiative.name),
-        updatedAt: saved.updatedAt,
-      }))
-      .slice(offset, offset + 20);
-  },
-  async load(token, id) {
-    return fixtureInitiative(token, id).saved;
-  },
-  async deleteInitiative(token, command) {
-    const id = owner(token), row = records.get(command.id);
-    if (!row || row.owner !== id) {
-      const previous = removed.get(command.id);
-      if (previous?.owner === id && previous.requestId === command.requestId && previous.deleted.revision === command.expectedRevision)
-        return previous.deleted;
-      throw new AccountError(404, "not_found");
-    }
-    if (row.saved.revision !== command.expectedRevision) throw new AccountError(409, "save_conflict");
-    if (referenced(command.id)) throw new AccountError(409, "initiative_referenced");
-    records.delete(command.id);
-    forget(command.id);
-    for (const [key, request] of requests) if (key.startsWith(`${id}:`) && request.saved.id === command.id) requests.delete(key);
-    const deleted: DeletedInitiative = { id: command.id, deleted: true, revision: command.expectedRevision, removed: [command.id],
-      kept: [...records.values()].filter((item) => item.owner === id).length };
-    removed.set(command.id, { owner: id, requestId: command.requestId, deleted });
-    return deleted;
-  },
 };
 /**
- * A private save as one made before saving ended (DL-155, step 4), for the development server and tests. The
- * account endpoint refuses new saves and its provider has no save any more (step 7), so a save that already
- * exists in Platform is seeded here, with the checks Platform's save made. Development only.
+ * A private save as one made before saving ended (DL-155, step 4), for tests of what Platform still holds. The
+ * account endpoint refuses new saves and no longer reads earlier ones (step 7), so a save is seeded here, with
+ * the checks Platform's save made. Development only.
  */
 export async function seedFixtureSave(token: string, seed: { id: string; requestId?: string; expectedRevision?: number; document: AccountDocument }) {
   const { requestId = crypto.randomUUID(), expectedRevision = 0, ...rest } = seed;
@@ -126,8 +86,6 @@ export async function seedFixtureSave(token: string, seed: { id: string; request
   }
   const row = records.get(command.id);
   if (row && row.owner !== id) throw new AccountError(404, "not_found");
-  if (!row && removed.has(command.id))
-    throw new AccountError(command.expectedRevision === 0 ? 409 : 404, command.expectedRevision === 0 ? "initiative_deleted" : "not_found");
   if ((row?.saved.revision ?? 0) !== command.expectedRevision) throw new AccountError(409, "save_conflict");
   const saved: SavedInitiative = {
     id: command.id,

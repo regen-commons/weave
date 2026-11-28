@@ -2,7 +2,7 @@ import type { DeviceStorage } from "../describe/controller.ts";
 import type { RouteName } from "../routes.ts";
 
 /**
- * What the app header says about saving: that the account holds this card, or that the latest
+ * What the app header says about saving: that a team workspace holds this card, or that the latest
  * changes could not be stored. A card kept only in this browser gets no label there (DL-112).
  */
 export type SaveStatus = "none" | "account" | "memory";
@@ -23,7 +23,7 @@ export function headerStatus({
   page: RouteName | undefined;
   /** The card on this device belongs to another account, so it does not speak for this one (DL-055). */
   setAside: boolean;
-  /** The signed-in account holds this exact card. */
+  /** A team workspace holds this exact card. Nothing is saved privately any more (DL-155). */
   accountSaved: boolean;
   storage: DeviceStorage;
 }): SaveStatus {

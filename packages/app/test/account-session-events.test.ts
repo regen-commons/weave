@@ -18,7 +18,7 @@ function storageEvent(key: string, newValue: string) {
 
 test("two independent clients receive a real channel sign-out with no identity, tokens or private data", { timeout: 3000 }, async () => {
   const firstBrowser = browser(BroadcastChannel), secondBrowser = browser(BroadcastChannel);
-  const response = { available: true, signIn: "certified", user: { id: "b1000000-0000-4000-8000-000000000001", email: null }, items: [] };
+  const response = { available: true, signIn: "certified", user: { id: "b1000000-0000-4000-8000-000000000001", email: null } };
   const first = new AccountSession(async () => response), second = new AccountSession(async () => response);
   const closeFirst = first.connect(browserSessionEvents(firstBrowser.target));
   const closeSecond = second.connect(browserSessionEvents(secondBrowser.target));
@@ -33,7 +33,6 @@ test("two independent clients receive a real channel sign-out with no identity, 
     await cleared;
     assert.equal(await observed, "ended");
     assert.equal(second.getSnapshot()?.user, null);
-    assert.deepEqual(second.getSnapshot()?.items, []);
     assert.deepEqual(firstBrowser.writes, []);
   } finally { closeFirst(); closeSecond(); spy.close(); }
 });

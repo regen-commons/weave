@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { parseDocument, parseSaved } from "@weave/api/account-contract";
+import { parseDocument, parseTeamSaved } from "@weave/api/account-contract";
 import { AccountFailure } from "../src/account/client.ts";
 import { clearRejectedProjectCreate, parsePendingProjectCreate, projectCreationKey, projectGroupPattern, validProjectGroupLabel } from "../src/initiative/project-creation.ts";
 import { projectPage, setupPage, workspacePage } from "../src/initiative/projects-client.ts";
@@ -10,7 +10,7 @@ const owner="10000000-0000-4000-8000-000000000001", other="10000000-0000-4000-80
 const project={uri:"at://did:plc:aaaaaaaaaaaaaaaaaaaaaaaa/org.hypercerts.collection/project",repoDid:"did:plc:aaaaaaaaaaaaaaaaaaaaaaaa",
   cid:"bafyfixture",title:"Public garden",description:"The actual public description."};
 const document=parseDocument(JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json",import.meta.url),"utf8")));
-const saved=parseSaved({id:"10000000-0000-4000-8000-000000000003",revision:2,updatedAt:"2026-11-10T00:00:00Z",document});
+const saved=parseTeamSaved({id:"10000000-0000-4000-8000-000000000003",revision:2,updatedAt:"2026-11-10T00:00:00Z",document});
 const command={action:"create",initiativeId:saved.id,expectedRevision:2,requestId:"10000000-0000-4000-8000-000000000004",
   groupLabel:"garden-project",publicProfile:{title:"Reviewed title",description:"Reviewed description"}};
 

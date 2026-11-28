@@ -1,7 +1,6 @@
 import { observeApi } from "./usage.ts";
 import { boundedJson, sessionCookies } from "./account-http.ts";
 import { accountRuntime } from "./account-runtime.ts";
-import { uuid } from "./account-contract.ts";
 import { AccountError, type AccountProvider } from "./account-provider.ts";
 import { RENEW_BEFORE_SECONDS, resolveSession, withAccessToken, type Session } from "./account-session.ts";
 export { RENEW_BEFORE_SECONDS, secondsLeft } from "./account-session.ts";
@@ -72,37 +71,20 @@ export function createAccountHandlers({
   return {
     async GET(request: Request) {
       if (!provider) return response(200, { available: false });
+      // DL-155, step 7: the earlier private saves are gone (D49), so one is never opened by its ID.
+      if (new URL(request.url).searchParams.has("id")) return response(410, { error: "private_saves_retired" });
       let current: Session | undefined;
       try {
         current = await session(request, provider);
         const access = current.access;
-        if (!access) return response(200, { available: true, signIn: "certified", fixture, user: null, items: [],
+        if (!access) return response(200, { available: true, signIn: "certified", fixture, user: null,
           ...(emailHintAvailable ? { emailHintAvailable } : {}) });
-        const params = new URL(request.url).searchParams,
-          id = params.get("id");
-        if (id) {
-          const user = await authorized(provider, { ...current, access });
-          if (!uuid(id)) throw new AccountError(400, "invalid_data");
-          return response(200, { available: true, user, saved: await provider.load(access, id) }, current.setCookies);
-        }
-        const offset = Number(params.get("offset") ?? 0);
-        const listable = Number.isSafeInteger(offset) && offset >= 0 && offset <= 10000;
-        // The list is read while the session is authorized, since every page asks for both. The database
-        // applies the same access rule to the list itself, and a list read for a session that is then
-        // refused is dropped unseen. The authorization's outcome is judged first, as when it ran first.
-        const listing = listable
-          ? provider.list(access, offset).then(items => ({ items }), (error: unknown) => ({ error }))
-          : undefined;
         const user = await authorized(provider, { ...current, access });
-        if (!listing) throw new AccountError(400, "invalid_data");
-        const listed = await listing;
-        if ("error" in listed) throw listed.error;
         return response(200, {
           available: true,
           signIn: "certified",
           fixture,
           user,
-          items: listed.items,
           renewIn: renewIn(current.left, current.renewable),
         }, current.setCookies);
       } catch (error) {
@@ -119,9 +101,8 @@ export function createAccountHandlers({
         if (!provider) throw new AccountError(503, "accounts_not_configured");
         const body = await boundedJson(request);
         if (!["sign_out", "save", "delete"].includes(String(body.action))) throw new AccountError(400, "invalid_action");
-        // DL-155, step 4: a need or offer lives on the device and, once published, in public listings. Nothing new
-        // is saved privately; the saves already here stay readable and deletable until the user decides (D49).
-        if (body.action === "save") throw new AccountError(410, "private_saves_retired");
+        // DL-155: nothing is saved privately any more (step 4), and the earlier saves are gone (step 7, D49).
+        if (body.action === "save" || body.action === "delete") throw new AccountError(410, "private_saves_retired");
         if (body.action === "sign_out") {
           // Logout revokes the whole Supabase session, its refresh tokens included. An expired access token
           // is renewed first so the revocation can be sent; a session Supabase already refuses has ended.
@@ -144,31 +125,6 @@ export function createAccountHandlers({
           }
           if (current?.access) await provider.signOut(current.access);
           return response(200, { signedOut: true }, [...cookies.ended(), cookies.pending()]);
-        }
-        current = await session(request, provider);
-        const access = current.access;
-        if (!access) throw new AccountError(401, "sign_in_required");
-        if (body.action === "delete") {
-          // Exactly the card and revision the person saw, and a request ID kept for retries.
-          const keys = Object.keys(body).sort().join(",");
-          if (
-            keys !== "action,expectedRevision,id,requestId" ||
-            !uuid(body.id) ||
-            !uuid(body.requestId) ||
-            !Number.isSafeInteger(body.expectedRevision) ||
-            Number(body.expectedRevision) < 1 ||
-            Number(body.expectedRevision) >= 2147483647
-          )
-            throw new AccountError(400, "invalid_data");
-          await authorized(provider, { ...current, access });
-          const deleted = await provider.deleteInitiative(access, {
-            id: body.id,
-            expectedRevision: Number(body.expectedRevision),
-            requestId: body.requestId,
-          });
-          if (deleted.id !== body.id || deleted.revision !== body.expectedRevision)
-            throw new AccountError(503, "account_unavailable");
-          return response(200, { deleted }, current.setCookies);
         }
         throw new AccountError(400, "invalid_action");
       } catch (error) {

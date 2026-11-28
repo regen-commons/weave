@@ -1,33 +1,10 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { AccountFailure } from "../src/account/client.ts";
-import { checkSavedPresence } from "../src/account/saved-presence.ts";
 import { proposeProjectGroupLabel, submitProjectCreate, validProjectGroupLabel } from "../src/initiative/project-creation.ts";
 import { readWorkspaceResume, rememberWorkspace } from "../src/initiative/workspace-resume.ts";
 const owner = "b1000000-0000-4000-8000-000000000001", id = "b3000000-0000-4000-8000-000000000001";
-const binding = { id, owner, revision: 4, contentKey: "checked content" };
-const document = JSON.parse(readFileSync(new URL("../../api/src/test-data/account.json", import.meta.url), "utf8"));
 const signal = new AbortController().signal;
-test("a record outside the first list page is checked by ID instead of being declared missing", async () => {
-  let path = "";
-  const status = await checkSavedPresence(binding, owner, [], signal, async received => {
-    path = received!; return { user: { id: owner, email: null }, saved: { id, revision: 4, document, updatedAt: "2026-11-10T00:00:00Z" } };
-  });
-  assert.equal(status, "present"); assert.equal(path, `?id=${id}`);
-  assert.equal(await checkSavedPresence(binding, owner, [{ id, name: "Changed", revision: 5, updatedAt: "2026-11-10T00:00:00Z" }], signal), "changed");
-});
-test("only a confirmed exact-ID 404 is absence; outages and another account never clear a save", async () => {
-  for (const code of ["connection_failed", "sign_in_required", "account_unavailable"])
-    assert.equal(await checkSavedPresence(binding, owner, [], signal, async () => { throw new AccountFailure(code); }), "unavailable");
-  assert.equal(await checkSavedPresence(binding, owner, [], signal, async path => {
-    if (path) throw new AccountFailure("not_found"); return { user: { id: owner, email: null } };
-  }), "missing");
-  assert.equal(await checkSavedPresence(binding, owner, [], signal, async path => {
-    if (path) throw new AccountFailure("not_found"); return { user: { id: "b1000000-0000-4000-8000-000000000002", email: null } };
-  }), "unavailable");
-  assert.equal(await checkSavedPresence(binding, owner, [], signal, async () => ({ user: { id: "b1000000-0000-4000-8000-000000000002", email: null } })), "unavailable");
-});
 test("a proposed group address is valid for accented, numeric, short and non-Latin initiative names", () => {
   for (const name of ["École de la vallée", "123 soil school", "A", "水の学校", "🌱", "A".repeat(200)])
     assert.equal(validProjectGroupLabel(proposeProjectGroupLabel(name, "abc123")), true);

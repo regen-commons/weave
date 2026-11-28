@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { SignInButton } from "../account/SignInButton.tsx";
 import { InitiativeRecord } from "../initiative/InitiativeRecord.tsx";
-import { LiveExposure } from "../social/LiveExposure.tsx";
-import { activeInitiative } from "../account/active-initiative.ts";
 import { useAccount } from "../account/context.tsx";
 import { teamWorkspacePath } from "../routes.ts";
 import { useDraft } from "../describe/use-draft.ts";
@@ -12,7 +10,7 @@ import { waitingSuggestions } from "../initiative/import.ts";
 import { strongestFirst, projectLinkLine } from "../initiative/list.ts";
 import { useProjectLink } from "../initiative/use-project-link.ts";
 import { ConsentButton } from "../initiative/ProjectConsent.tsx";
-import { cardName, cardRoute, onlyInitiativeWaits, openSteps, SAVED_SIGNED_OUT } from "../initiative/status.ts";
+import { cardName, cardRoute, onlyInitiativeWaits, openSteps } from "../initiative/status.ts";
 import { useCardStatus } from "../initiative/use-card-status.ts";
 import { intakeComplete, keptAsks } from "../intake/finish.ts";
 import { ExamplePartners } from "../partners/ExamplePartners.tsx";
@@ -83,7 +81,6 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
   // The example funding reads strongest fit first, as the live list does.
   const funds = examples && !empty ? strongestFirst(fixture.funding).slice(0, 2) : [];
   const project = example?.identity ? example.project : liveSocial?.mode === "live" ? liveSocial.state.project : null;
-  const active = activeInitiative(draft.account.saved, account.state?.user?.id);
   const save = status.save;
   // A local hint that this account left for an editor with this card. It proves nothing was published.
   const signedInId = liveSocial?.mode === "live" ? liveSocial.state.identity?.id : undefined;
@@ -246,8 +243,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
               <Panel>
                 <Section id="saving-sharing" title="Saving And Sharing">
                   <DuplicateNotice />
-                  {/* Two destinations come first: this device, where the card is, and a Certified project, where
-                      what the person chooses becomes public. A private save in Weave follows (QA notes, 25 November 2026). */}
+                  {/* Two destinations: this device, where the card is, and a Certified project, where what the person
+                      chooses becomes public (QA notes, 25 November 2026). Private saves are gone (DL-155, D49). */}
                   {!example && (
                     <>
                       <p className="rc-meta">On this device: kept in this browser, where only you can see it.</p>
@@ -262,10 +259,9 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                       </StatusLine>
                     </>
                   )}
-                  {/* Nothing is saved privately any more (DL-155). A card only here needs no second line; one opened from an
-                      earlier private save says so, signed out included, and an example team workspace still takes its card
-                      (until step 6). */}
-                  {(save || status.state !== "device" || status.line === SAVED_SIGNED_OUT) && (
+                  {/* Nothing is saved privately any more (DL-155, D49). A card only here needs no second line; a team
+                      workspace still takes its card (D48). */}
+                  {(save || status.state !== "device") && (
                     <StatusLine actions={save && example ? <ExampleSave size="sm" onFailed={setSaveMessage} /> : undefined}>
                       {status.line}
                     </StatusLine>
@@ -303,11 +299,8 @@ export function YourInitiative({ fixture }: { fixture?: FixtureContext }) {
                     </StatusLine>
                   )}
                   {!example && project?.workspaceId && project.group && <StatusLine actions={<ButtonLink href={teamWorkspacePath(project.workspaceId)} variant="secondary">Open Team Workspace</ButtonLink>}>Your team workspace is ready. This device card stays private until you choose to save it there.</StatusLine>}
-                  {!example && project?.workspaceId && !project.group && project.workspaceId !== active?.id && <StatusLine actions={<ButtonLink href={pathTo("your-initiatives")} variant="secondary">Open Saved Initiative</ButtonLink>}>This project already has a saved initiative. Your device work stays here until you choose to open it.</StatusLine>}
-                  {!example && project && !project.group && active && project.workspaceId === active.id && <LiveExposure saved={{ id: active.id, revision: active.revision, document: active.document, updatedAt: new Date().toISOString() }}
-                    publishHeld={status.unsaved} onChanged={() => setMatchVersion(v => v + 1)} refreshVersion={sharedVersion} />}
-                  {/* Listings made public from the draft have no saved card behind them (DL-155), so they are found by the project. */}
-                  {!example && project && !project.group && !(active && project.workspaceId === active.id) && (
+                  {/* A personal project's listings are found by the project: no saved card is behind them (DL-155, D49). */}
+                  {!example && project && !project.group && (
                     <ProjectListings projectUri={project.uri} refreshVersion={sharedVersion} />
                   )}
                   {project && <WorkspaceRow primary={steps.lead === "workspace"} />}

@@ -38,7 +38,7 @@ export function FixtureControls({ fixture }: { fixture: FixtureContext }) {
             >
               <option value="visitor">Not started</option>
               <option value="draft">Draft on this device</option>
-              <option value="private">Saved privately</option>
+              <option value="private">Signed in, no project</option>
               <option value="workspace">Saved in a team workspace</option>
               <option value="shared">Shared for matching</option>
               <option value="published">Published</option>

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { parseDocument, parseSaved } from "@weave/api/account-contract";
+import { parseDocument, parseTeamSaved } from "@weave/api/account-contract";
 import { loadedDraft } from "../src/account/document.ts";
 import { confirmDraft, newDraft, pendingDetails, revise } from "../src/describe/contracts.ts";
 import { draftFromRecord, draftWithRecord, waitingSuggestions } from "../src/initiative/import.ts";
@@ -19,7 +19,7 @@ import {
 } from "../src/social/fixture.ts";
 
 const owner = "b1000000-0000-4000-8000-000000000001";
-const saved = parseSaved({
+const saved = parseTeamSaved({
   id: "b3000000-0000-4000-8000-000000000001",
   revision: 1,
   updatedAt: "2026-11-05T00:00:00Z",
@@ -31,8 +31,8 @@ const complete = loadedDraft(saved, owner);
 const renamed = revise(complete, { confirmed: { ...complete.confirmed!, name: "Orchard circle, renamed" } });
 const everyEntry = chosenEntries(complete, "all").map((entry) => entry.id);
 
-// DL-155, step 4: nothing is saved privately any more. A card lives on this device, and a private save made
-// earlier stays readable, but no step offers a new one.
+// DL-155: nothing is saved privately any more (step 4), and the private saves made before are gone (step 7, D49).
+// A card lives on this device, and no step offers a private save.
 test("with the live account, the line says where the card is kept, and no step offers a private save", () => {
   assert.deepEqual(cardStatus(newDraft(), "saved", null, "signed-out"), {
     state: "none",
@@ -45,29 +45,21 @@ test("with the live account, the line says where the card is kept, and no step o
   assert.equal(cardStatus(draft, "saved", null, "signed-out").line, "On this device.");
   assert.equal(cardStatus(draft, "saving", null, "signed-out").line, "On this device.", "a write in progress is not a state to read");
   assert.equal(cardStatus(draft, "memory", null, "signed-out").line, "Not stored on this device yet.");
-  // A card some account saved never says it was not saved, even while nobody is signed in.
+  // A draft that still carries the mark of an earlier private save is a device draft: it claims no saved copy.
   const savedBefore = revise(draft, {
     account: { saved: { id: crypto.randomUUID(), owner: crypto.randomUUID(), revision: 1, contentKey: "{}" }, pending: null },
   });
-  assert.equal(cardStatus(savedBefore, "saved", null, "signed-out").line, "Saved to an account. Sign in to open the saved copy.");
-  assert.equal(cardStatus(savedBefore, "saved", null, "none").line, "On this device.", "signed in, the account answers for itself");
+  for (const account of ["signed-out", "none"] as const) {
+    const before = cardStatus(savedBefore, "saved", null, account);
+    assert.deepEqual([before.state, before.line, before.unsaved, before.save], ["device", "On this device.", false, null], account);
+  }
 
   const signedOut = cardStatus(complete, "saved", null, "signed-out");
   assert.deepEqual([signedOut.state, signedOut.save, signedOut.publishing], ["device", null, null]);
   const signedIn = cardStatus(complete, "saved", null, "none");
-  assert.deepEqual([signedIn.state, signedIn.save], ["device", null], "signing in saves nothing and offers no private save");
-
-  const current = cardStatus(complete, "saved", null, "current");
-  assert.deepEqual(
-    [current.state, current.line, current.unsaved, current.save],
-    ["saved", "Also kept as a private save in Weave, which no longer changes. Only you can see it.", false, null],
-  );
-  const changed = cardStatus(complete, "saved", null, "changed");
-  assert.deepEqual(
-    [changed.state, changed.line, changed.unsaved, changed.save],
-    ["saved", "Changed on this device since your private save in Weave, which no longer changes.", true, null],
-    "a changed card is not offered Save Changes: the private save stays as it was",
-  );
+  assert.deepEqual([signedIn.state, signedIn.line, signedIn.save], ["device", "On this device.", null],
+    "signing in saves nothing and offers no private save, though the card was loaded from one");
+  assert.ok(complete.account.saved, "the card carries the mark of the private save it was loaded from");
 });
 
 test("a need with no kind of support stays on the device, and publishing leaves it out", () => {
@@ -83,7 +75,7 @@ test("a need with no kind of support stays on the device, and publishing leaves 
   );
 });
 
-test("signing in saves nothing, and a private save made earlier reads as kept and no longer changing", async () => {
+test("signing in saves nothing, and an example's earlier private save reads as on this device", async () => {
   const example = createSocialFixture("draft", "2026-11-04");
   const visitor = cardStatus(complete, "saved", example.snapshot(), "signed-out");
   assert.deepEqual([visitor.state, visitor.save], ["device", null]);
@@ -94,11 +86,8 @@ test("signing in saves nothing, and a private save made earlier reads as kept an
 
   const seeded = createSocialFixture("private", "2026-11-04");
   const kept = cardStatus(complete, "saved", seeded.snapshot(), "signed-out");
-  assert.deepEqual(
-    [kept.state, kept.line, kept.unsaved, kept.save],
-    ["saved", "Also kept as a private save in Weave, which no longer changes. Only you can see it.", false, null],
-  );
-  assert.equal(cardStatus(renamed, "saved", seeded.snapshot(), "signed-out").unsaved, false, "a seeded save has no version to compare");
+  assert.deepEqual([kept.state, kept.line, kept.unsaved, kept.save], ["device", "On this device.", false, null]);
+  assert.equal(cardStatus(renamed, "saved", seeded.snapshot(), "signed-out").unsaved, false);
 });
 
 test("a linked project decides what publishing waits on, and only a team workspace takes a save", async () => {
@@ -116,7 +105,7 @@ test("a linked project decides what publishing waits on, and only a team workspa
   const waiting = createSocialFixture("private", "2026-11-04");
   await waiting.linkProject(SEED_LIBRARY_RECORD.uri);
   const absent = cardStatus(complete, "saved", waiting.snapshot(), "signed-out");
-  assert.equal(absent.line, "Also kept as a private save in Weave, which no longer changes. Only you can see it.");
+  assert.equal(absent.line, "On this device.");
   assert.equal(absent.save, null);
   // A group project waits for its team workspace first, then for edit access in it (D48, 28 November 2026).
   assert.deepEqual(absent.publishing, { state: "locked", line: "Waits for the team workspace.", waits: "workspace" });
@@ -130,7 +119,7 @@ test("a linked project decides what publishing waits on, and only a team workspa
     label: "Save To Team Workspace",
     note: "Teammates with access to the Valley seed keepers workspace can see it. Files and conversations stay on this device.",
   }, "a team's open workspace still takes the card until step 6");
-  assert.equal(approved.line, "Also kept as a private save in Weave, which no longer changes. Only you can see it.", "approval moves nothing by itself");
+  assert.equal(approved.line, "On this device.", "approval moves nothing by itself");
   await waiting.save(cardName(complete), "workspace", publicKey(complete));
   const moved = cardStatus(complete, "saved", waiting.snapshot(), "signed-out");
   assert.equal(moved.line, "Saved in the Valley seed keepers workspace. Teammates with access can see it.");
@@ -147,8 +136,7 @@ test("a linked project decides what publishing waits on, and only a team workspa
   const solo = createSocialFixture("private", "2026-11-04");
   await solo.linkProject(WATER_NOTES_RECORD.uri);
   const personal = cardStatus(complete, "saved", solo.snapshot(), "signed-out");
-  assert.deepEqual([personal.line, personal.save],
-    ["Also kept as a private save in Weave, which no longer changes. Only you can see it.", null]);
+  assert.deepEqual([personal.line, personal.save], ["On this device.", null]);
   assert.deepEqual(personal.publishing, { state: "off", line: NOT_PUBLIC_LINE, waits: null });
 });
 
@@ -350,6 +338,8 @@ test("sharing for matching has ended: nothing lists, stops or withdraws a share,
   assert.match(suggestions, /matchingRequest\(workspaceId, "listing_search", \{\}, controller\.signal\)/u, "the project's listings are matched on the server");
   const page = readFileSync(new URL("../src/pages/YourInitiative.tsx", import.meta.url), "utf8");
   assert.match(page, /<PartnerExperience refreshVersion=\{matchVersion\}/u, "suggestions read again after the listings change");
-  assert.match(page, /<LiveExposure[\s\S]*?refreshVersion=\{sharedVersion\}/u);
+  // A personal project's listings are found by the project, with no saved card behind them (DL-155, D49).
+  assert.match(page, /<ProjectListings projectUri=\{project\.uri\} refreshVersion=\{sharedVersion\} \/>/u);
+  assert.doesNotMatch(page, /<LiveExposure/u, "no private save publishes from this page");
   assert.match(readFileSync(new URL("../src/social/LiveExposure.tsx", import.meta.url), "utf8"), /version, online, refreshVersion\]/u);
 });

@@ -5,7 +5,7 @@ import { settleActionFailure } from "../src/account/action-failure.ts";
 import { AccountSession } from "../src/account/session.ts";
 
 const owner = "b1000000-0000-4000-8000-000000000001";
-const response = (id: string | null) => ({ available: true, signIn: "certified", user: id ? { id, email: null } : null, items: [] });
+const response = (id: string | null) => ({ available: true, signIn: "certified", user: id ? { id, email: null } : null });
 const failure = (code: string) => new AccountFailure(code);
 
 test("a save that finds the session ended clears the screen and leaves the saying to the page's notice", async () => {
@@ -44,7 +44,7 @@ test("a check after account_changed that finds the session ended shows only the 
 });
 
 test("a check after account_changed that succeeds says the account changed; other failures say their own reason", async () => {
-  const fine = async (): Promise<AccountState> => ({ available: true, fixture: false, user: { id: owner, email: null }, items: [] });
+  const fine = async (): Promise<AccountState> => ({ available: true, fixture: false, user: { id: owner, email: null } });
   let cleared = 0;
   const changed = await settleActionFailure(failure("account_changed"), { refresh: fine, clear: () => { cleared++; } });
   assert.equal(changed.reset, true);

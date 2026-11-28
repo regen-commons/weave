@@ -89,11 +89,11 @@ test("a question that replaces or withdraws something is asked in a dialog, not 
   const { readFileSync } = await import("node:fs");
   const { fileURLToPath } = await import("node:url");
   const source = (path: string) => readFileSync(fileURLToPath(new URL(`../src/${path}`, import.meta.url)), "utf8");
-  for (const file of ["account/AccountSection.tsx", "pages/YourInitiatives.tsx"]) {
+  for (const file of ["account/AccountSection.tsx", "pages/YourInitiatives.tsx"])
     assert.doesNotMatch(source(file), /aria-label="Confirm/u, `${file} asks in a notice`);
-    assert.match(source(file), /<TaskDialog\b/u, file);
-  }
-  assert.match(source("account/AccountSection.tsx"), /Load This Saved Card\?/u);
+  assert.match(source("pages/YourInitiatives.tsx"), /<TaskDialog\b/u);
+  // No private save opens any more (DL-155, D49), so the account panel asks nothing about loading one.
+  assert.doesNotMatch(source("account/AccountSection.tsx"), /Load This Saved Card\?/u);
   // Starting an initiative replaces nothing, so it asks nothing (DL-112).
   for (const file of ["account/AccountSection.tsx", "pages/YourInitiatives.tsx"])
     assert.doesNotMatch(source(file), /Start a new initiative\?|Back up (this card )?and start new/iu, file);

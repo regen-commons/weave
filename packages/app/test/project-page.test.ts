@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { parseDocument, parseSaved } from "@weave/api/account-contract";
+import { parseDocument, parseTeamSaved } from "@weave/api/account-contract";
 import { accountDocument, loadedDraft } from "../src/account/document.ts";
 import { newDraft, revise, type DeviceDraft } from "../src/describe/contracts.ts";
 import {
@@ -72,7 +72,7 @@ const titles = (draft: DeviceDraft, kind: "needs" | "offers") => draft[kind].ite
 const pencil = (draft: DeviceDraft) =>
   [...draft.needs.items, ...draft.offers.items].filter((item) => item.decision === "pencil");
 const saved = loadedDraft(
-  parseSaved({
+  parseTeamSaved({
     id: "b3000000-0000-4000-8000-000000000001",
     revision: 1,
     updatedAt: "2026-11-05T00:00:00Z",

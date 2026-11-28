@@ -1,9 +1,8 @@
 /** The agreed social screens over the same-origin account and project APIs. No fixture identities or content. */
-import { parseSummaries, record, uuid, type InitiativeSummary } from "@weave/api/account-contract";
+import { record, uuid } from "@weave/api/account-contract";
 import type { AccountState } from "../account/client.ts";
-import { AccountFailure, accountMessage, accountRequest, accountSessionSignal, assertAccount, parseSaved } from "../account/client.ts";
-import { AnotherAccountsCard, belongsToAnotherAccount, loadedDraft } from "../account/document.ts";
-import { CardReferenced, cardReferences, deleteSavedCard } from "../account/delete-card.ts";
+import { AccountFailure, accountMessage, accountRequest } from "../account/client.ts";
+import { AnotherAccountsCard, belongsToAnotherAccount } from "../account/document.ts";
 import { withConfirmedSession } from "../account/session-end.ts";
 import type { DraftController } from "../describe/controller.ts";
 import { hasDraft } from "../describe/view.ts";
@@ -16,8 +15,8 @@ import { finishEditorHandoff } from "../initiative/editor-handoff.ts";
 import type { CertifiedRecord, ProjectLink, SocialService, SocialState } from "./fixture.ts";
 
 export type LiveSocialService = Pick<SocialService,
-  "snapshot" | "signIn" | "signOut" | "linkProject" | "openWorkspace" | "openCard" |
-  "createProject" | "requestWorkspace" | "checkAgain" | "clearCard" | "approveSetup" | "recoverWorkspace" | "moreCards" | "deleteCard"> & {
+  "snapshot" | "signIn" | "signOut" | "linkProject" | "openWorkspace" |
+  "createProject" | "requestWorkspace" | "checkAgain" | "clearCard" | "approveSetup" | "recoverWorkspace"> & {
   reload(): Promise<void>;
   subscribe(listener: () => void): () => void;
   dispose(): void;
@@ -51,7 +50,6 @@ export function certifiedRecord(project: PublicProject, group?: Group): Certifie
     ...(project.place?.status === "unread" ? { unreadFields: ["locations" as const] } : {}),
     ...(project.publisherLinks?.length ? { publisherLinks: [...project.publisherLinks] } : {}) };
 }
-const savedCard = (item: InitiativeSummary) => ({ id: item.id, name: item.name, savedOn: item.updatedAt.slice(0, 10), revision: item.revision });
 const projectLink = (record: CertifiedRecord): ProjectLink => ({ ...record,
   workspace: !record.group ? "solo" : record.workspace ? "open" : "absent", requestedOn: null, created: false });
 export function createLiveSocialService(options: Options): LiveSocialService {
@@ -61,7 +59,6 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   const lifetime = new AbortController();
   let loading = false, problem: string | null = null, consent = false;
   let reloadGeneration = 0;
-  let cardsKey = JSON.stringify(options.account.items), cardsGeneration = 0, nextCardOffset = options.account.items.length;
   // A choice the device could not store, held for as long as the tab is open.
   let selected: { scope: string; uri: string } | null = null;
   // The team workspace this tab opened over its card. It is not a choice and not the card's
@@ -83,8 +80,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
   const selectedUri = () =>
     selected?.scope === key() ? selected.uri : chosenProjectUri(choices, owner, options.controller.getSnapshot().draft.id);
   let state: SocialState = { identity: owner ? { handle: "", id: owner } : null, saved: null, project: null, visit: null, shared: null, published: null,
-    records: [], cards: options.account.items.map(savedCard),
-    workspaces: [], hasMoreCards: options.account.items.length === 20, reminders: [], leads: [], notifications: { funding: false, partners: false } };
+    records: [], workspaces: [], reminders: [], leads: [], notifications: { funding: false, partners: false } };
   const emit = () => { if (!lifetime.signal.aborted) for (const notify of listeners) notify(); };
   const checked = () => { lifetime.signal.throwIfAborted(); if (!owner) throw new AccountFailure("sign_in_required"); return owner; };
   const confirmAccount = options.confirmAccount ?? options.refreshAccount;
@@ -209,7 +205,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       if (failures.length) {
         consent = failures.some(e => e instanceof AccountFailure && e.code === "project_consent_required");
         problem = consent ? "Allow Weave to check your Certified projects to continue."
-          : "Some Certified projects could not be checked. Your private saves are still available.";
+          : "Some Certified projects could not be checked. Try again.";
       }
     } catch (error) { if (current()) problem = accountMessage(error); }
     finally { if (current()) { loading = false; emit(); } }
@@ -222,14 +218,7 @@ export function createLiveSocialService(options: Options): LiveSocialService {
     dispose() { queueMicrotask(() => { if (!listeners.size) lifetime.abort(); }); }, reload,
     syncAccount(account) {
       if (account.user?.id !== owner || lifetime.signal.aborted) return;
-      const links = cardLinks([...state.records, ...(state.workspaces ?? [])]);
-      const nextKey = JSON.stringify(account.items);
-      if (cardsKey !== nextKey) {
-        cardsKey = nextKey; cardsGeneration++; nextCardOffset = account.items.length;
-        state = { ...state, cards: account.items.map(savedCard),
-          hasMoreCards: account.items.length === 20 };
-      }
-      state = { ...state, ...links };
+      state = { ...state, ...cardLinks([...state.records, ...(state.workspaces ?? [])]) };
       emit();
     },
     signIn: options.signIn,
@@ -278,19 +267,6 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       }
       options.openWorkspace(p.workspaceId); return link;
     },
-    async openCard(id) {
-      const signal = AbortSignal.any([lifetime.signal, accountSessionSignal()]);
-      signal.throwIfAborted();
-      const before = options.controller.getSnapshot().draft;
-      const result = await request(`?id=${encodeURIComponent(id)}`, undefined, "/api/account", signal);
-      signal.throwIfAborted(); checked(); assertAccount(result, owner!); const saved = parseSaved(result.saved);
-      if (saved.id !== id || options.controller.getSnapshot().draft !== before) throw Error("Your device draft changed. Try opening the card again.");
-      await options.controller.replace(loadedDraft(saved, owner!), signal); checked();
-      selected = null; visiting = null;
-      const linked = state.workspaces?.find(p => p.workspaceId === id);
-      if (linked) select(linked.uri);
-      state = { ...state, project: linked ? projectLink(linked) : null, visit: null }; emit();
-    },
     async createProject(card, groupLabel) {
       checked();
       if (!groupLabel) throw Error("Check the group's web address first.");
@@ -324,19 +300,6 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       } else throw Error("Ask the workspace admin for access to the existing workspace.");
     },
     checkAgain: reload,
-    async moreCards() {
-      checked();
-      const generation = cardsGeneration, offset = nextCardOffset;
-      const result = await request(`?offset=${offset}`, undefined, "/api/account", lifetime.signal);
-      checked(); assertAccount(result, owner!);
-      if (generation !== cardsGeneration || offset !== nextCardOffset) throw Error("Your saved list changed. Open More private saves again to continue.");
-      const items = parseSummaries(result.items);
-      nextCardOffset += items.length;
-      const seen = new Set(state.cards.map(item => item.id));
-      const added = items.filter(item => { if (seen.has(item.id)) return false; seen.add(item.id); return true; });
-      state = { ...state, cards: [...state.cards, ...added.map(savedCard)], hasMoreCards: items.length === 20 };
-      emit();
-    },
     async approveSetup(projectUri, requestId) {
       const result = await post({ action: "approve_setup", projectUri, requestId });
       if (result.status !== "linked" || !uuid(result.workspaceId)) throw Error("The workspace could not be approved. Check the request again.");
@@ -348,27 +311,6 @@ export function createLiveSocialService(options: Options): LiveSocialService {
       options.openWorkspace(result.workspaceId);
     },
     async clearCard() { selected = null; visiting = null; state = { ...state, project: null, visit: null }; emit(); },
-    async deleteCard(card, requestId) {
-      checked();
-      const signal = AbortSignal.any([lifetime.signal, accountSessionSignal()]);
-      try {
-        const result = await deleteSavedCard(options.controller, card, requestId, request, signal);
-        // Confirmed by the server: report it even if this view has since closed.
-        if (!lifetime.signal.aborted) {
-          cardsGeneration++; nextCardOffset = Math.max(0, nextCardOffset - 1);
-          state = { ...state, cards: state.cards.filter(item => item.id !== card.id) }; emit();
-        }
-        return result;
-      } catch (error) {
-        // The account gives one code for every reference. Say only what Weave can verify (QA notes, 25 November 2026).
-        if (error instanceof AccountFailure && error.code === "initiative_referenced" && !(error instanceof CardReferenced))
-          throw new CardReferenced(cardReferences(card.id, state.workspaces ?? []));
-        throw error;
-      } finally {
-        // The account list is the authority afterwards, whether the card went or was refused.
-        if (!lifetime.signal.aborted) await options.refreshAccount().then(account => service.syncAccount(account), () => {});
-      }
-    },
   };
   return service;
 }

@@ -1,11 +1,10 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { parseDocument, parseSaved, record, type AccountDocument } from "@weave/api/account-contract";
+import { parseDocument, record, type AccountDocument } from "@weave/api/account-contract";
 import { parseMatchingSearch, parseMatchingState } from "@weave/api/matching-contract";
 import { accountFixture, fixtureSession, seedFixtureSave } from "../dev/account-fixture.ts";
 import { matchingFixture } from "../dev/matching-fixture.ts";
-import { activeInitiative } from "../src/account/active-initiative.ts";
 import { AccountFailure } from "../src/account/client.ts";
 import { loadedDraft } from "../src/account/document.ts";
 import { EMPTY_ASK } from "../src/intake/contracts.ts";
@@ -69,14 +68,13 @@ test("sharing for matching has ended: state still reads, and every share command
   assert.equal((await matching(token, card.id, { action: "state", query: "words" }, 400)).error, "invalid_data");
   assert.deepEqual(parseMatchingState(await matching(token, card.id, { action: "state" })), shared);
 
-  // A returning account opens the same card by the same initiative ID.
+  // A returning account reads the same state by the same initiative ID, and the account no longer opens the card (D49).
   assert.equal((await accountFixture.POST(post("/api/account", { action: "sign_out" }, token))).status, 200);
   assert.equal((await matching(token, card.id, { action: "state" }, 401)).error, "sign_in_required");
   const returning = fixtureSession(owner);
+  assert.deepEqual(parseMatchingState(await matching(returning, card.id, { action: "state" })), shared);
   const loaded = await accountFixture.GET(new Request(`${origin}/api/account?id=${card.id}`, { headers: { Cookie: `weave_local_account=${returning}` } }));
-  const draft = loadedDraft(parseSaved(record(await loaded.json()).saved), owner);
-  assert.equal(activeInitiative(draft.account.saved, owner)?.id, card.id);
-  assert.deepEqual(draft.needs.items.map(({ id }) => id), [need.id, privateNeed.id]);
+  assert.deepEqual([loaded.status, await loaded.json()], [410, { error: "private_saves_retired" }]);
 });
 
 test("browser client uses no-store POST with cancellation and refuses a response for another initiative", async (t) => {

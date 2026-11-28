@@ -3,7 +3,9 @@
 Use the [root guide](../../AGENTS.md) for shared workflow. `@weave/api` holds Weave's
 server functions: the consented cloud AI proxy, sharing, introductions, the pulse and
 the catalog, as [spec 2](../../docs/platform/05-technical-spec.md#2-system-context)
-lists. It includes the health check and private account sign-in, save and load. The public, read-only
+lists. It includes the health check and private account sign-in, session and sign-out. `/api/account`
+no longer lists, opens or deletes the private saves made before, and refuses a save, a delete and a
+read by ID with `private_saves_retired` (DL-155, step 7, D49). The public, read-only
 MCP endpoint for assistants is described in [MCP.md](MCP.md). This whole package is a critical surface:
 read every touched line and prove the failure paths.
 

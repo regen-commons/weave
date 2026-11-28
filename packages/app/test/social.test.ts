@@ -39,22 +39,8 @@ test("signing in only identifies the person: nothing is saved, linked or shared 
     ["Orchard learning circle", "Seed library of the upper valley", "Spring water notes"],
   );
   await service.save(card.name);
-  assert.deepEqual(service.snapshot().saved, {
-    place: "private",
-    on: "2026-11-04",
-    key: null,
-    card: "orchard-learning-circle",
-  });
-  assert.deepEqual(
-    service.snapshot().cards.map((item) => [item.name, item.savedOn]),
-    [[card.name, "2026-11-04"]],
-  );
-  await service.save("Orchard circle, renamed", "private", "key-2");
-  assert.deepEqual(
-    service.snapshot().cards.map((item) => [item.id, item.name]),
-    [["orchard-learning-circle", "Orchard circle, renamed"]],
-    "a renamed card stays the same save",
-  );
+  assert.deepEqual(service.snapshot().saved, { place: "private", on: "2026-11-04", key: null });
+  assert.equal("cards" in service.snapshot(), false, "the example lists no private saves (DL-155, D49)");
   await assert.rejects(service.save(card.name, "workspace"), /no team workspace/);
 });
 
@@ -62,7 +48,6 @@ test("linking decides where saved work goes: a team workspace, a request to set 
   const team = createSocialFixture("private", "2026-11-04");
   assert.equal((await team.linkProject(ORCHARD_RECORD.uri)).workspace, "open");
   assert.equal(team.snapshot().saved?.place, "workspace", "the private save moves into the open workspace");
-  assert.deepEqual(team.snapshot().cards, []);
   assert.equal(team.snapshot().shared, null, "linking shares nothing");
 
   const waiting = createSocialFixture("private", "2026-11-04");
@@ -80,7 +65,6 @@ test("linking decides where saved work goes: a team workspace, a request to set 
   assert.equal(waiting.snapshot().saved?.place, "private", "approval moves nothing into the workspace");
   await waiting.save(card.name, "workspace", "key");
   assert.equal(waiting.snapshot().saved?.place, "workspace");
-  assert.deepEqual(waiting.snapshot().cards, [], "the workspace holds the copy now");
 
   const solo = createSocialFixture("private", "2026-11-04");
   assert.equal((await solo.linkProject(WATER_NOTES_RECORD.uri)).workspace, "solo");
@@ -108,42 +92,22 @@ test("with no project on Certified, creating one starts a group with the creator
   );
   const state = service.snapshot();
   assert.equal(state.saved?.place, "workspace", "the private save becomes the new workspace's copy");
-  assert.deepEqual(state.cards, []);
   assert.equal(state.records[0]?.uri, link.uri, "the project joins the person's list");
   assert.deepEqual([state.shared, state.published], [null, null], "creating a project shares and lists nothing");
   assert.equal(partnerAccessOf(state), "public", "a linked project sees public sources while its entries stay private");
 });
 
-test("opening a team workspace or a private save loads what is there and saves nothing new", async () => {
+test("opening a team workspace loads what is there and saves nothing new", async () => {
   const service = createSocialFixture("returning", "2026-11-04");
   assert.equal(service.snapshot().saved, null);
-  await service.openCard("orchard-learning-circle", "key-card");
-  assert.deepEqual(service.snapshot().saved, {
-    place: "private",
-    on: "2026-11-01",
-    key: "key-card",
-    card: "orchard-learning-circle",
-  });
-  assert.equal(service.snapshot().project, null, "loading a private save links nothing");
-  await assert.rejects(service.openCard("gone", "key"), /not in Weave any more/);
+  assert.equal("openCard" in service, false, "no private save opens any more (DL-155, D49)");
   const link = await service.openWorkspace(ORCHARD_RECORD.uri, "key-team");
   assert.equal(link.workspace, "open");
-  assert.deepEqual(service.snapshot().saved, {
-    place: "workspace",
-    on: "2026-11-02",
-    key: "key-team",
-    card: null,
-  });
-  assert.deepEqual(
-    service.snapshot().cards.map((item) => item.savedOn),
-    ["2026-11-01"],
-    "the private save stays the person's own, untouched",
-  );
+  assert.deepEqual(service.snapshot().saved, { place: "workspace", on: "2026-11-02", key: "key-team" });
   await assert.rejects(service.openWorkspace(SEED_LIBRARY_RECORD.uri, "key"), /no team workspace/);
   await service.clearCard();
   assert.deepEqual([service.snapshot().saved, service.snapshot().project], [null, null]);
   assert.equal(service.snapshot().records.length, 3, "the person's projects stay on Certified");
-  assert.equal(service.snapshot().cards.length, 1);
 });
 
 test("publishing leaves an earlier share as it was, and a withdrawal waits for Certified", async () => {
@@ -222,7 +186,7 @@ test("reminders need a saved initiative, saved partners need a linked project, a
   assert.deepEqual(service.snapshot().leads, ["orchard"]);
   await service.deleteAccount();
   assert.equal(service.snapshot().identity, null);
-  assert.deepEqual([service.snapshot().cards, service.snapshot().reminders, service.snapshot().leads], [[], [], []]);
+  assert.deepEqual([service.snapshot().reminders, service.snapshot().leads], [[], []]);
   await assert.rejects(service.save(card.name), /Sign in/);
   const unsaved = createSocialFixture("returning", "2026-11-04");
   await assert.rejects(unsaved.remind("water-grant"), /Save your initiative first/);
@@ -230,7 +194,6 @@ test("reminders need a saved initiative, saved partners need a linked project, a
   await signedOut.signOut();
   assert.equal(savedPlace(signedOut.snapshot()), "device");
   assert.equal(partnerAccessOf(signedOut.snapshot()), "unlinked");
-  assert.equal(signedOut.snapshot().cards.length, 1, "the private save survives signing out");
 });
 
 test("the words say who works on a project and where saved work goes before the person links it", () => {
@@ -302,6 +265,10 @@ test("opening a project from Your Initiatives asks before an unlinked device car
   assert.equal(projectOpening({ workspace: false }, { card: true, linked: true }), "start",
     "a card already linked to another project stays with it, and the project starts its own");
   assert.equal(projectOpening({ workspace: false }, { card: false, linked: false }), "start");
+  // A personal project's workspace held a private saved card, and those are gone (DL-155, D49).
+  assert.equal(projectOpening({ workspace: true, group: null }, { card: false, linked: false }), "start");
+  assert.equal(projectOpening({ workspace: true, group: null }, { card: true, linked: false }), "choose");
+  assert.equal(projectOpening({ workspace: true, group: "Upper valley growers" }, { card: true, linked: false }), "workspace");
 });
 
 test("the card on a device stands for its project's team workspace, so one initiative is listed once", () => {
