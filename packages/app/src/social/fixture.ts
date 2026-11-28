@@ -6,6 +6,7 @@
  */
 import type { Scenario } from "../fixtures.ts";
 import type { DeletedCard } from "../account/delete-card.ts";
+import { canPublishForGroup, GROUP_PUBLISH_AUTHORITY } from "../initiative/status.ts";
 
 /** Chosen need and offer identities, or every kept one. */
 export type Entries = readonly string[] | "all";
@@ -216,6 +217,8 @@ const linkTo = (record: CertifiedRecord, created = false): ProjectLink => ({
   group: record.group,
   role: record.role,
   workspace: !record.group ? "solo" : record.workspace ? "open" : "absent",
+  // Whoever sets up a team workspace holds its admin grant; a plain member is granted access separately.
+  ...(record.group && record.workspace && record.role !== "member" ? { accessRole: "admin" as const } : {}),
   publishedOn: record.publishedOn,
   requestedOn: null,
   created,
@@ -408,9 +411,8 @@ export function createSocialFixture(
     },
     async publish(entries, key) {
       identity();
-      // Publishing authority comes from the Certified group, so it is refused before anything else.
-      if (state.project?.group && state.project.role === "member")
-        throw new Error("Only a group admin or owner can publish on Certified.");
+      // Publishing for a group needs edit access in its team workspace (the user, 28 November 2026).
+      if (state.project?.group && !canPublishForGroup(state.project)) throw new Error(GROUP_PUBLISH_AUTHORITY);
       leaves();
       chosen(entries);
       if (outcome() === "fail") throw new Error("Certified did not confirm the record. Nothing was published.");

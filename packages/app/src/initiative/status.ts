@@ -123,15 +123,28 @@ export function publicKey(draft: DeviceDraft, entries: Entries = "all"): string 
   });
 }
 
-/** A team's entries leave from its workspace, so the card is saved there first (until step 6 of DL-155's plan). */
+/** A group project's entries leave from its shared team draft (D48), so the card is saved there first. */
 const TEAM_SAVE_FIRST: Exposure = { state: "locked", line: "Save to the team workspace first.", waits: "save" };
 const WORKSPACE_FIRST: Exposure = { state: "locked", line: "Waits for the team workspace.", waits: "workspace" };
+/** What a teammate without edit access reads, wherever publishing for a group is refused. */
+export const GROUP_PUBLISH_AUTHORITY = "Only teammates who can edit the team workspace can publish. Ask a workspace admin for edit access.";
+/**
+ * Whether this person may publish for a group project: a Weave editor or admin grant in its team workspace, as
+ * Platform and the API require with current group membership (the user, 28 November 2026). A plain group member
+ * with an editor grant can; an admin or owner of the group with only a viewer grant cannot.
+ */
+export function canPublishForGroup(project: { readonly accessRole?: "viewer" | "editor" | "admin" }): boolean {
+  return project.accessRole === "editor" || project.accessRole === "admin";
+}
+const NO_EDIT_ACCESS: Exposure = { state: "locked", line: GROUP_PUBLISH_AUTHORITY, waits: "authority" };
 /**
  * The lock a linked project puts on publishing, or null when the entries can leave. A person's own card
- * publishes straight from the draft (DL-155), so only a team's workspace asks for anything first.
+ * publishes straight from the draft (DL-155); a group project waits for its team workspace, then for edit
+ * access in it, then for its team draft.
  */
 function locked(example: SocialState, project: NonNullable<SocialState["project"]>): Exposure | null {
   if (project.workspace === "absent" || project.workspace === "requested") return WORKSPACE_FIRST;
+  if (project.group && !canPublishForGroup(project)) return NO_EDIT_ACCESS;
   if (project.workspace === "open" && example.saved?.place !== "workspace") return TEAM_SAVE_FIRST;
   return null;
 }
@@ -168,9 +181,6 @@ function publishingOf(draft: DeviceDraft, example: SocialState): Exposure | null
       line: `${entryCount(chosenEntries(draft, published.entries))} published on ${fullDate(published.on)}, for anyone to read.`,
       waits: null,
     };
-  // Publishing authority comes from the Certified group, so a plain member reads why there is no action.
-  if (project.group && project.role === "member")
-    return { state: "locked", line: "Only a group admin or owner can publish on Certified.", waits: "authority" };
   return locked(example, project) ?? { state: "off", line: NOT_PUBLIC_LINE, waits: null };
 }
 

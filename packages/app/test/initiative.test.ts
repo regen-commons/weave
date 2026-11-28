@@ -7,20 +7,7 @@ import { confirmDraft, newDraft, pendingDetails, revise } from "../src/describe/
 import { draftFromRecord, draftWithRecord, waitingSuggestions } from "../src/initiative/import.ts";
 import { privatePartnerQueries } from "../src/partners/certified-suggestions.ts";
 import { partnersWaitingLine } from "../src/social/words.ts";
-import {
-  cardName,
-  cardRoute,
-  cardStatus,
-  chosenEntries,
-  entryCount,
-  NOT_PUBLIC_LINE,
-  openSteps,
-  PUBLISH_ACTION,
-  publicListingsLine,
-  publicCard,
-  publicKey,
-  shareable,
-} from "../src/initiative/status.ts";
+import { cardName, cardRoute, cardStatus, chosenEntries, entryCount, NOT_PUBLIC_LINE, openSteps, PUBLISH_ACTION, publicListingsLine, publicCard, publicKey, shareable, GROUP_PUBLISH_AUTHORITY } from "../src/initiative/status.ts";
 import { addEntry, keepPending } from "../src/intake/entries.ts";
 import { intakeComplete } from "../src/intake/finish.ts";
 import { reviewStep } from "../src/intake/state.ts";
@@ -132,14 +119,13 @@ test("a linked project decides what publishing waits on, and only a team workspa
   const absent = cardStatus(complete, "saved", waiting.snapshot(), "signed-out");
   assert.equal(absent.line, "Also kept as a private save in Weave, which no longer changes. Only you can see it.");
   assert.equal(absent.save, null);
-  assert.deepEqual(absent.publishing, {
-    state: "locked",
-    line: "Only a group admin or owner can publish on Certified.",
-    waits: "authority",
-  });
+  // A group project waits for its team workspace first, then for edit access in it (D48, 28 November 2026).
+  assert.deepEqual(absent.publishing, { state: "locked", line: "Waits for the team workspace.", waits: "workspace" });
   await waiting.requestWorkspace();
   await waiting.checkAgain();
   const approved = cardStatus(complete, "saved", waiting.snapshot(), "signed-out");
+  assert.deepEqual(approved.publishing, { state: "locked", line: GROUP_PUBLISH_AUTHORITY, waits: "authority" },
+    "a member whose workspace opened has no edit access until a workspace admin grants it");
   assert.deepEqual(approved.save, {
     needs: "save",
     label: "Save To Team Workspace",
@@ -150,6 +136,10 @@ test("a linked project decides what publishing waits on, and only a team workspa
   const moved = cardStatus(complete, "saved", waiting.snapshot(), "signed-out");
   assert.equal(moved.line, "Saved in the Valley seed keepers workspace. Teammates with access can see it.");
   assert.equal(moved.save, null);
+  // With an editor grant, a plain group member publishes from the team draft; a viewer grant still cannot.
+  const grant = (accessRole: "viewer" | "editor") => ({ ...waiting.snapshot(), project: { ...waiting.snapshot().project!, accessRole } });
+  assert.deepEqual(cardStatus(complete, "saved", grant("editor"), "signed-out").publishing, { state: "off", line: NOT_PUBLIC_LINE, waits: null });
+  assert.equal(cardStatus(complete, "saved", grant("viewer"), "signed-out").publishing?.waits, "authority");
   assert.equal(moved.publishing?.waits, "authority", "a group member still cannot publish");
   const changedInTeam = cardStatus(renamed, "saved", waiting.snapshot(), "signed-out");
   assert.deepEqual([changedInTeam.line, changedInTeam.save?.label],
@@ -181,8 +171,8 @@ test("only open steps get a row, one step leads, and one line says what opens th
 
   const waiting = createSocialFixture("private", "2026-11-04");
   await waiting.linkProject(SEED_LIBRARY_RECORD.uri);
-  const authority = "Only a group admin or owner can publish on Certified.";
-  assert.deepEqual(steps(waiting), { lead: "workspace", publishing: null, later: authority });
+  const authority = GROUP_PUBLISH_AUTHORITY;
+  assert.deepEqual(steps(waiting), { lead: "workspace", publishing: null, later: "Publishing opens once the team workspace is set up." });
   await waiting.requestWorkspace();
   assert.equal(steps(waiting).lead, "workspace", "asking does not open the workspace");
   await waiting.checkAgain();
