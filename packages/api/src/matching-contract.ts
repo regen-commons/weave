@@ -1,5 +1,5 @@
-import { LENSES, parseSavedAsk, record, uuid, type JsonObject } from "./account-contract.ts";
-import type { PartnerMatch, ProjectEvidence, SharedPartnerEntry } from "./partner-matcher.ts";
+import { CAPITALS, LENSES, parseSavedAsk, record, uuid, type JsonObject } from "./account-contract.ts";
+import type { ListingPartnerEntry, PartnerEntry, PartnerMatch, ProjectEvidence, SharedPartnerEntry } from "./partner-matcher.ts";
 
 export type MatchingKind = "need" | "offer";
 export type MatchingShare = "private" | "shared" | "needs_review" | "withdrawn" | "expired";
@@ -75,6 +75,8 @@ export type MatchingCommand = { initiativeId: string } & (
   | { action: "share" | "renew"; reviewId: string; requestId: string }
   | { action: "withdraw"; entries: MatchingEntryRef[]; requestId: string }
   | { action: "search"; entries?: MatchingEntryRef[] }
+  // DL-155, step 5: partners for a linked project's published listings. `initiativeId` names the workspace.
+  | { action: "listing_search" }
   | ({ action: "set_lead" } & MatchingLeadUpdate)
 );
 
@@ -123,8 +125,72 @@ export function matchingCandidateId(value: unknown) {
   const [source, initiativeId, entryKind, entryId, extra] = id.split(":");
   if (source === "weave" && uuid(initiativeId) && ["need", "offer"].includes(entryKind ?? "") && uuid(entryId) && extra === undefined)
     return `weave:${initiativeId.toLowerCase()}:${entryKind}:${entryId.toLowerCase()}`;
+  if (id.startsWith("listing:")) return `listing:${listingUri(id.slice("listing:".length))}`;
   return /^public:at:\/\/did:[a-z]+:[^/\s]+\/[a-zA-Z0-9.-]+\/[a-zA-Z0-9._~:-]+$/u.test(id) && !/[\s\u0000-\u001f\u007f]/u.test(id)
     ? id : invalid();
+}
+const LISTING_COLLECTION = "com.regencommons.weave.supportListing";
+/** A listing's public address: its repository's DID, the listing collection and a record key Weave writes. */
+export function listingUri(value: unknown): string {
+  const uri = text(value, 600);
+  return /^at:\/\/did:[a-z]+:[A-Za-z0-9._:%-]+\/com\.regencommons\.weave\.supportListing\/[2-7a-j][2-7a-z]{12}$/u.test(uri)
+    ? uri : invalid();
+}
+const repositoryOf = (uri: string) => uri.split("/")[2];
+const listingCid = (value: unknown) => typeof value === "string" && /^b[a-z2-7]{40,100}$/u.test(value) ? value : invalid();
+/** The list's items that parse, so one damaged record from another project hides only itself. */
+function tolerant<T>(value: unknown, max: number, parse: (value: unknown) => T): T[] {
+  if (!Array.isArray(value) || value.length > max) return invalid();
+  return value.flatMap(item => { try { return [parse(item)]; } catch { return []; } });
+}
+/**
+ * The fields matching reads from a listing record Weave published and read back. A reader ignores kinds of
+ * support it does not know, and any status but open means the listing is inactive (lexicons README).
+ */
+function listingFields(value: unknown, listingKind: MatchingKind, projectUri: string) {
+  const r = record(value);
+  if (r.$type !== LISTING_COLLECTION || r.kind !== listingKind || r.projectUri !== projectUri || r.status !== "open"
+    || !Array.isArray(r.capitalForms)) return invalid();
+  const title = text(r.title, 1400);
+  if (!title.trim()) return invalid();
+  const known: readonly string[] = CAPITALS;
+  return {
+    title, description: r.description === undefined ? "" : text(r.description, 6000),
+    capitalForms: [...new Set((r.capitalForms as unknown[]).filter((item): item is string =>
+      typeof item === "string" && known.includes(item)))].slice(0, 8),
+    createdAt: date(r.createdAt), expiresAt: r.expiresAt === undefined ? null : date(r.expiresAt),
+  };
+}
+/** Another project's current listing, with its address, version and the project's public name. */
+function listingCandidate(value: unknown): ListingPartnerEntry {
+  const o = record(value), listingKind = kind(o.kind), uri = listingUri(o.uri), projectUri = text(o.projectUri, 633);
+  matchingCandidateId(`public:${projectUri}`);
+  if (repositoryOf(uri) !== repositoryOf(projectUri)) return invalid();
+  return { uri, cid: listingCid(o.cid), projectUri, projectName: text(o.projectName, 300), kind: listingKind,
+    ...listingFields(o.record, listingKind, projectUri) };
+}
+/**
+ * The workspace's own current listings, each as a partner query with the other projects' listings and the public
+ * evidence its words found. Its own listings are Weave's record of what it published, so a damaged one fails
+ * the read; another project's is left out.
+ */
+export function parseListingShortlist(value: unknown, workspaceId: string) {
+  const o = record(value);
+  return {
+    externalCoverage: o.externalCoverage,
+    groups: array(o.groups, 100, item => {
+      const g = record(item), l = record(g.listing), listingKind = kind(l.kind), uri = listingUri(l.uri);
+      const projectUri = text(record(l.record).projectUri, 633);
+      matchingCandidateId(`public:${projectUri}`);
+      if (repositoryOf(uri) !== repositoryOf(projectUri)) return invalid();
+      const fields = listingFields(l.record, listingKind, projectUri);
+      const query: PartnerEntry = { initiativeId: workspaceId, entryId: identifier(l.entryId), revision: 0, kind: listingKind,
+        value: { title: fields.title, description: fields.description, capitalForms: fields.capitalForms, status: "open" },
+        summary: { name: "", locations: [] } };
+      return { query, uri, cid: listingCid(l.cid), projectUri,
+        candidates: tolerant(g.candidates, 75, listingCandidate), publicEvidence: g.publicEvidence };
+    }),
+  };
 }
 export function parseMatchingCommand(value: unknown): MatchingCommand {
   const o = record(value), initiativeId = identifier(o.initiativeId), base = ["action", "initiativeId"];
@@ -155,6 +221,9 @@ export function parseMatchingCommand(value: unknown): MatchingCommand {
     case "search":
       exact(o, base, ["entries"]);
       return { initiativeId, action: o.action, ...(o.entries === undefined ? {} : { entries: selections(o.entries) }) };
+    case "listing_search":
+      exact(o, base);
+      return { initiativeId, action: o.action };
     case "set_lead": {
       exact(o, [...base, "entry", "candidateId", "disposition", "requestId"]);
       const disposition = option(o.disposition, ["saved", "dismissed", "removed"]);
@@ -247,6 +316,9 @@ export function parsePublicEvidenceSnapshot(value: unknown) {
     availableUntil: date(o.availableUntil),
     truncated: o.truncated,
     evidence: array(o.evidence, 160, parseProjectEvidence),
+    // Other projects' published listings (DL-155, step 5). A Platform without them sends none.
+    listings: o.listings === undefined ? [] : tolerant(o.listings, 100, listingCandidate),
+    listingsTruncated: o.listingsTruncated === true,
   };
 }
 
@@ -256,23 +328,30 @@ export function parseMatchingSearch(value: unknown): MatchingSearch {
   const o = record(value), c = record(o.coverage);
   return { initiativeId: identifier(o.initiativeId), results: array(o.results, 300, item => {
     const r = record(item), query = record(r.query), counterpart = record(r.counterpart), evidence = record(r.evidence);
-    const type = option(evidence.type, ["shared", "public"]);
+    const type = option(evidence.type, ["shared", "listing", "public"]);
     if (typeof r.reciprocal !== "boolean") return invalid();
     const candidateId = matchingCandidateId(r.candidateId);
     const evidenceKind = option(r.evidenceKind, ["confirmed_offer", "confirmed_need", "published_offer",
       "published_request", "inferred_capability", "potential_use"]);
-    const action = option(r.action, ["review_entry", "open_source"]);
+    const action = option(r.action, ["review_entry", "open_listing", "open_source"]);
+    // A direct fit is a shared entry or a published listing, each with its own address and action.
     const confirmed = evidenceKind === "confirmed_offer" || evidenceKind === "confirmed_need";
-    if ((type === "shared") !== confirmed || confirmed !== candidateId.startsWith("weave:") ||
-      confirmed !== (action === "review_entry")) return invalid();
+    const [prefix, expected] = type === "shared" ? ["weave:", "review_entry"]
+      : type === "listing" ? ["listing:", "open_listing"] : ["public:", "open_source"];
+    if (confirmed !== (type !== "public") || !candidateId.startsWith(prefix) || action !== expected) return invalid();
+    const parsedEvidence = type === "shared" ? { type, entryId: identifier(evidence.entryId), revision: version(evidence.revision),
+      title: text(evidence.title, 140), passage: text(evidence.passage, 8000),
+      confirmedAt: date(evidence.confirmedAt), expiresAt: nullableDate(evidence.expiresAt) }
+      : type === "listing" ? { type, uri: listingUri(evidence.uri), cid: listingCid(evidence.cid),
+        title: text(evidence.title, 1400), passage: text(evidence.passage, 8000),
+        createdAt: date(evidence.createdAt), expiresAt: nullableDate(evidence.expiresAt) }
+        : { type, ...parseProjectEvidence(evidence) };
+    if (parsedEvidence.type === "listing" && candidateId !== `listing:${parsedEvidence.uri}`) return invalid();
     return {
-      query: { kind: kind(query.kind), entryId: identifier(query.entryId), revision: version(query.revision) },
+      query: { kind: kind(query.kind), entryId: identifier(query.entryId), revision: version(query.revision, 0) },
       candidateId, counterpart: { id: text(counterpart.id, 640), name: text(counterpart.name, 300) },
       evidenceKind, action, reciprocal: r.reciprocal,
-      evidence: type === "shared" ? { type, entryId: identifier(evidence.entryId), revision: version(evidence.revision),
-        title: text(evidence.title, 140), passage: text(evidence.passage, 8000),
-        confirmedAt: date(evidence.confirmedAt), expiresAt: nullableDate(evidence.expiresAt) }
-        : { type, ...parseProjectEvidence(evidence) },
+      evidence: parsedEvidence,
       reasons: array(r.reasons, 15, value => {
         const reason = record(value);
         return { type: option(reason.type, ["shared_terms", "related_terms"]), terms: array(reason.terms, 20, value => text(value, 120)) };

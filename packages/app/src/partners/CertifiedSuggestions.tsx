@@ -80,7 +80,7 @@ export function CertifiedSuggestions({ workspaceId, queries, waiting = [], compa
     ? current.snapshot : null;
   useEffect(() => {
     if (!snapshot) return;
-    const input = [workspaceId, queries, snapshot.evidence] as const;
+    const input = [workspaceId, queries, snapshot.evidence, snapshot.listings] as const;
     const show = (matches: RankedPartnerMatch[]) => setRanked({ snapshot, queries, matches });
     let worker: Worker | undefined;
     let timeout: ReturnType<typeof setTimeout> | undefined;

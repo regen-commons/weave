@@ -440,3 +440,25 @@ test("a team save review shows the card and its entries, never raw saved fields"
   const unreadable = { ...base, initiative: { ...base.initiative, name: 7 } } as unknown as AccountDocument;
   assert.equal(documentCard(unreadable), null, "a document that cannot show as a card shows nothing rather than failing");
 });
+
+test("a draft's kept need finds another project's published offer in the snapshot, as a direct fit from that project (DL-155)", async () => {
+  const { privatePartnerQueries, projectSuggestions, rankCertifiedSuggestions } = await import("../src/partners/certified-suggestions.ts");
+  const workspace = crypto.randomUUID();
+  const benProject = "at://did:plc:benbbbbbbbbbbbbbbbbbbbbb/org.hypercerts.collection/3mlistingben1";
+  const listing = (title: string, rkey: string) => ({
+    uri: `at://did:plc:benbbbbbbbbbbbbbbbbbbbbb/com.regencommons.weave.supportListing/${rkey}`, cid: `b${"d".repeat(58)}`,
+    projectUri: benProject, projectName: "Ben's seed library", kind: "offer" as const, title, description: "",
+    capitalForms: ["intellectual"], createdAt: new Date(Date.now() - 60_000).toISOString(), expiresAt: null,
+  });
+  const need = ask("Weekend volunteers for our seed library");
+  const queries = privatePartnerQueries(workspace, 0, [need], []);
+  const matches = rankCertifiedSuggestions(workspace, queries, [],
+    [listing("Seed library volunteers on weekends", "3mlstdaaaaaaa"), listing("Bike repair", "3mlstnaaaaaaa")]);
+  assert.deepEqual(matches.map(({ candidateId, evidenceKind, action }) => [candidateId, evidenceKind, action]), [[
+    `listing:at://did:plc:benbbbbbbbbbbbbbbbbbbbbb/com.regencommons.weave.supportListing/3mlstdaaaaaaa`, "confirmed_offer", "open_listing",
+  ]]);
+  const [project] = projectSuggestions(matches, queries);
+  assert.equal(project?.id, benProject);
+  assert.equal(project?.name, "Ben's seed library");
+  assert.equal(project?.fits.length, 1);
+});

@@ -375,7 +375,9 @@ export function rankPartners(input: Parameters<typeof rankPartnerMatches>[0]): R
         match: { ...match, reasons: found && match.evidence.type === "public" && (found.role || found.fields.length || found.place || capability)
           ? [...match.reasons, complementReason(found, match.evidence.kind === "work" ? capability : undefined)] : match.reasons },
         score: (found?.score ?? 0) + 8 * Math.min(4, overlap),
-        freshness: match.evidence.type === "shared" ? Date.parse(match.evidence.confirmedAt) : Date.parse(match.evidence.sourceIndexedAt ?? match.evidence.sourceCreatedAt) || 0,
+        freshness: match.evidence.type === "shared" ? Date.parse(match.evidence.confirmedAt)
+          : match.evidence.type === "listing" ? Date.parse(match.evidence.createdAt)
+            : Date.parse(match.evidence.sourceIndexedAt ?? match.evidence.sourceCreatedAt) || 0,
       });
     }
     const listed = new Set(candidates.map(({ match }) => match.candidateId));
