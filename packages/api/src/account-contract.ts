@@ -181,8 +181,8 @@ function checkedAsk(value: unknown): SavedAsk {
 /** How many needs, and how many offers, a card can be given. Adding one more is refused where it is added. */
 export const ASK_LIMIT = 4;
 /**
- * How many a stored list may hold. Cards saved under the earlier limit of five stay readable and
- * saveable, so this contract accepts them; it cannot tell an old list of five from a new one.
+ * How many a stored list may hold. Cards saved under the earlier limit of five stay readable, and a team
+ * draft that holds five stays saveable, so this contract accepts them; it cannot tell an old list of five from a new one.
  */
 export const STORED_ASK_LIMIT = 5;
 function asks(value: unknown): SavedAsk[] {

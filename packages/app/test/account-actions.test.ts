@@ -86,6 +86,22 @@ test("the account panel's completed Load backs up the device draft and stays on 
   assert.deepEqual(await controller.backups(), backups);
 });
 
+test("opening an earlier private save refuses another account's or another card's response and keeps the device draft", async t => {
+  const { repository, controller, draft } = await setup();
+  const responses = [
+    { user: { id: "b1000000-0000-4000-8000-000000000009", email: null }, saved },
+    { user: { id: owner, email: null }, saved: { ...saved, id: "b3000000-0000-4000-8000-000000000009" } },
+  ];
+  let next = 0;
+  t.mock.method(globalThis, "fetch", async () => Response.json(responses[next++]));
+  await assert.rejects(loadAccountCard(controller, owner, saved.id), changed, "another account's answer");
+  await assert.rejects(loadAccountCard(controller, owner, saved.id),
+    (error: unknown) => error instanceof AccountFailure && error.code === "account_unavailable", "another card's answer");
+  assert.equal(controller.getSnapshot().draft, draft);
+  assert.equal(repository.value, draft);
+  assert.deepEqual(await controller.backups(), []);
+});
+
 // A card is never copied into another account (DL-055). The refusal is in the save path itself,
 // so it holds whichever button, dialog or return from sign-in reaches it.
 const other = "b1000000-0000-4000-8000-000000000002";

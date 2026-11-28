@@ -22,13 +22,17 @@ const projectUri = "at://did:plc:synthetic/org.hypercerts.collection/example";
 test("rejects foreign origins, missing sessions and injected draft text before RPC", async () => {
   const provider = createMatchingProvider(async () => assert.fail("request must not reach the database"));
   const { POST } = createMatchingHandlers({ provider, origin });
-  for (const command of [{ action: "state", initiativeId: owner }, { action: "listing_search", initiativeId: owner }]) {
+  // A retired action meets every check before its refusal by name, so no origin can probe for it signed out.
+  for (const command of [{ action: "state", initiativeId: owner }, { action: "listing_search", initiativeId: owner },
+    { action: "share", initiativeId: owner }]) {
     const attempts = [
       [request(command, { origin: "https://elsewhere.example.test" }), 403],
       [request(command, { cookie: "" }), 401],
-      [request({ ...command, query: "private unshared note" }), 400],
-      [request({ ...command, entries: [ref] }), 400],
-      [request({ ...command, initiativeId: "not-an-id" }), 400],
+      ...(command.action === "share" ? [] : [
+        [request({ ...command, query: "private unshared note" }), 400],
+        [request({ ...command, entries: [ref] }), 400],
+        [request({ ...command, initiativeId: "not-an-id" }), 400],
+      ] as const),
       [request(command, { "content-type": "text/plain" }), 415],
       [request(command, { "content-length": "65537" }), 413],
     ] as const;
